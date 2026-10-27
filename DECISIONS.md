@@ -96,6 +96,11 @@ Design decisions, in the order they were made. Each entry: the decision, why, an
 **Why:** Tier 0 scored 0/8 in every earlier run because the prompt never told the model that declining was allowed. That is an instruction gap no schema note can fix, and declining instead of guessing is what a trustworthy assistant should do.
 **Evidence:** `results/schema_linked_decline_t0_run{1,2,3}_2026-10-24.log`. Mean 55.33 vs 46.67 for schema-linked. Tier 0 went from 0/8 to 7/8 in every run (clean). Tiers 1-4 moved +1.67 (per run 48, 48, 49 vs 46, 48, 46), too small to separate from run-to-run noise; it comes from consistent style changes in both directions (5 questions better, 3 worse). Wrong declines: t1_22 in 2 of 3 runs ("midday" seen as ambiguous). u_08 (July 2026) was never declined, likely because nothing tells the model where the data ends (interpretation, not tested).
 
+## D23. Kernenergie note reworded to talk about aggregates (row v2a)
+**Decision:** The note now says that any SUM, AVG or MAX of Kernenergie after 2024-01-30 is NULL and that rankings by a total need ORDER BY <total> DESC NULLS LAST. Only this one note changed.
+**Why:** The old note said "this column", but the model sorts by its own SUM, so it likely did not see the note as applying (Step D in `PROJECT_PROGRESS.md`). Catalog v2 is split into three rows (v2a, v2b, v2c) so each change can be measured on its own.
+**Evidence:** `results/v2a_t0_run{1,2,3}_2026-10-27.log`. Mean 59.67 vs 55.33. t2_05 and t2_22 went from 0/3 to 3/3 with NULLS LAST added (+2.00, clean). NULLS LAST now appears on 8 ranking questions instead of 1. The other +2.33 (t1_02, t2_09, t3_06) are likely side effects of the rewording. The 28 questions with unchanged prompts netted exactly 0. t1_22 is now wrongly declined in 3/3 runs ("no data for 2025") with an unchanged prompt, so not caused by this row.
+
 ## Principles
 - The grader must exist and be validated before any agent code.
 - Never change the model between stages.
