@@ -1,0 +1,2638 @@
+
+##### run 1/3 (tag=t0_run1) #####
+[1/84] t1_01... 2026-10-27 17:34:14,017 INFO catalog_retriever — [retriever] 'How much electricity did solar produce in total in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:14,238 INFO catalog_retriever — [retriever] 'How much electricity did solar produce in total in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:16,490 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[2/84] t1_02... 2026-10-27 17:34:17,596 INFO catalog_retriever — [retriever] 'What was the highest quarter-hour wind onshore output in the whole period?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:17,612 INFO catalog_retriever — [retriever] 'What was the highest quarter-hour wind onshore output in the whole period?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:18,938 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[3/84] t1_03... 2026-10-27 17:34:20,048 INFO catalog_retriever — [retriever] 'What was the total generation across all sources on 15 June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:20,069 INFO catalog_retriever — [retriever] 'What was the total generation across all sources on 15 June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:21,551 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[4/84] t1_04... 2026-10-27 17:34:22,618 INFO catalog_retriever — [retriever] 'wieviel strom lieferte die kohle insgesamt im januar 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:22,644 INFO catalog_retriever — [retriever] 'wieviel strom lieferte die kohle insgesamt im januar 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:24,524 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[5/84] t1_05... 2026-10-27 17:34:25,604 INFO catalog_retriever — [retriever] 'What was the average grid load in 2024?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:34:25,629 INFO catalog_retriever — [retriever] 'What was the average grid load in 2024?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:34:26,958 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[6/84] t1_06... 2026-10-27 17:34:28,046 INFO catalog_retriever — [retriever] "What's the lowest the German day-ahead price ever went?" → ['preise'] (keyword match → preise)
+2026-10-27 17:34:28,067 INFO catalog_retriever — [retriever] "What's the lowest the German day-ahead price ever went?" → ['preise'] (keyword match → preise)
+2026-10-27 17:34:29,397 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[7/84] t1_07... 2026-10-27 17:34:30,543 INFO catalog_retriever — [retriever] 'How many quarter-hours had a negative electricity price in Germany?' → ['preise'] (keyword match → preise)
+2026-10-27 17:34:30,567 INFO catalog_retriever — [retriever] 'How many quarter-hours had a negative electricity price in Germany?' → ['preise'] (keyword match → preise)
+2026-10-27 17:34:31,585 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[8/84] t1_08... 2026-10-27 17:34:32,706 INFO catalog_retriever — [retriever] 'Wie viel lieferten die Windräder auf See im Dezember 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:32,730 INFO catalog_retriever — [retriever] 'Wie viel lieferten die Windräder auf See im Dezember 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:33,989 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[9/84] t1_09... 2026-10-27 17:34:35,042 INFO catalog_retriever — [retriever] 'Show me the total biomass output for the whole dataset.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:35,065 INFO catalog_retriever — [retriever] 'Show me the total biomass output for the whole dataset.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:36,211 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[10/84] t1_10... 2026-10-27 17:34:37,346 INFO catalog_retriever — [retriever] "What was the peak solar output ever recorded? it's per quarter hour right" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:37,370 INFO catalog_retriever — [retriever] "What was the peak solar output ever recorded? it's per quarter hour right" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:38,447 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[11/84] t1_11... 2026-10-27 17:34:39,566 INFO catalog_retriever — [retriever] 'Durchschnittlicher Strompreis in Deutschland im Jahr 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:34:39,588 INFO catalog_retriever — [retriever] 'Durchschnittlicher Strompreis in Deutschland im Jahr 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:34:41,257 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[12/84] t1_12... 2026-10-27 17:34:42,364 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:42,389 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:43,380 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[13/84] t1_13... 2026-10-27 17:34:44,404 INFO catalog_retriever — [retriever] 'What was the maximum residual load in the whole period?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:34:44,425 INFO catalog_retriever — [retriever] 'What was the maximum residual load in the whole period?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:34:45,253 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[14/84] t1_14... 2026-10-27 17:34:46,369 INFO catalog_retriever — [retriever] 'total hydro power in 2025 please' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:46,394 INFO catalog_retriever — [retriever] 'total hydro power in 2025 please' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:47,744 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[15/84] t1_15... 2026-10-27 17:34:48,839 INFO catalog_retriever — [retriever] 'How much did hard coal produce in the first quarter of 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:48,864 INFO catalog_retriever — [retriever] 'How much did hard coal produce in the first quarter of 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:50,037 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[16/84] t1_16... 2026-10-27 17:34:51,116 INFO catalog_retriever — [retriever] 'What was the average price in France over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:34:51,140 INFO catalog_retriever — [retriever] 'What was the average price in France over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:34:52,467 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[17/84] t1_17... 2026-10-27 17:34:53,643 INFO catalog_retriever — [retriever] 'How much solar did we get on Christmas Day 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:53,667 INFO catalog_retriever — [retriever] 'How much solar did we get on Christmas Day 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:34:55,122 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[18/84] t1_18... 2026-10-27 17:34:56,165 INFO catalog_retriever — [retriever] 'Highest grid load ever?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:34:56,189 INFO catalog_retriever — [retriever] 'Highest grid load ever?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:34:57,202 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[19/84] t1_19... 2026-10-27 17:34:58,307 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im November 2025 aus Speicherkraftwerken?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:34:58,332 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im November 2025 aus Speicherkraftwerken?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:34:59,586 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[20/84] t1_20... 2026-10-27 17:35:00,662 INFO catalog_retriever — [retriever] "What's the average onshore wind output per quarter hour in 2024?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:00,679 INFO catalog_retriever — [retriever] "What's the average onshore wind output per quarter hour in 2024?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:01,947 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[21/84] t1_21... 2026-10-27 17:35:03,044 INFO catalog_retriever — [retriever] 'How many rows of generation data do we have for photovoltaics?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:03,067 INFO catalog_retriever — [retriever] 'How many rows of generation data do we have for photovoltaics?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:04,193 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[22/84] t1_22... 2026-10-27 17:35:05,271 INFO catalog_retriever — [retriever] 'What was the German power price at midday on 3 March 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:05,294 INFO catalog_retriever — [retriever] 'What was the German power price at midday on 3 March 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:06,451 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[23/84] t1_23... 2026-10-27 17:35:07,497 INFO catalog_retriever — [retriever] 'Sum up everything Erdgas produced in summer 2025, so June through August.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:07,518 INFO catalog_retriever — [retriever] 'Sum up everything Erdgas produced in summer 2025, so June through August.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:08,806 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[24/84] t1_24... 2026-10-27 17:35:09,888 INFO catalog_retriever — [retriever] "What's the smallest amount of onshore wind we've ever seen in a quarter hour?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:09,911 INFO catalog_retriever — [retriever] "What's the smallest amount of onshore wind we've ever seen in a quarter hour?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:10,957 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[25/84] t1_25... 2026-10-27 17:35:12,091 INFO catalog_retriever — [retriever] 'How much other renewables generation in total?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:12,116 INFO catalog_retriever — [retriever] 'How much other renewables generation in total?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:13,442 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[26/84] t1_26... 2026-10-27 17:35:14,557 INFO catalog_retriever — [retriever] 'Was war der höchste Sonnenstrom-Wert im Mai 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:14,579 INFO catalog_retriever — [retriever] 'Was war der höchste Sonnenstrom-Wert im Mai 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:15,920 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[27/84] t1_27... 2026-10-27 17:35:16,956 INFO catalog_retriever — [retriever] 'average Dutch price in 2024?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:16,981 INFO catalog_retriever — [retriever] 'average Dutch price in 2024?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:18,502 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[28/84] t1_28... 2026-10-27 17:35:19,621 INFO catalog_retriever — [retriever] 'How much lignite did we burn in October 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:19,643 INFO catalog_retriever — [retriever] 'How much lignite did we burn in October 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:21,006 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[29/84] t1_29... 2026-10-27 17:35:22,073 INFO catalog_retriever — [retriever] 'What was the total residual load in 2025?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:22,095 INFO catalog_retriever — [retriever] 'What was the total residual load in 2025?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:23,417 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[30/84] t1_30... 2026-10-27 17:35:24,497 INFO catalog_retriever — [retriever] 'Give me the number of quarter-hours where solar output was exactly zero.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:24,521 INFO catalog_retriever — [retriever] 'Give me the number of quarter-hours where solar output was exactly zero.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:25,617 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[31/84] t1_31... 2026-10-27 17:35:26,754 INFO catalog_retriever — [retriever] 'How high did the German price get in 2024 at most?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:26,778 INFO catalog_retriever — [retriever] 'How high did the German price get in 2024 at most?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:28,161 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[32/84] t1_32... 2026-10-27 17:35:29,267 INFO catalog_retriever — [retriever] 'Wie hoch war der Stromverbrauch im März 2026?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:29,292 INFO catalog_retriever — [retriever] 'Wie hoch war der Stromverbrauch im März 2026?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:30,570 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[33/84] t1_33... 2026-10-27 17:35:31,635 INFO catalog_retriever — [retriever] 'How much energy went into pumped storage in 2025, according to the consumption f' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:31,661 INFO catalog_retriever — [retriever] 'How much energy went into pumped storage in 2025, according to the consumption f' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:32,989 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[34/84] t1_34... 2026-10-27 17:35:34,063 INFO catalog_retriever — [retriever] 'wie viel windkraft an land gab es am 1. januar 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:34,088 INFO catalog_retriever — [retriever] 'wie viel windkraft an land gab es am 1. januar 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:35,119 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[35/84] t1_35... 2026-10-27 17:35:36,234 INFO catalog_retriever — [retriever] 'What was the average price in Austria in December 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:36,250 INFO catalog_retriever — [retriever] 'What was the average price in Austria in December 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:37,788 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[36/84] t2_01... 2026-10-27 17:35:38,854 INFO catalog_retriever — [retriever] 'Which energy source produced the most overall?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:38,879 INFO catalog_retriever — [retriever] 'Which energy source produced the most overall?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:40,020 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[37/84] t2_02... 2026-10-27 17:35:41,241 INFO catalog_retriever — [retriever] 'Rank all sources by total output in July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:41,264 INFO catalog_retriever — [retriever] 'Rank all sources by total output in July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:42,806 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[38/84] t2_03... 2026-10-27 17:35:43,879 INFO catalog_retriever — [retriever] 'What was the average solar output for each hour of the day?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:43,904 INFO catalog_retriever — [retriever] 'What was the average solar output for each hour of the day?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:45,470 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[39/84] t2_04... 2026-10-27 17:35:46,642 INFO catalog_retriever — [retriever] 'Give me total generation per month for 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:46,664 INFO catalog_retriever — [retriever] 'Give me total generation per month for 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:48,051 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[40/84] t2_05... 2026-10-27 17:35:49,290 INFO catalog_retriever — [retriever] 'What were the top 3 sources over the 2024/25 winter, December through February?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:35:49,315 INFO catalog_retriever — [retriever] 'What were the top 3 sources over the 2024/25 winter, December through February?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:35:50,722 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[41/84] t2_06... 2026-10-27 17:35:51,836 INFO catalog_retriever — [retriever] 'Which price zone had the highest average price over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:51,861 INFO catalog_retriever — [retriever] 'Which price zone had the highest average price over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:35:53,352 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[42/84] t2_07... 2026-10-27 17:35:54,616 INFO catalog_retriever — [retriever] "Break down 2025 generation by source and show each one's share in percent." → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:54,639 INFO catalog_retriever — [retriever] "Break down 2025 generation by source and show each one's share in percent." → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:35:56,509 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[43/84] t2_08... 2026-10-27 17:35:57,652 INFO catalog_retriever — [retriever] 'Average grid load by hour of day, please.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:57,673 INFO catalog_retriever — [retriever] 'Average grid load by hour of day, please.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:35:59,089 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[44/84] t2_09... 2026-10-27 17:36:00,250 INFO catalog_retriever — [retriever] 'Which month had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:00,276 INFO catalog_retriever — [retriever] 'Which month had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:01,673 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[45/84] t2_10... 2026-10-27 17:36:02,808 INFO catalog_retriever — [retriever] 'Average German price by hour of day in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:02,833 INFO catalog_retriever — [retriever] 'Average German price by hour of day in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:04,291 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[46/84] t2_11... 2026-10-27 17:36:05,431 INFO catalog_retriever — [retriever] 'Welche Stromquelle hat 2024 wie viel geliefert? Bitte absteigend sortieren.' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:05,455 INFO catalog_retriever — [retriever] 'Welche Stromquelle hat 2024 wie viel geliefert? Bitte absteigend sortieren.' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:07,059 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[47/84] t2_12... 2026-10-27 17:36:08,188 INFO catalog_retriever — [retriever] 'Which day of the week has the highest average consumption?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:36:08,212 INFO catalog_retriever — [retriever] 'Which day of the week has the highest average consumption?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:36:09,634 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[48/84] t2_13... 2026-10-27 17:36:10,788 INFO catalog_retriever — [retriever] 'Total wind, onshore and offshore together, per year.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:10,804 INFO catalog_retriever — [retriever] 'Total wind, onshore and offshore together, per year.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:12,697 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[49/84] t2_14... 2026-10-27 17:36:13,939 INFO catalog_retriever — [retriever] 'Which 5 quarter-hours had the most expensive German power ever?' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:13,961 INFO catalog_retriever — [retriever] 'Which 5 quarter-hours had the most expensive German power ever?' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:15,098 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[50/84] t2_15... 2026-10-27 17:36:16,220 INFO catalog_retriever — [retriever] 'Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:16,244 INFO catalog_retriever — [retriever] 'Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:18,273 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[51/84] t2_16... 2026-10-27 17:36:19,427 INFO catalog_retriever — [retriever] 'Average German price month by month in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:19,451 INFO catalog_retriever — [retriever] 'Average German price month by month in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:20,896 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[52/84] t2_17... 2026-10-27 17:36:22,060 INFO catalog_retriever — [retriever] 'For each source, what was its single biggest quarter-hour, sorted by that peak?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:22,084 INFO catalog_retriever — [retriever] 'For each source, what was its single biggest quarter-hour, sorted by that peak?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:23,205 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[53/84] t2_18... 2026-10-27 17:36:24,406 INFO catalog_retriever — [retriever] 'How many negative-price quarter-hours were there each year?' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:24,445 INFO catalog_retriever — [retriever] 'How many negative-price quarter-hours were there each year?' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:25,814 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[54/84] t2_19... 2026-10-27 17:36:26,955 INFO catalog_retriever — [retriever] 'Average solar output by calendar month across all the years.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:26,978 INFO catalog_retriever — [retriever] 'Average solar output by calendar month across all the years.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:28,579 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[55/84] t2_20... 2026-10-27 17:36:29,782 INFO catalog_retriever — [retriever] 'Which quarter of 2025 had the most onshore wind?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:29,804 INFO catalog_retriever — [retriever] 'Which quarter of 2025 had the most onshore wind?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:31,294 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[56/84] t2_21... 2026-10-27 17:36:32,411 INFO catalog_retriever — [retriever] 'List all the price zones sorted by how low their price ever got.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:32,435 INFO catalog_retriever — [retriever] 'List all the price zones sorted by how low their price ever got.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:33,699 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[57/84] t2_22... 2026-10-27 17:36:34,944 INFO catalog_retriever — [retriever] 'On 21 June 2025, how much did each source produce? sorted highest first' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:34,966 INFO catalog_retriever — [retriever] 'On 21 June 2025, how much did each source produce? sorted highest first' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:36:36,591 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[58/84] t2_23... 2026-10-27 17:36:37,637 INFO catalog_retriever — [retriever] 'How many quarter-hours per year did solar output go above 10000 MWh?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:37,661 INFO catalog_retriever — [retriever] 'How many quarter-hours per year did solar output go above 10000 MWh?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:38,952 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[59/84] t2_24... 2026-10-27 17:36:40,077 INFO catalog_retriever — [retriever] 'Average residual load per month in 2025.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:36:40,098 INFO catalog_retriever — [retriever] 'Average residual load per month in 2025.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:36:42,454 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[60/84] t2_25... 2026-10-27 17:36:43,667 INFO catalog_retriever — [retriever] 'Rank the neighbouring countries by their average price in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:43,690 INFO catalog_retriever — [retriever] 'Rank the neighbouring countries by their average price in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:36:45,517 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[61/84] t3_01... 2026-10-27 17:36:46,685 INFO catalog_retriever — [retriever] 'Which single day had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:46,708 INFO catalog_retriever — [retriever] 'Which single day had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:48,036 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[62/84] t3_02... 2026-10-27 17:36:49,167 INFO catalog_retriever — [retriever] 'What share of all generation came from wind, onshore and offshore combined, in J' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:49,190 INFO catalog_retriever — [retriever] 'What share of all generation came from wind, onshore and offshore combined, in J' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:50,697 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[63/84] t3_03... 2026-10-27 17:36:51,765 INFO catalog_retriever — [retriever] 'Compare average solar output in June 2025 against July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:51,789 INFO catalog_retriever — [retriever] 'Compare average solar output in June 2025 against July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:36:53,459 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[64/84] t3_04... 2026-10-27 17:36:54,552 INFO catalog_retriever — [retriever] 'On the day electricity was most expensive, what was the generation mix?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:36:54,576 INFO catalog_retriever — [retriever] 'On the day electricity was most expensive, what was the generation mix?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:36:56,211 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[65/84] t3_05... 2026-10-27 17:36:57,367 INFO catalog_retriever — [retriever] 'Which day had the biggest swing between its highest and lowest grid load?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:36:57,388 INFO catalog_retriever — [retriever] 'Which day had the biggest swing between its highest and lowest grid load?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:36:59,001 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[66/84] t3_06... 2026-10-27 17:37:00,151 INFO catalog_retriever — [retriever] 'How did solar in 2025 compare to 2024, in absolute terms and percent?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:00,178 INFO catalog_retriever — [retriever] 'How did solar in 2025 compare to 2024, in absolute terms and percent?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:02,379 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[67/84] t3_07... 2026-10-27 17:37:03,534 INFO catalog_retriever — [retriever] 'What share of consumption was covered by renewables in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:37:03,558 INFO catalog_retriever — [retriever] 'What share of consumption was covered by renewables in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:37:05,488 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[68/84] t3_08... 2026-10-27 17:37:06,653 INFO catalog_retriever — [retriever] 'Was power more expensive on weekends or on weekdays in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:37:06,675 INFO catalog_retriever — [retriever] 'Was power more expensive on weekends or on weekdays in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:37:08,631 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[69/84] t3_09... 2026-10-27 17:37:09,767 INFO catalog_retriever — [retriever] 'On the windiest day for onshore wind, what was the average German price?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:37:09,790 INFO catalog_retriever — [retriever] 'On the windiest day for onshore wind, what was the average German price?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:37:11,477 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[70/84] t3_10... 2026-10-27 17:37:12,753 INFO catalog_retriever — [retriever] 'Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:12,778 INFO catalog_retriever — [retriever] 'Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:14,551 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[71/84] t3_11... 2026-10-27 17:37:15,744 INFO catalog_retriever — [retriever] 'In 2025, was the price different in quarter-hours with a lot of solar, say above' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:37:15,766 INFO catalog_retriever — [retriever] 'In 2025, was the price different in quarter-hours with a lot of solar, say above' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:37:17,696 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[72/84] t3_12... 2026-10-27 17:37:18,872 INFO catalog_retriever — [retriever] 'Which day had the lowest total generation, and how far below the daily average w' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:18,896 INFO catalog_retriever — [retriever] 'Which day had the lowest total generation, and how far below the daily average w' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:21,418 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[73/84] t4_01... 2026-10-27 17:37:22,894 INFO catalog_retriever — [retriever] 'For each week, which source was the top producer?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:37:22,917 INFO catalog_retriever — [retriever] 'For each week, which source was the top producer?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:37:24,304 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[74/84] t4_02... 2026-10-27 17:37:25,683 INFO catalog_retriever — [retriever] 'What was the longest unbroken stretch where solar output was zero?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:25,707 INFO catalog_retriever — [retriever] 'What was the longest unbroken stretch where solar output was zero?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:28,183 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[75/84] t4_03... 2026-10-27 17:37:29,278 INFO catalog_retriever — [retriever] 'Which hours had more generation than consumption?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:37:29,300 INFO catalog_retriever — [retriever] 'Which hours had more generation than consumption?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:37:32,160 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[76/84] t4_04... 2026-10-27 17:37:34,444 INFO catalog_retriever — [retriever] 'What was the longest run of consecutive quarter-hours with a negative German pri' → ['preise'] (keyword match → preise)
+2026-10-27 17:37:34,467 INFO catalog_retriever — [retriever] 'What was the longest run of consecutive quarter-hours with a negative German pri' → ['preise'] (keyword match → preise)
+2026-10-27 17:37:36,138 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[77/84] u_01... 2026-10-27 17:37:37,293 INFO catalog_retriever — [retriever] 'How much nuclear power was produced in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:37,318 INFO catalog_retriever — [retriever] 'How much nuclear power was produced in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:38,723 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[78/84] u_02... 2026-10-27 17:37:39,728 INFO catalog_retriever — [retriever] 'How much electricity did Bavaria produce last year?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:37:39,753 INFO catalog_retriever — [retriever] 'How much electricity did Bavaria produce last year?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:37:40,777 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[79/84] u_03... 2026-10-27 17:37:41,795 INFO catalog_retriever — [retriever] 'What will demand be next winter?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:37:41,820 INFO catalog_retriever — [retriever] 'What will demand be next winter?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:37:42,699 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[80/84] u_04... 2026-10-27 17:37:43,705 INFO catalog_retriever — [retriever] 'How much CO2 did German electricity generation emit in 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:43,728 INFO catalog_retriever — [retriever] 'How much CO2 did German electricity generation emit in 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:44,632 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[81/84] u_05... 2026-10-27 17:37:45,647 INFO catalog_retriever — [retriever] 'Which power plant produced the most electricity?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:45,676 INFO catalog_retriever — [retriever] 'Which power plant produced the most electricity?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:46,622 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[82/84] u_06... 2026-10-27 17:37:47,632 INFO catalog_retriever — [retriever] 'How much solar capacity is installed in Germany?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:47,658 INFO catalog_retriever — [retriever] 'How much solar capacity is installed in Germany?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:48,670 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[83/84] u_07... 2026-10-27 17:37:49,676 INFO catalog_retriever — [retriever] 'What was the average price in the DE/AT/LU zone in 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:37:49,702 INFO catalog_retriever — [retriever] 'What was the average price in the DE/AT/LU zone in 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:37:50,727 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[84/84] u_08... 2026-10-27 17:37:51,734 INFO catalog_retriever — [retriever] 'How much wind did we generate in July 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:51,761 INFO catalog_retriever — [retriever] 'How much wind did we generate in July 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:52,935 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+
+=== Per-tier results (v2c: v2b + data date range) ===
+Tier 0 (unanswerable)              8/8  
+Tier 1 (single aggregate)         32/35 
+Tier 2 (grouping/ranking)         15/25 
+Tier 3 (dates/comparisons)         2/12 
+Tier 4 (hard)                      0/4  
+
+Overall                           57/84 
+Valid-SQL rate                    72/84 
+Declines: tier 0 correct           8/8  
+Declines: tiers 1-4 (wrong)        2
+
+=== Failures (27) ===
+
+--- t1_12 (tier 1) ---
+Retrieved tables: ['erzeugung']
+Question:         Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?
+Gold SQL:         SELECT SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Erdgas' AND zeitpunkt >= '2026-02-01' AND zeitpunkt < '2026-03-01';
+Agent SQL:        (empty)
+Model reply:      NO_QUERY: Data for February 2026 is not available.
+Comparator:       declined (no SQL)
+
+--- t1_18 (tier 1) ---
+Retrieved tables: ['verbrauch']
+Question:         Highest grid load ever?
+Gold SQL:         SELECT MAX(mwh) AS mwh FROM verbrauch WHERE metrik = 'grid load';
+Agent SQL:        SELECT zeitpunkt, mwh FROM verbrauch WHERE metrik = 'grid load' ORDER BY mwh DESC LIMIT 1;
+Comparator:       column count mismatch at row 0: gold=1 agent=2
+
+--- t1_26 (tier 1) ---
+Retrieved tables: ['erzeugung']
+Question:         Was war der höchste Sonnenstrom-Wert im Mai 2025?
+Gold SQL:         SELECT MAX(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Photovoltaik' AND zeitpunkt >= '2025-05-01' AND zeitpunkt < '2025-06-01';
+Agent SQL:        (empty)
+Model reply:      NO_QUERY: The data does not cover May 2025.
+Comparator:       declined (no SQL)
+
+--- t2_05 (tier 2) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         What were the top 3 sources over the 2024/25 winter, December through February?
+Gold SQL:         SELECT energietraeger, SUM(mwh) AS mwh FROM erzeugung WHERE zeitpunkt >= '2024-12-01' AND zeitpunkt < '2025-03-01' GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST LIMIT 3;
+Agent SQL:        SELECT energietraeger, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE zeitpunkt >= '2024-12-01 00:00' AND zeitpunkt < '2025-03-01 00:00'
+GROUP BY energietraeger
+ORDER BY total_mwh DESC
+LIMIT 3;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Wind Onshore' agent='Kernenergie'
+
+--- t2_07 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Break down 2025 generation by source and show each one's share in percent.
+Gold SQL:         SELECT energietraeger, SUM(mwh) AS mwh,
+       ROUND(100 * SUM(mwh) / SUM(SUM(mwh)) OVER (), 2) AS anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST;
+Agent SQL:        SELECT 
+    energietraeger, 
+    SUM(mwh) AS total_mwh, 
+    SUM(mwh) * 100.0 / (SELECT SUM(mwh) FROM erzeugung WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01') AS share_percent
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 
+    energietraeger
+ORDER BY 
+    share_percent DESC NULLS LAST;
+Comparator:       cell mismatch row 6 col 2: numeric mismatch: gold=0.22 agent=0.21765907157507222 (toleranz=0.001)
+
+--- t2_12 (tier 2) ---
+Retrieved tables: ['verbrauch']
+Question:         Which day of the week has the highest average consumption?
+Gold SQL:         SELECT trim(to_char(zeitpunkt, 'Day')) AS wochentag, AVG(mwh) AS mwh FROM verbrauch WHERE metrik = 'grid load' GROUP BY 1 ORDER BY mwh DESC LIMIT 1;
+Agent SQL:        SELECT EXTRACT(DOW FROM zeitpunkt) AS day_of_week, AVG(mwh) AS average_consumption
+FROM verbrauch
+WHERE metrik = 'grid load'
+GROUP BY day_of_week
+ORDER BY average_consumption DESC
+LIMIT 1;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Wednesday' agent=Decimal('3')
+
+--- t2_14 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         Which 5 quarter-hours had the most expensive German power ever?
+Gold SQL:         SELECT zeitpunkt, preis_eur_mwh AS eur_mwh FROM preise WHERE preiszone = 'Deutschland/Luxemburg' ORDER BY preis_eur_mwh DESC NULLS LAST, zeitpunkt LIMIT 5;
+Agent SQL:        SELECT zeitpunkt, preis_eur_mwh
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg'
+ORDER BY preis_eur_mwh DESC
+LIMIT 5;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.datetime(2024, 12, 12, 17, 0) agent=datetime.datetime(2024, 12, 12, 17, 45)
+
+--- t2_15 (tier 2) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?
+Gold SQL:         SELECT CASE WHEN energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+            THEN 'Erneuerbar' ELSE 'Konventionell' END AS kategorie,
+       SUM(mwh) AS mwh
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY mwh DESC;
+Agent SQL:        SELECT 
+    SUM(CASE WHEN energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare') THEN mwh ELSE 0 END) AS oekostrom_mwh,
+    SUM(CASE WHEN energietraeger IN ('Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher', 'Sonstige Konventionelle') THEN mwh ELSE 0 END) AS konventionell_mwh
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01 00:00' AND zeitpunkt < '2026-01-01 00:00';
+Comparator:       row count mismatch: gold=2 agent=1
+
+--- t2_18 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         How many negative-price quarter-hours were there each year?
+Gold SQL:         SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, COUNT(*) AS n FROM preise WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0 GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    EXTRACT(YEAR FROM zeitpunkt) AS year, 
+    COUNT(*) AS negative_price_quarter_hours
+FROM 
+    preise
+WHERE 
+    preis_eur_mwh < 0
+GROUP BY 
+    year
+ORDER BY 
+    year;
+Comparator:       cell mismatch row 0 col 1: numeric mismatch: gold=936.0 agent=8220.0 (toleranz=1e-06)
+
+--- t2_19 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Average solar output by calendar month across all the years.
+Gold SQL:         SELECT EXTRACT(MONTH FROM zeitpunkt)::int AS monat, AVG(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Photovoltaik' GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    EXTRACT(YEAR FROM zeitpunkt) AS year,
+    EXTRACT(MONTH FROM zeitpunkt) AS month,
+    AVG(mwh) AS average_solar_output_mwh
+FROM 
+    erzeugung
+WHERE 
+    energietraeger = 'Photovoltaik'
+GROUP BY 
+    year, month
+ORDER BY 
+    year, month;
+Comparator:       row count mismatch: gold=12 agent=37
+
+--- t2_20 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Which quarter of 2025 had the most onshore wind?
+Gold SQL:         SELECT date_trunc('quarter', zeitpunkt)::date AS quartal, SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Wind Onshore' AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01' GROUP BY 1 ORDER BY mwh DESC LIMIT 1;
+Agent SQL:        SELECT EXTRACT(QUARTER FROM zeitpunkt) AS quarter, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025 AND energietraeger = 'Wind Onshore'
+GROUP BY quarter
+ORDER BY total_mwh DESC
+LIMIT 1;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 10, 1) agent=Decimal('4')
+
+--- t2_21 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         List all the price zones sorted by how low their price ever got.
+Gold SQL:         SELECT preiszone, MIN(preis_eur_mwh) AS min_eur_mwh FROM preise GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0 ORDER BY min_eur_mwh ASC;
+Agent SQL:        SELECT preiszone
+FROM preise
+WHERE preis_eur_mwh IS NOT NULL
+GROUP BY preiszone
+ORDER BY MIN(preis_eur_mwh) ASC;
+Comparator:       column count mismatch at row 0: gold=2 agent=1
+
+--- t2_25 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         Rank the neighbouring countries by their average price in 2025.
+Gold SQL:         SELECT preiszone, AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+  AND preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0
+ORDER BY eur_mwh DESC;
+Agent SQL:        SELECT preiszone, AVG(preis_eur_mwh) AS avg_price
+FROM preise
+WHERE preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+  AND zeitpunkt >= '2025-01-01 00:00' AND zeitpunkt < '2026-01-01 00:00'
+GROUP BY preiszone
+ORDER BY avg_price;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Polen' agent='Schweden 4'
+
+--- t3_02 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         What share of all generation came from wind, onshore and offshore combined, in June 2025?
+Gold SQL:         SELECT ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger IN ('Wind Onshore','Wind Offshore'))
+             / SUM(mwh), 2) AS wind_anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-07-01';
+Agent SQL:        SELECT SUM(CASE WHEN energietraeger IN ('Wind Onshore', 'Wind Offshore') THEN mwh ELSE 0 END) / SUM(mwh) AS wind_share
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01 00:00' AND zeitpunkt < '2025-07-01 00:00';
+Comparator:       cell mismatch row 0 col 0: numeric mismatch: gold=30.51 agent=0.3050639518164282 (toleranz=0.001)
+
+--- t3_03 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Compare average solar output in June 2025 against July 2025.
+Gold SQL:         SELECT date_trunc('month', zeitpunkt)::date AS monat, AVG(mwh) AS mwh
+FROM erzeugung
+WHERE energietraeger = 'Photovoltaik'
+  AND zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-08-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    EXTRACT(MONTH FROM zeitpunkt) AS month,
+    AVG(mwh) AS average_solar_output
+FROM 
+    erzeugung
+WHERE 
+    EXTRACT(YEAR FROM zeitpunkt) = 2025
+    AND energietraeger = 'Photovoltaik'
+    AND EXTRACT(MONTH FROM zeitpunkt) IN (6, 7)
+GROUP BY 
+    EXTRACT(MONTH FROM zeitpunkt)
+ORDER BY 
+    month;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 6, 1) agent=Decimal('6')
+
+--- t3_04 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         On the day electricity was most expensive, what was the generation mix?
+Gold SQL:         WITH teuerster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM preise
+  WHERE preiszone = 'Deutschland/Luxemburg'
+  GROUP BY 1 ORDER BY AVG(preis_eur_mwh) DESC LIMIT 1
+)
+SELECT t.tag, e.energietraeger, SUM(e.mwh) AS mwh
+FROM erzeugung e JOIN teuerster_tag t ON e.zeitpunkt::date = t.tag
+GROUP BY t.tag, e.energietraeger
+ORDER BY mwh DESC NULLS LAST;
+Agent SQL:        SELECT e.energietraeger, SUM(e.mwh) AS total_generation_mwh
+FROM erzeugung e
+JOIN (
+    SELECT zeitpunkt
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg'
+    GROUP BY zeitpunkt::date
+    ORDER BY AVG(preis_eur_mwh) DESC NULLS LAST
+    LIMIT 1
+) AS max_price_day ON e.zeitpunkt::date = max_price_day.zeitpunkt::date
+GROUP BY e.energietraeger
+ORDER BY total_generation_mwh DESC;
+Comparator:       agent SQL error: column "preise.zeitpunkt" must appear in the GROUP BY clause or be used in an aggregate function
+LINE 4:     SELECT zeitpunkt
+                   ^
+
+
+--- t3_06 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         How did solar in 2025 compare to 2024, in absolute terms and percent?
+Gold SQL:         WITH j AS (
+  SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, SUM(mwh) AS mwh
+  FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+  GROUP BY 1
+)
+SELECT
+  MAX(mwh) FILTER (WHERE jahr = 2024) AS mwh_2024,
+  MAX(mwh) FILTER (WHERE jahr = 2025) AS mwh_2025,
+  MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024) AS differenz_mwh,
+  ROUND(100 * (MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024))
+        / MAX(mwh) FILTER (WHERE jahr = 2024), 2) AS veraenderung_prozent
+FROM j;
+Agent SQL:        SELECT 
+    '2024' AS year,
+    SUM(mwh) AS total_mwh
+FROM 
+    erzeugung
+WHERE 
+    energietraeger = 'Photovoltaik' AND
+    zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+UNION ALL
+SELECT 
+    '2025' AS year,
+    SUM(mwh) AS total_mwh
+FROM 
+    erzeugung
+WHERE 
+    energietraeger = 'Photovoltaik' AND
+    zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+Comparator:       row count mismatch: gold=1 agent=2
+
+--- t3_07 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         What share of consumption was covered by renewables in 2025?
+Gold SQL:         WITH ee AS (
+  SELECT SUM(mwh) AS mwh FROM erzeugung
+  WHERE energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+), last AS (
+  SELECT SUM(mwh) AS mwh FROM verbrauch
+  WHERE metrik = 'grid load'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT ee.mwh AS erneuerbar_mwh, last.mwh AS netzlast_mwh,
+       ROUND(100 * ee.mwh / last.mwh, 2) AS deckung_prozent
+FROM ee, last;
+Agent SQL:        SELECT SUM(e.mwh) / SUM(v.mwh) * 100 AS renewables_share_2025
+FROM erzeugung e
+JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt
+WHERE e.energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare')
+AND v.metrik = 'grid load'
+AND e.zeitpunkt >= '2025-01-01' AND e.zeitpunkt < '2026-01-01';
+Comparator:       column count mismatch at row 0: gold=3 agent=1
+
+--- t3_08 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Was power more expensive on weekends or on weekdays in 2025?
+Gold SQL:         SELECT CASE WHEN EXTRACT(ISODOW FROM zeitpunkt) >= 6 THEN 'Wochenende' ELSE 'Werktag' END AS typ,
+       AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg'
+  AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY eur_mwh DESC;
+Agent SQL:        SELECT 
+    CASE WHEN EXTRACT(ISODOW FROM zeitpunkt) IN (6, 7) THEN 'Weekend' ELSE 'Weekday' END AS day_type,
+    AVG(preis_eur_mwh) AS avg_price
+FROM 
+    preise
+WHERE 
+    EXTRACT(YEAR FROM zeitpunkt) = 2025
+    AND preiszone = 'Deutschland/Luxemburg'
+GROUP BY 
+    day_type
+ORDER BY 
+    day_type;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Werktag' agent='Weekday'
+
+--- t3_09 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         On the windiest day for onshore wind, what was the average German price?
+Gold SQL:         WITH windigster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM erzeugung WHERE energietraeger = 'Wind Onshore'
+  GROUP BY 1 ORDER BY SUM(mwh) DESC LIMIT 1
+)
+SELECT w.tag, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM preise p JOIN windigster_tag w ON p.zeitpunkt::date = w.tag
+WHERE p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY w.tag;
+Agent SQL:        SELECT AVG(p.preis_eur_mwh) AS average_german_price
+FROM preise p
+JOIN (
+  SELECT zeitpunkt
+  FROM erzeugung
+  WHERE energietraeger = 'Wind Onshore'
+  GROUP BY zeitpunkt
+  ORDER BY SUM(mwh) DESC
+  LIMIT 96
+) AS windiest_day ON p.zeitpunkt = windiest_day.zeitpunkt
+WHERE p.preiszone = 'Deutschland/Luxemburg';
+Comparator:       column count mismatch at row 0: gold=2 agent=1
+
+--- t3_10 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025?
+Gold SQL:         SELECT date_trunc('month', zeitpunkt)::date AS monat,
+       ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger = 'Photovoltaik') / SUM(mwh), 2) AS solaranteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    DATE_TRUNC('month', zeitpunkt) AS monat,
+    SUM(CASE WHEN energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) / SUM(mwh) * 100 AS sonnenstrom_anteil_prozent
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 
+    monat
+ORDER BY 
+    monat;
+Comparator:       cell mismatch row 0 col 1: numeric mismatch: gold=3.84 agent=3.8355513892628204 (toleranz=0.001)
+
+--- t3_11 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         In 2025, was the price different in quarter-hours with a lot of solar, say above 5000 MWh, compared to the rest?
+Gold SQL:         WITH pv AS (
+  SELECT zeitpunkt, mwh FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT CASE WHEN pv.mwh > 5000 THEN 'viel Solar' ELSE 'wenig Solar' END AS gruppe,
+       COUNT(*) AS n, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM pv JOIN preise p ON p.zeitpunkt = pv.zeitpunkt AND p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    AVG(CASE WHEN e.mwh > 5000 THEN p.preis_eur_mwh END) AS avg_price_high_solar,
+    AVG(CASE WHEN e.mwh <= 5000 THEN p.preis_eur_mwh END) AS avg_price_low_solar
+FROM 
+    erzeugung e
+JOIN 
+    preise p ON e.zeitpunkt = p.zeitpunkt
+WHERE 
+    e.energietraeger = 'Photovoltaik'
+    AND EXTRACT(YEAR FROM e.zeitpunkt) = 2025
+    AND p.preiszone = 'Deutschland/Luxemburg';
+Comparator:       row count mismatch: gold=2 agent=1
+
+--- t3_12 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Which day had the lowest total generation, and how far below the daily average was it?
+Gold SQL:         WITH tage AS (
+  SELECT zeitpunkt::date AS tag, SUM(mwh) AS mwh FROM erzeugung GROUP BY 1
+)
+SELECT tag, mwh AS tages_mwh,
+       ROUND(AVG(mwh) OVER (), 2) AS durchschnitt_mwh,
+       ROUND(100 * (mwh - AVG(mwh) OVER ()) / AVG(mwh) OVER (), 2) AS abweichung_prozent
+FROM tage ORDER BY mwh ASC LIMIT 1;
+Agent SQL:        SELECT 
+    date(zeitpunkt) AS day, 
+    SUM(mwh) AS total_generation, 
+    (SELECT AVG(daily_total) FROM (SELECT SUM(mwh) AS daily_total FROM erzeugung GROUP BY date(zeitpunkt)) AS daily_totals) AS average_generation,
+    SUM(mwh) - (SELECT AVG(daily_total) FROM (SELECT SUM(mwh) AS daily_total FROM erzeugung GROUP BY date(zeitpunkt)) AS daily_totals) AS difference_below_average
+FROM 
+    erzeugung
+GROUP BY 
+    date(zeitpunkt)
+ORDER BY 
+    total_generation ASC
+LIMIT 1;
+Comparator:       cell mismatch row 0 col 3: numeric mismatch: gold=-38.44 agent=-465008.7784412033 (toleranz=0.001)
+
+--- t4_01 (tier 4) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         For each week, which source was the top producer?
+Gold SQL:         WITH wochen AS (
+  SELECT date_trunc('week', zeitpunkt)::date AS woche, energietraeger, SUM(mwh) AS mwh
+  FROM erzeugung GROUP BY 1, 2
+), rang AS (
+  SELECT woche, energietraeger, mwh,
+         ROW_NUMBER() OVER (PARTITION BY woche ORDER BY mwh DESC NULLS LAST) AS rn
+  FROM wochen
+)
+SELECT woche, energietraeger, mwh FROM rang WHERE rn = 1 ORDER BY woche;
+Agent SQL:        SELECT 
+    DATE_TRUNC('week', zeitpunkt) AS week_start,
+    energietraeger,
+    SUM(mwh) AS total_mwh
+FROM 
+    erzeugung
+GROUP BY 
+    week_start, energietraeger
+ORDER BY 
+    week_start, total_mwh DESC NULLS LAST
+LIMIT 1;
+Comparator:       row count mismatch: gold=158 agent=1
+
+--- t4_02 (tier 4) ---
+Retrieved tables: ['erzeugung']
+Question:         What was the longest unbroken stretch where solar output was zero?
+Gold SQL:         WITH pv AS (
+  SELECT zeitpunkt, mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM erzeugung WHERE energietraeger = 'Photovoltaik'
+), null_lauf AS (
+  SELECT zeitpunkt, rn, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM pv WHERE mwh = 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM null_lauf
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL:        SELECT MAX(streak_length) AS longest_zero_streak
+FROM (
+  SELECT zeitpunkt, 
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) - 
+         ROW_NUMBER() OVER (PARTITION BY zero_streak ORDER BY zeitpunkt) AS streak_id,
+         COUNT(*) OVER (PARTITION BY zero_streak, 
+                        ROW_NUMBER() OVER (ORDER BY zeitpunkt) - 
+                        ROW_NUMBER() OVER (PARTITION BY zero_streak ORDER BY zeitpunkt)) AS streak_length
+  FROM (
+    SELECT zeitpunkt, 
+           CASE WHEN mwh = 0 THEN 1 ELSE 0 END AS zero_streak
+    FROM erzeugung
+    WHERE energietraeger = 'Photovoltaik'
+  ) AS subquery
+) AS streaks
+WHERE zero_streak = 1;
+Comparator:       agent SQL error: window functions are not allowed in window definitions
+LINE 7:                         ROW_NUMBER() OVER (ORDER BY zeitpunk...
+                                ^
+
+
+--- t4_03 (tier 4) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Which hours had more generation than consumption?
+Gold SQL:         WITH e AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS erzeugt
+  FROM erzeugung GROUP BY 1
+), v AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS verbraucht
+  FROM verbrauch WHERE metrik = 'grid load' GROUP BY 1
+)
+SELECT e.stunde, e.erzeugt, v.verbraucht, e.erzeugt - v.verbraucht AS ueberschuss_mwh
+FROM e JOIN v USING (stunde)
+WHERE e.erzeugt > v.verbraucht
+ORDER BY e.stunde;
+Agent SQL:        SELECT DISTINCT DATE_TRUNC('hour', e.zeitpunkt) AS hour
+FROM erzeugung e
+JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt
+WHERE e.energietraeger IS NOT NULL
+GROUP BY hour
+HAVING SUM(e.mwh) > SUM(CASE WHEN v.metrik = 'grid load' THEN v.mwh ELSE 0 END);
+Comparator:       row count mismatch: gold=8568 agent=0
+
+--- t4_04 (tier 4) ---
+Retrieved tables: ['preise']
+Question:         What was the longest run of consecutive quarter-hours with a negative German price?
+Gold SQL:         WITH p AS (
+  SELECT zeitpunkt, preis_eur_mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM preise WHERE preiszone = 'Deutschland/Luxemburg'
+), neg AS (
+  SELECT zeitpunkt, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM p WHERE preis_eur_mwh < 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM neg
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL:        SELECT MAX(consecutive_quarters) FROM (
+  SELECT COUNT(*) AS consecutive_quarters
+  FROM (
+    SELECT zeitpunkt, 
+           preis_eur_mwh, 
+           zeitpunkt - INTERVAL '15 minutes' * ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS grp
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0
+  ) sub
+  GROUP BY grp
+) final;
+Comparator:       column count mismatch at row 0: gold=4 agent=1
+
+=== Retrieval analysis ===
+  Failed AND retriever missed a gold table: 0 — retrieval-caused candidates
+  Failed with all gold tables supplied:     27 — catalog/model issue, not retrieval
+  Retrieval misses overall (pass or fail): []
+
+Log saved to: /Users/deepaktalwar/Desktop/text-to-SQL/results/v2c_t0_run1_2026-10-27.log
+Per-question records saved to: /Users/deepaktalwar/Desktop/text-to-SQL/results/v2c_t0_run1_2026-10-27.jsonl
+
+##### run 2/3 (tag=t0_run2) #####
+[1/84] t1_01... 2026-10-27 17:37:53,991 INFO catalog_retriever — [retriever] 'How much electricity did solar produce in total in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:54,002 INFO catalog_retriever — [retriever] 'How much electricity did solar produce in total in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:55,621 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[2/84] t1_02... 2026-10-27 17:37:56,669 INFO catalog_retriever — [retriever] 'What was the highest quarter-hour wind onshore output in the whole period?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:56,683 INFO catalog_retriever — [retriever] 'What was the highest quarter-hour wind onshore output in the whole period?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:57,787 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[3/84] t1_03... 2026-10-27 17:37:58,918 INFO catalog_retriever — [retriever] 'What was the total generation across all sources on 15 June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:37:58,942 INFO catalog_retriever — [retriever] 'What was the total generation across all sources on 15 June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:00,229 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[4/84] t1_04... 2026-10-27 17:38:01,276 INFO catalog_retriever — [retriever] 'wieviel strom lieferte die kohle insgesamt im januar 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:01,302 INFO catalog_retriever — [retriever] 'wieviel strom lieferte die kohle insgesamt im januar 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:02,582 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[5/84] t1_05... 2026-10-27 17:38:03,652 INFO catalog_retriever — [retriever] 'What was the average grid load in 2024?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:38:03,677 INFO catalog_retriever — [retriever] 'What was the average grid load in 2024?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:38:05,143 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[6/84] t1_06... 2026-10-27 17:38:06,223 INFO catalog_retriever — [retriever] "What's the lowest the German day-ahead price ever went?" → ['preise'] (keyword match → preise)
+2026-10-27 17:38:06,248 INFO catalog_retriever — [retriever] "What's the lowest the German day-ahead price ever went?" → ['preise'] (keyword match → preise)
+2026-10-27 17:38:07,294 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[7/84] t1_07... 2026-10-27 17:38:08,441 INFO catalog_retriever — [retriever] 'How many quarter-hours had a negative electricity price in Germany?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:08,465 INFO catalog_retriever — [retriever] 'How many quarter-hours had a negative electricity price in Germany?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:09,649 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[8/84] t1_08... 2026-10-27 17:38:10,769 INFO catalog_retriever — [retriever] 'Wie viel lieferten die Windräder auf See im Dezember 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:10,793 INFO catalog_retriever — [retriever] 'Wie viel lieferten die Windräder auf See im Dezember 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:12,004 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[9/84] t1_09... 2026-10-27 17:38:13,072 INFO catalog_retriever — [retriever] 'Show me the total biomass output for the whole dataset.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:13,097 INFO catalog_retriever — [retriever] 'Show me the total biomass output for the whole dataset.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:14,349 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[10/84] t1_10... 2026-10-27 17:38:15,489 INFO catalog_retriever — [retriever] "What was the peak solar output ever recorded? it's per quarter hour right" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:15,514 INFO catalog_retriever — [retriever] "What was the peak solar output ever recorded? it's per quarter hour right" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:16,799 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[11/84] t1_11... 2026-10-27 17:38:17,918 INFO catalog_retriever — [retriever] 'Durchschnittlicher Strompreis in Deutschland im Jahr 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:17,942 INFO catalog_retriever — [retriever] 'Durchschnittlicher Strompreis in Deutschland im Jahr 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:19,204 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[12/84] t1_12... 2026-10-27 17:38:20,321 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:20,341 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:21,503 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[13/84] t1_13... 2026-10-27 17:38:22,552 INFO catalog_retriever — [retriever] 'What was the maximum residual load in the whole period?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:38:22,576 INFO catalog_retriever — [retriever] 'What was the maximum residual load in the whole period?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:38:23,498 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[14/84] t1_14... 2026-10-27 17:38:24,603 INFO catalog_retriever — [retriever] 'total hydro power in 2025 please' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:24,625 INFO catalog_retriever — [retriever] 'total hydro power in 2025 please' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:25,907 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[15/84] t1_15... 2026-10-27 17:38:27,006 INFO catalog_retriever — [retriever] 'How much did hard coal produce in the first quarter of 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:27,028 INFO catalog_retriever — [retriever] 'How much did hard coal produce in the first quarter of 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:29,202 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[16/84] t1_16... 2026-10-27 17:38:30,289 INFO catalog_retriever — [retriever] 'What was the average price in France over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:30,313 INFO catalog_retriever — [retriever] 'What was the average price in France over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:31,721 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[17/84] t1_17... 2026-10-27 17:38:32,887 INFO catalog_retriever — [retriever] 'How much solar did we get on Christmas Day 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:32,909 INFO catalog_retriever — [retriever] 'How much solar did we get on Christmas Day 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:34,548 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[18/84] t1_18... 2026-10-27 17:38:35,597 INFO catalog_retriever — [retriever] 'Highest grid load ever?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:38:35,618 INFO catalog_retriever — [retriever] 'Highest grid load ever?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:38:36,641 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[19/84] t1_19... 2026-10-27 17:38:37,762 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im November 2025 aus Speicherkraftwerken?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:38:37,786 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im November 2025 aus Speicherkraftwerken?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:38:39,243 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[20/84] t1_20... 2026-10-27 17:38:40,287 INFO catalog_retriever — [retriever] "What's the average onshore wind output per quarter hour in 2024?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:40,311 INFO catalog_retriever — [retriever] "What's the average onshore wind output per quarter hour in 2024?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:41,623 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[21/84] t1_21... 2026-10-27 17:38:42,723 INFO catalog_retriever — [retriever] 'How many rows of generation data do we have for photovoltaics?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:42,745 INFO catalog_retriever — [retriever] 'How many rows of generation data do we have for photovoltaics?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:43,955 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[22/84] t1_22... 2026-10-27 17:38:45,022 INFO catalog_retriever — [retriever] 'What was the German power price at midday on 3 March 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:45,047 INFO catalog_retriever — [retriever] 'What was the German power price at midday on 3 March 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:46,106 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[23/84] t1_23... 2026-10-27 17:38:47,150 INFO catalog_retriever — [retriever] 'Sum up everything Erdgas produced in summer 2025, so June through August.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:47,174 INFO catalog_retriever — [retriever] 'Sum up everything Erdgas produced in summer 2025, so June through August.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:48,266 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[24/84] t1_24... 2026-10-27 17:38:49,343 INFO catalog_retriever — [retriever] "What's the smallest amount of onshore wind we've ever seen in a quarter hour?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:49,365 INFO catalog_retriever — [retriever] "What's the smallest amount of onshore wind we've ever seen in a quarter hour?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:50,829 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[25/84] t1_25... 2026-10-27 17:38:51,968 INFO catalog_retriever — [retriever] 'How much other renewables generation in total?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:51,991 INFO catalog_retriever — [retriever] 'How much other renewables generation in total?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:53,255 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[26/84] t1_26... 2026-10-27 17:38:54,363 INFO catalog_retriever — [retriever] 'Was war der höchste Sonnenstrom-Wert im Mai 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:54,393 INFO catalog_retriever — [retriever] 'Was war der höchste Sonnenstrom-Wert im Mai 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:55,384 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[27/84] t1_27... 2026-10-27 17:38:56,422 INFO catalog_retriever — [retriever] 'average Dutch price in 2024?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:56,448 INFO catalog_retriever — [retriever] 'average Dutch price in 2024?' → ['preise'] (keyword match → preise)
+2026-10-27 17:38:57,836 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[28/84] t1_28... 2026-10-27 17:38:58,947 INFO catalog_retriever — [retriever] 'How much lignite did we burn in October 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:38:58,970 INFO catalog_retriever — [retriever] 'How much lignite did we burn in October 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:00,477 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[29/84] t1_29... 2026-10-27 17:39:01,542 INFO catalog_retriever — [retriever] 'What was the total residual load in 2025?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:01,568 INFO catalog_retriever — [retriever] 'What was the total residual load in 2025?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:02,778 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[30/84] t1_30... 2026-10-27 17:39:03,842 INFO catalog_retriever — [retriever] 'Give me the number of quarter-hours where solar output was exactly zero.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:03,860 INFO catalog_retriever — [retriever] 'Give me the number of quarter-hours where solar output was exactly zero.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:05,384 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[31/84] t1_31... 2026-10-27 17:39:06,507 INFO catalog_retriever — [retriever] 'How high did the German price get in 2024 at most?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:06,530 INFO catalog_retriever — [retriever] 'How high did the German price get in 2024 at most?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:07,797 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[32/84] t1_32... 2026-10-27 17:39:08,907 INFO catalog_retriever — [retriever] 'Wie hoch war der Stromverbrauch im März 2026?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:08,929 INFO catalog_retriever — [retriever] 'Wie hoch war der Stromverbrauch im März 2026?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:10,423 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[33/84] t1_33... 2026-10-27 17:39:11,479 INFO catalog_retriever — [retriever] 'How much energy went into pumped storage in 2025, according to the consumption f' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:11,500 INFO catalog_retriever — [retriever] 'How much energy went into pumped storage in 2025, according to the consumption f' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:12,856 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[34/84] t1_34... 2026-10-27 17:39:13,939 INFO catalog_retriever — [retriever] 'wie viel windkraft an land gab es am 1. januar 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:13,957 INFO catalog_retriever — [retriever] 'wie viel windkraft an land gab es am 1. januar 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:15,143 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[35/84] t1_35... 2026-10-27 17:39:16,261 INFO catalog_retriever — [retriever] 'What was the average price in Austria in December 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:16,285 INFO catalog_retriever — [retriever] 'What was the average price in Austria in December 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:17,542 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[36/84] t2_01... 2026-10-27 17:39:18,607 INFO catalog_retriever — [retriever] 'Which energy source produced the most overall?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:18,630 INFO catalog_retriever — [retriever] 'Which energy source produced the most overall?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:19,898 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[37/84] t2_02... 2026-10-27 17:39:21,093 INFO catalog_retriever — [retriever] 'Rank all sources by total output in July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:21,117 INFO catalog_retriever — [retriever] 'Rank all sources by total output in July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:22,615 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[38/84] t2_03... 2026-10-27 17:39:23,693 INFO catalog_retriever — [retriever] 'What was the average solar output for each hour of the day?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:23,719 INFO catalog_retriever — [retriever] 'What was the average solar output for each hour of the day?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:25,529 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[39/84] t2_04... 2026-10-27 17:39:26,700 INFO catalog_retriever — [retriever] 'Give me total generation per month for 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:26,724 INFO catalog_retriever — [retriever] 'Give me total generation per month for 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:28,245 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[40/84] t2_05... 2026-10-27 17:39:29,487 INFO catalog_retriever — [retriever] 'What were the top 3 sources over the 2024/25 winter, December through February?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:39:29,512 INFO catalog_retriever — [retriever] 'What were the top 3 sources over the 2024/25 winter, December through February?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:39:30,888 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[41/84] t2_06... 2026-10-27 17:39:31,990 INFO catalog_retriever — [retriever] 'Which price zone had the highest average price over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:32,016 INFO catalog_retriever — [retriever] 'Which price zone had the highest average price over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:33,312 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[42/84] t2_07... 2026-10-27 17:39:34,610 INFO catalog_retriever — [retriever] "Break down 2025 generation by source and show each one's share in percent." → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:34,634 INFO catalog_retriever — [retriever] "Break down 2025 generation by source and show each one's share in percent." → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:36,230 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[43/84] t2_08... 2026-10-27 17:39:37,381 INFO catalog_retriever — [retriever] 'Average grid load by hour of day, please.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:37,405 INFO catalog_retriever — [retriever] 'Average grid load by hour of day, please.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:38,490 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[44/84] t2_09... 2026-10-27 17:39:39,666 INFO catalog_retriever — [retriever] 'Which month had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:39,692 INFO catalog_retriever — [retriever] 'Which month had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:42,016 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[45/84] t2_10... 2026-10-27 17:39:43,122 INFO catalog_retriever — [retriever] 'Average German price by hour of day in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:43,147 INFO catalog_retriever — [retriever] 'Average German price by hour of day in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:45,022 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[46/84] t2_11... 2026-10-27 17:39:46,186 INFO catalog_retriever — [retriever] 'Welche Stromquelle hat 2024 wie viel geliefert? Bitte absteigend sortieren.' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:39:46,210 INFO catalog_retriever — [retriever] 'Welche Stromquelle hat 2024 wie viel geliefert? Bitte absteigend sortieren.' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:39:47,645 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[47/84] t2_12... 2026-10-27 17:39:48,767 INFO catalog_retriever — [retriever] 'Which day of the week has the highest average consumption?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:48,792 INFO catalog_retriever — [retriever] 'Which day of the week has the highest average consumption?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:39:49,890 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[48/84] t2_13... 2026-10-27 17:39:51,041 INFO catalog_retriever — [retriever] 'Total wind, onshore and offshore together, per year.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:51,067 INFO catalog_retriever — [retriever] 'Total wind, onshore and offshore together, per year.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:39:52,362 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[49/84] t2_14... 2026-10-27 17:39:53,600 INFO catalog_retriever — [retriever] 'Which 5 quarter-hours had the most expensive German power ever?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:53,624 INFO catalog_retriever — [retriever] 'Which 5 quarter-hours had the most expensive German power ever?' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:55,021 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[50/84] t2_15... 2026-10-27 17:39:56,142 INFO catalog_retriever — [retriever] 'Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:39:56,165 INFO catalog_retriever — [retriever] 'Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:39:58,192 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[51/84] t2_16... 2026-10-27 17:39:59,329 INFO catalog_retriever — [retriever] 'Average German price month by month in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:39:59,353 INFO catalog_retriever — [retriever] 'Average German price month by month in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:40:01,061 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[52/84] t2_17... 2026-10-27 17:40:02,230 INFO catalog_retriever — [retriever] 'For each source, what was its single biggest quarter-hour, sorted by that peak?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:40:02,252 INFO catalog_retriever — [retriever] 'For each source, what was its single biggest quarter-hour, sorted by that peak?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:40:03,368 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[53/84] t2_18... 2026-10-27 17:40:04,558 INFO catalog_retriever — [retriever] 'How many negative-price quarter-hours were there each year?' → ['preise'] (keyword match → preise)
+2026-10-27 17:40:04,582 INFO catalog_retriever — [retriever] 'How many negative-price quarter-hours were there each year?' → ['preise'] (keyword match → preise)
+2026-10-27 17:40:05,620 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[54/84] t2_19... 2026-10-27 17:40:06,773 INFO catalog_retriever — [retriever] 'Average solar output by calendar month across all the years.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:06,796 INFO catalog_retriever — [retriever] 'Average solar output by calendar month across all the years.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:08,437 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[55/84] t2_20... 2026-10-27 17:40:09,682 INFO catalog_retriever — [retriever] 'Which quarter of 2025 had the most onshore wind?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:09,706 INFO catalog_retriever — [retriever] 'Which quarter of 2025 had the most onshore wind?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:11,004 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[56/84] t2_21... 2026-10-27 17:40:12,110 INFO catalog_retriever — [retriever] 'List all the price zones sorted by how low their price ever got.' → ['preise'] (keyword match → preise)
+2026-10-27 17:40:12,135 INFO catalog_retriever — [retriever] 'List all the price zones sorted by how low their price ever got.' → ['preise'] (keyword match → preise)
+2026-10-27 17:40:13,453 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[57/84] t2_22... 2026-10-27 17:40:14,716 INFO catalog_retriever — [retriever] 'On 21 June 2025, how much did each source produce? sorted highest first' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:40:14,739 INFO catalog_retriever — [retriever] 'On 21 June 2025, how much did each source produce? sorted highest first' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:40:16,524 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[58/84] t2_23... 2026-10-27 17:40:17,576 INFO catalog_retriever — [retriever] 'How many quarter-hours per year did solar output go above 10000 MWh?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:17,601 INFO catalog_retriever — [retriever] 'How many quarter-hours per year did solar output go above 10000 MWh?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:18,962 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[59/84] t2_24... 2026-10-27 17:40:20,090 INFO catalog_retriever — [retriever] 'Average residual load per month in 2025.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:40:20,113 INFO catalog_retriever — [retriever] 'Average residual load per month in 2025.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:40:22,156 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[60/84] t2_25... 2026-10-27 17:40:23,351 INFO catalog_retriever — [retriever] 'Rank the neighbouring countries by their average price in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:40:23,374 INFO catalog_retriever — [retriever] 'Rank the neighbouring countries by their average price in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:40:25,405 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[61/84] t3_01... 2026-10-27 17:40:26,561 INFO catalog_retriever — [retriever] 'Which single day had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:26,584 INFO catalog_retriever — [retriever] 'Which single day had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:28,039 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[62/84] t3_02... 2026-10-27 17:40:29,225 INFO catalog_retriever — [retriever] 'What share of all generation came from wind, onshore and offshore combined, in J' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:29,243 INFO catalog_retriever — [retriever] 'What share of all generation came from wind, onshore and offshore combined, in J' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:30,453 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[63/84] t3_03... 2026-10-27 17:40:31,527 INFO catalog_retriever — [retriever] 'Compare average solar output in June 2025 against July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:31,552 INFO catalog_retriever — [retriever] 'Compare average solar output in June 2025 against July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:33,421 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[64/84] t3_04... 2026-10-27 17:40:34,515 INFO catalog_retriever — [retriever] 'On the day electricity was most expensive, what was the generation mix?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:40:34,540 INFO catalog_retriever — [retriever] 'On the day electricity was most expensive, what was the generation mix?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:40:37,109 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[65/84] t3_05... 2026-10-27 17:40:38,460 INFO catalog_retriever — [retriever] 'Which day had the biggest swing between its highest and lowest grid load?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:40:38,483 INFO catalog_retriever — [retriever] 'Which day had the biggest swing between its highest and lowest grid load?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:40:39,676 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[66/84] t3_06... 2026-10-27 17:40:40,806 INFO catalog_retriever — [retriever] 'How did solar in 2025 compare to 2024, in absolute terms and percent?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:40,828 INFO catalog_retriever — [retriever] 'How did solar in 2025 compare to 2024, in absolute terms and percent?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:42,403 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[67/84] t3_07... 2026-10-27 17:40:43,547 INFO catalog_retriever — [retriever] 'What share of consumption was covered by renewables in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:40:43,569 INFO catalog_retriever — [retriever] 'What share of consumption was covered by renewables in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:40:45,608 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[68/84] t3_08... 2026-10-27 17:40:46,761 INFO catalog_retriever — [retriever] 'Was power more expensive on weekends or on weekdays in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:40:46,785 INFO catalog_retriever — [retriever] 'Was power more expensive on weekends or on weekdays in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:40:48,592 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[69/84] t3_09... 2026-10-27 17:40:49,745 INFO catalog_retriever — [retriever] 'On the windiest day for onshore wind, what was the average German price?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:40:49,767 INFO catalog_retriever — [retriever] 'On the windiest day for onshore wind, what was the average German price?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:40:52,161 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[70/84] t3_10... 2026-10-27 17:40:53,413 INFO catalog_retriever — [retriever] 'Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:53,437 INFO catalog_retriever — [retriever] 'Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:40:55,846 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[71/84] t3_11... 2026-10-27 17:40:57,038 INFO catalog_retriever — [retriever] 'In 2025, was the price different in quarter-hours with a lot of solar, say above' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:40:57,061 INFO catalog_retriever — [retriever] 'In 2025, was the price different in quarter-hours with a lot of solar, say above' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:40:59,151 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[72/84] t3_12... 2026-10-27 17:41:00,314 INFO catalog_retriever — [retriever] 'Which day had the lowest total generation, and how far below the daily average w' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:00,337 INFO catalog_retriever — [retriever] 'Which day had the lowest total generation, and how far below the daily average w' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:02,349 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[73/84] t4_01... 2026-10-27 17:41:03,751 INFO catalog_retriever — [retriever] 'For each week, which source was the top producer?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:41:03,774 INFO catalog_retriever — [retriever] 'For each week, which source was the top producer?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:41:05,779 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[74/84] t4_02... 2026-10-27 17:41:07,161 INFO catalog_retriever — [retriever] 'What was the longest unbroken stretch where solar output was zero?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:07,186 INFO catalog_retriever — [retriever] 'What was the longest unbroken stretch where solar output was zero?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:09,261 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[75/84] t4_03... 2026-10-27 17:41:10,342 INFO catalog_retriever — [retriever] 'Which hours had more generation than consumption?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:41:10,365 INFO catalog_retriever — [retriever] 'Which hours had more generation than consumption?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:41:11,720 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[76/84] t4_04... 2026-10-27 17:41:13,953 INFO catalog_retriever — [retriever] 'What was the longest run of consecutive quarter-hours with a negative German pri' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:13,975 INFO catalog_retriever — [retriever] 'What was the longest run of consecutive quarter-hours with a negative German pri' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:15,500 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[77/84] u_01... 2026-10-27 17:41:16,673 INFO catalog_retriever — [retriever] 'How much nuclear power was produced in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:16,697 INFO catalog_retriever — [retriever] 'How much nuclear power was produced in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:18,348 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[78/84] u_02... 2026-10-27 17:41:19,383 INFO catalog_retriever — [retriever] 'How much electricity did Bavaria produce last year?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:41:19,408 INFO catalog_retriever — [retriever] 'How much electricity did Bavaria produce last year?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:41:20,455 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[79/84] u_03... 2026-10-27 17:41:21,463 INFO catalog_retriever — [retriever] 'What will demand be next winter?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:41:21,484 INFO catalog_retriever — [retriever] 'What will demand be next winter?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:41:22,575 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[80/84] u_04... 2026-10-27 17:41:23,582 INFO catalog_retriever — [retriever] 'How much CO2 did German electricity generation emit in 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:23,607 INFO catalog_retriever — [retriever] 'How much CO2 did German electricity generation emit in 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:24,520 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[81/84] u_05... 2026-10-27 17:41:25,528 INFO catalog_retriever — [retriever] 'Which power plant produced the most electricity?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:25,552 INFO catalog_retriever — [retriever] 'Which power plant produced the most electricity?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:27,092 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[82/84] u_06... 2026-10-27 17:41:28,108 INFO catalog_retriever — [retriever] 'How much solar capacity is installed in Germany?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:28,134 INFO catalog_retriever — [retriever] 'How much solar capacity is installed in Germany?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:29,246 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[83/84] u_07... 2026-10-27 17:41:30,258 INFO catalog_retriever — [retriever] 'What was the average price in the DE/AT/LU zone in 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:30,283 INFO catalog_retriever — [retriever] 'What was the average price in the DE/AT/LU zone in 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:31,454 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[84/84] u_08... 2026-10-27 17:41:32,462 INFO catalog_retriever — [retriever] 'How much wind did we generate in July 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:32,485 INFO catalog_retriever — [retriever] 'How much wind did we generate in July 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:33,551 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+
+=== Per-tier results (v2c: v2b + data date range) ===
+Tier 0 (unanswerable)              7/8  
+Tier 1 (single aggregate)         32/35 
+Tier 2 (grouping/ranking)         16/25 
+Tier 3 (dates/comparisons)         2/12 
+Tier 4 (hard)                      0/4  
+
+Overall                           57/84 
+Valid-SQL rate                    74/84 
+Declines: tier 0 correct           7/8  
+Declines: tiers 1-4 (wrong)        2
+
+=== Failures (27) ===
+
+--- t1_12 (tier 1) ---
+Retrieved tables: ['erzeugung']
+Question:         Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?
+Gold SQL:         SELECT SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Erdgas' AND zeitpunkt >= '2026-02-01' AND zeitpunkt < '2026-03-01';
+Agent SQL:        (empty)
+Model reply:      NO_QUERY: Data for February 2026 is not available.
+Comparator:       declined (no SQL)
+
+--- t1_18 (tier 1) ---
+Retrieved tables: ['verbrauch']
+Question:         Highest grid load ever?
+Gold SQL:         SELECT MAX(mwh) AS mwh FROM verbrauch WHERE metrik = 'grid load';
+Agent SQL:        SELECT zeitpunkt, mwh FROM verbrauch WHERE metrik = 'grid load' ORDER BY mwh DESC LIMIT 1;
+Comparator:       column count mismatch at row 0: gold=1 agent=2
+
+--- t1_26 (tier 1) ---
+Retrieved tables: ['erzeugung']
+Question:         Was war der höchste Sonnenstrom-Wert im Mai 2025?
+Gold SQL:         SELECT MAX(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Photovoltaik' AND zeitpunkt >= '2025-05-01' AND zeitpunkt < '2025-06-01';
+Agent SQL:        (empty)
+Model reply:      NO_QUERY: The data does not cover May 2025.
+Comparator:       declined (no SQL)
+
+--- t2_07 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Break down 2025 generation by source and show each one's share in percent.
+Gold SQL:         SELECT energietraeger, SUM(mwh) AS mwh,
+       ROUND(100 * SUM(mwh) / SUM(SUM(mwh)) OVER (), 2) AS anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST;
+Agent SQL:        SELECT 
+    energietraeger, 
+    SUM(mwh) AS total_mwh, 
+    (SUM(mwh) / (SELECT SUM(mwh) FROM erzeugung WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01') * 100) AS share_percent
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 
+    energietraeger
+ORDER BY 
+    share_percent DESC NULLS LAST;
+Comparator:       cell mismatch row 6 col 2: numeric mismatch: gold=0.22 agent=0.21765907157507222 (toleranz=0.001)
+
+--- t2_12 (tier 2) ---
+Retrieved tables: ['verbrauch']
+Question:         Which day of the week has the highest average consumption?
+Gold SQL:         SELECT trim(to_char(zeitpunkt, 'Day')) AS wochentag, AVG(mwh) AS mwh FROM verbrauch WHERE metrik = 'grid load' GROUP BY 1 ORDER BY mwh DESC LIMIT 1;
+Agent SQL:        SELECT EXTRACT(DOW FROM zeitpunkt) AS day_of_week, AVG(mwh) AS average_consumption
+FROM verbrauch
+WHERE metrik = 'grid load'
+GROUP BY day_of_week
+ORDER BY average_consumption DESC
+LIMIT 1;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Wednesday' agent=Decimal('3')
+
+--- t2_14 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         Which 5 quarter-hours had the most expensive German power ever?
+Gold SQL:         SELECT zeitpunkt, preis_eur_mwh AS eur_mwh FROM preise WHERE preiszone = 'Deutschland/Luxemburg' ORDER BY preis_eur_mwh DESC NULLS LAST, zeitpunkt LIMIT 5;
+Agent SQL:        SELECT zeitpunkt, preis_eur_mwh FROM preise WHERE preiszone = 'Deutschland/Luxemburg' ORDER BY preis_eur_mwh DESC NULLS LAST LIMIT 5;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.datetime(2024, 12, 12, 17, 0) agent=datetime.datetime(2024, 12, 12, 17, 45)
+
+--- t2_15 (tier 2) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?
+Gold SQL:         SELECT CASE WHEN energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+            THEN 'Erneuerbar' ELSE 'Konventionell' END AS kategorie,
+       SUM(mwh) AS mwh
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY mwh DESC;
+Agent SQL:        SELECT 
+    SUM(CASE WHEN energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare') THEN mwh ELSE 0 END) AS oekostrom_mwh,
+    SUM(CASE WHEN energietraeger IN ('Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher', 'Sonstige Konventionelle') THEN mwh ELSE 0 END) AS konventioneller_strom_mwh
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01 00:00' AND zeitpunkt < '2026-01-01 00:00';
+Comparator:       row count mismatch: gold=2 agent=1
+
+--- t2_18 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         How many negative-price quarter-hours were there each year?
+Gold SQL:         SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, COUNT(*) AS n FROM preise WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0 GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT EXTRACT(YEAR FROM zeitpunkt) AS year, COUNT(*) AS negative_price_quarter_hours
+FROM preise
+WHERE preis_eur_mwh < 0
+GROUP BY year
+ORDER BY year;
+Comparator:       cell mismatch row 0 col 1: numeric mismatch: gold=936.0 agent=8220.0 (toleranz=1e-06)
+
+--- t2_19 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Average solar output by calendar month across all the years.
+Gold SQL:         SELECT EXTRACT(MONTH FROM zeitpunkt)::int AS monat, AVG(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Photovoltaik' GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    EXTRACT(YEAR FROM zeitpunkt) AS year,
+    EXTRACT(MONTH FROM zeitpunkt) AS month,
+    AVG(mwh) AS average_solar_output_mwh
+FROM 
+    erzeugung
+WHERE 
+    energietraeger = 'Photovoltaik'
+GROUP BY 
+    year, month
+ORDER BY 
+    year, month;
+Comparator:       row count mismatch: gold=12 agent=37
+
+--- t2_20 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Which quarter of 2025 had the most onshore wind?
+Gold SQL:         SELECT date_trunc('quarter', zeitpunkt)::date AS quartal, SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Wind Onshore' AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01' GROUP BY 1 ORDER BY mwh DESC LIMIT 1;
+Agent SQL:        SELECT EXTRACT(QUARTER FROM zeitpunkt) AS quarter, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025 AND energietraeger = 'Wind Onshore'
+GROUP BY quarter
+ORDER BY total_mwh DESC
+LIMIT 1;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 10, 1) agent=Decimal('4')
+
+--- t2_21 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         List all the price zones sorted by how low their price ever got.
+Gold SQL:         SELECT preiszone, MIN(preis_eur_mwh) AS min_eur_mwh FROM preise GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0 ORDER BY min_eur_mwh ASC;
+Agent SQL:        SELECT preiszone
+FROM preise
+GROUP BY preiszone
+HAVING COUNT(preis_eur_mwh) > 0
+ORDER BY MIN(preis_eur_mwh) ASC;
+Comparator:       column count mismatch at row 0: gold=2 agent=1
+
+--- t2_25 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         Rank the neighbouring countries by their average price in 2025.
+Gold SQL:         SELECT preiszone, AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+  AND preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0
+ORDER BY eur_mwh DESC;
+Agent SQL:        SELECT preiszone, AVG(preis_eur_mwh) AS avg_price
+FROM preise
+WHERE preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+  AND zeitpunkt >= '2025-01-01 00:00' AND zeitpunkt < '2026-01-01 00:00'
+GROUP BY preiszone
+HAVING COUNT(preis_eur_mwh) > 0
+ORDER BY avg_price;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Polen' agent='Schweden 4'
+
+--- t3_02 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         What share of all generation came from wind, onshore and offshore combined, in June 2025?
+Gold SQL:         SELECT ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger IN ('Wind Onshore','Wind Offshore'))
+             / SUM(mwh), 2) AS wind_anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-07-01';
+Agent SQL:        SELECT SUM(CASE WHEN energietraeger IN ('Wind Onshore', 'Wind Offshore') THEN mwh ELSE 0 END) / SUM(mwh) AS wind_share
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01 00:00' AND zeitpunkt < '2025-07-01 00:00';
+Comparator:       cell mismatch row 0 col 0: numeric mismatch: gold=30.51 agent=0.3050639518164282 (toleranz=0.001)
+
+--- t3_03 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Compare average solar output in June 2025 against July 2025.
+Gold SQL:         SELECT date_trunc('month', zeitpunkt)::date AS monat, AVG(mwh) AS mwh
+FROM erzeugung
+WHERE energietraeger = 'Photovoltaik'
+  AND zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-08-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    EXTRACT(MONTH FROM zeitpunkt) AS month,
+    AVG(mwh) AS average_solar_output
+FROM 
+    erzeugung
+WHERE 
+    EXTRACT(YEAR FROM zeitpunkt) = 2025
+    AND energietraeger = 'Photovoltaik'
+    AND EXTRACT(MONTH FROM zeitpunkt) IN (6, 7)
+GROUP BY 
+    EXTRACT(MONTH FROM zeitpunkt)
+ORDER BY 
+    month;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 6, 1) agent=Decimal('6')
+
+--- t3_04 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         On the day electricity was most expensive, what was the generation mix?
+Gold SQL:         WITH teuerster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM preise
+  WHERE preiszone = 'Deutschland/Luxemburg'
+  GROUP BY 1 ORDER BY AVG(preis_eur_mwh) DESC LIMIT 1
+)
+SELECT t.tag, e.energietraeger, SUM(e.mwh) AS mwh
+FROM erzeugung e JOIN teuerster_tag t ON e.zeitpunkt::date = t.tag
+GROUP BY t.tag, e.energietraeger
+ORDER BY mwh DESC NULLS LAST;
+Agent SQL:        SELECT e.energietraeger, SUM(e.mwh) AS total_generation_mwh
+FROM erzeugung e
+JOIN (
+    SELECT zeitpunkt
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg'
+    GROUP BY zeitpunkt
+    ORDER BY AVG(preis_eur_mwh) DESC
+    LIMIT 96
+) AS max_price_day ON e.zeitpunkt = max_price_day.zeitpunkt
+GROUP BY e.energietraeger
+ORDER BY total_generation_mwh DESC;
+Comparator:       column count mismatch at row 0: gold=3 agent=2
+
+--- t3_06 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         How did solar in 2025 compare to 2024, in absolute terms and percent?
+Gold SQL:         WITH j AS (
+  SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, SUM(mwh) AS mwh
+  FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+  GROUP BY 1
+)
+SELECT
+  MAX(mwh) FILTER (WHERE jahr = 2024) AS mwh_2024,
+  MAX(mwh) FILTER (WHERE jahr = 2025) AS mwh_2025,
+  MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024) AS differenz_mwh,
+  ROUND(100 * (MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024))
+        / MAX(mwh) FILTER (WHERE jahr = 2024), 2) AS veraenderung_prozent
+FROM j;
+Agent SQL:        SELECT 
+    '2024' AS year, 
+    SUM(mwh) AS total_mwh 
+FROM 
+    erzeugung 
+WHERE 
+    energietraeger = 'Photovoltaik' 
+    AND zeitpunkt >= '2024-01-01' 
+    AND zeitpunkt < '2025-01-01'
+UNION ALL
+SELECT 
+    '2025' AS year, 
+    SUM(mwh) AS total_mwh 
+FROM 
+    erzeugung 
+WHERE 
+    energietraeger = 'Photovoltaik' 
+    AND zeitpunkt >= '2025-01-01' 
+    AND zeitpunkt < '2026-01-01';
+Comparator:       row count mismatch: gold=1 agent=2
+
+--- t3_07 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         What share of consumption was covered by renewables in 2025?
+Gold SQL:         WITH ee AS (
+  SELECT SUM(mwh) AS mwh FROM erzeugung
+  WHERE energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+), last AS (
+  SELECT SUM(mwh) AS mwh FROM verbrauch
+  WHERE metrik = 'grid load'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT ee.mwh AS erneuerbar_mwh, last.mwh AS netzlast_mwh,
+       ROUND(100 * ee.mwh / last.mwh, 2) AS deckung_prozent
+FROM ee, last;
+Agent SQL:        SELECT SUM(e.mwh) / SUM(v.mwh) * 100 AS renewables_share
+FROM erzeugung e
+JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt
+WHERE e.energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare')
+AND v.metrik = 'grid load'
+AND e.zeitpunkt >= '2025-01-01' AND e.zeitpunkt < '2026-01-01';
+Comparator:       column count mismatch at row 0: gold=3 agent=1
+
+--- t3_08 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Was power more expensive on weekends or on weekdays in 2025?
+Gold SQL:         SELECT CASE WHEN EXTRACT(ISODOW FROM zeitpunkt) >= 6 THEN 'Wochenende' ELSE 'Werktag' END AS typ,
+       AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg'
+  AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY eur_mwh DESC;
+Agent SQL:        SELECT 
+    CASE WHEN EXTRACT(ISODOW FROM zeitpunkt) IN (6, 7) THEN 'Weekend' ELSE 'Weekday' END AS day_type,
+    AVG(preis_eur_mwh) AS avg_price
+FROM 
+    preise
+WHERE 
+    EXTRACT(YEAR FROM zeitpunkt) = 2025
+    AND preiszone = 'Deutschland/Luxemburg'
+GROUP BY 
+    day_type
+ORDER BY 
+    day_type;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Werktag' agent='Weekday'
+
+--- t3_09 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         On the windiest day for onshore wind, what was the average German price?
+Gold SQL:         WITH windigster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM erzeugung WHERE energietraeger = 'Wind Onshore'
+  GROUP BY 1 ORDER BY SUM(mwh) DESC LIMIT 1
+)
+SELECT w.tag, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM preise p JOIN windigster_tag w ON p.zeitpunkt::date = w.tag
+WHERE p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY w.tag;
+Agent SQL:        SELECT AVG(p.preis_eur_mwh) AS average_german_price
+FROM preise p
+JOIN (
+  SELECT zeitpunkt
+  FROM erzeugung
+  WHERE energietraeger = 'Wind Onshore'
+  GROUP BY zeitpunkt
+  ORDER BY SUM(mwh) DESC
+  LIMIT 96
+) AS windiest_day ON p.zeitpunkt = windiest_day.zeitpunkt
+WHERE p.preiszone = 'Deutschland/Luxemburg';
+Comparator:       column count mismatch at row 0: gold=2 agent=1
+
+--- t3_10 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025?
+Gold SQL:         SELECT date_trunc('month', zeitpunkt)::date AS monat,
+       ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger = 'Photovoltaik') / SUM(mwh), 2) AS solaranteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    DATE_TRUNC('month', zeitpunkt) AS monat,
+    SUM(CASE WHEN energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) / SUM(mwh) * 100 AS sonnenstrom_anteil_prozent
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 
+    monat
+ORDER BY 
+    monat;
+Comparator:       cell mismatch row 0 col 1: numeric mismatch: gold=3.84 agent=3.8355513892628204 (toleranz=0.001)
+
+--- t3_11 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         In 2025, was the price different in quarter-hours with a lot of solar, say above 5000 MWh, compared to the rest?
+Gold SQL:         WITH pv AS (
+  SELECT zeitpunkt, mwh FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT CASE WHEN pv.mwh > 5000 THEN 'viel Solar' ELSE 'wenig Solar' END AS gruppe,
+       COUNT(*) AS n, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM pv JOIN preise p ON p.zeitpunkt = pv.zeitpunkt AND p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    AVG(CASE WHEN e.mwh > 5000 THEN p.preis_eur_mwh END) AS avg_price_high_solar,
+    AVG(CASE WHEN e.mwh <= 5000 THEN p.preis_eur_mwh END) AS avg_price_low_solar
+FROM 
+    erzeugung e
+JOIN 
+    preise p ON e.zeitpunkt = p.zeitpunkt
+WHERE 
+    e.energietraeger = 'Photovoltaik'
+    AND p.preiszone = 'Deutschland/Luxemburg'
+    AND e.zeitpunkt >= '2025-01-01' 
+    AND e.zeitpunkt < '2026-01-01';
+Comparator:       row count mismatch: gold=2 agent=1
+
+--- t3_12 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Which day had the lowest total generation, and how far below the daily average was it?
+Gold SQL:         WITH tage AS (
+  SELECT zeitpunkt::date AS tag, SUM(mwh) AS mwh FROM erzeugung GROUP BY 1
+)
+SELECT tag, mwh AS tages_mwh,
+       ROUND(AVG(mwh) OVER (), 2) AS durchschnitt_mwh,
+       ROUND(100 * (mwh - AVG(mwh) OVER ()) / AVG(mwh) OVER (), 2) AS abweichung_prozent
+FROM tage ORDER BY mwh ASC LIMIT 1;
+Agent SQL:        SELECT 
+    date(zeitpunkt) AS day, 
+    SUM(mwh) AS total_generation, 
+    SUM(mwh) - (SELECT AVG(daily_total) FROM (SELECT SUM(mwh) AS daily_total FROM erzeugung GROUP BY date(zeitpunkt)) AS daily_totals) AS difference_from_average
+FROM 
+    erzeugung
+GROUP BY 
+    date(zeitpunkt)
+ORDER BY 
+    total_generation ASC
+LIMIT 1;
+Comparator:       column count mismatch at row 0: gold=4 agent=3
+
+--- t4_01 (tier 4) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         For each week, which source was the top producer?
+Gold SQL:         WITH wochen AS (
+  SELECT date_trunc('week', zeitpunkt)::date AS woche, energietraeger, SUM(mwh) AS mwh
+  FROM erzeugung GROUP BY 1, 2
+), rang AS (
+  SELECT woche, energietraeger, mwh,
+         ROW_NUMBER() OVER (PARTITION BY woche ORDER BY mwh DESC NULLS LAST) AS rn
+  FROM wochen
+)
+SELECT woche, energietraeger, mwh FROM rang WHERE rn = 1 ORDER BY woche;
+Agent SQL:        SELECT 
+    DATE_TRUNC('week', zeitpunkt) AS week_start,
+    energietraeger,
+    SUM(mwh) AS total_mwh
+FROM 
+    erzeugung
+GROUP BY 
+    week_start, energietraeger
+ORDER BY 
+    week_start, total_mwh DESC NULLS LAST
+LIMIT 1;
+Comparator:       row count mismatch: gold=158 agent=1
+
+--- t4_02 (tier 4) ---
+Retrieved tables: ['erzeugung']
+Question:         What was the longest unbroken stretch where solar output was zero?
+Gold SQL:         WITH pv AS (
+  SELECT zeitpunkt, mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM erzeugung WHERE energietraeger = 'Photovoltaik'
+), null_lauf AS (
+  SELECT zeitpunkt, rn, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM pv WHERE mwh = 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM null_lauf
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL:        SELECT MAX(streak_length) FROM (
+  SELECT zeitpunkt, 
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) - 
+         ROW_NUMBER() OVER (PARTITION BY zero_output ORDER BY zeitpunkt) AS streak_id,
+         COUNT(*) OVER (PARTITION BY zero_output, 
+                        ROW_NUMBER() OVER (ORDER BY zeitpunkt) - 
+                        ROW_NUMBER() OVER (PARTITION BY zero_output ORDER BY zeitpunkt)) AS streak_length
+  FROM (
+    SELECT zeitpunkt, 
+           CASE WHEN mwh = 0 THEN 1 ELSE 0 END AS zero_output
+    FROM erzeugung
+    WHERE energietraeger = 'Photovoltaik'
+  ) sub
+) streaks
+WHERE zero_output = 1;
+Comparator:       agent SQL error: window functions are not allowed in window definitions
+LINE 6:                         ROW_NUMBER() OVER (ORDER BY zeitpunk...
+                                ^
+
+
+--- t4_03 (tier 4) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Which hours had more generation than consumption?
+Gold SQL:         WITH e AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS erzeugt
+  FROM erzeugung GROUP BY 1
+), v AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS verbraucht
+  FROM verbrauch WHERE metrik = 'grid load' GROUP BY 1
+)
+SELECT e.stunde, e.erzeugt, v.verbraucht, e.erzeugt - v.verbraucht AS ueberschuss_mwh
+FROM e JOIN v USING (stunde)
+WHERE e.erzeugt > v.verbraucht
+ORDER BY e.stunde;
+Agent SQL:        SELECT DISTINCT date_trunc('hour', e.zeitpunkt) AS hour
+FROM erzeugung e
+JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt
+GROUP BY hour
+HAVING SUM(e.mwh) > SUM(CASE WHEN v.metrik = 'grid load' THEN v.mwh ELSE 0 END);
+Comparator:       row count mismatch: gold=8568 agent=0
+
+--- t4_04 (tier 4) ---
+Retrieved tables: ['preise']
+Question:         What was the longest run of consecutive quarter-hours with a negative German price?
+Gold SQL:         WITH p AS (
+  SELECT zeitpunkt, preis_eur_mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM preise WHERE preiszone = 'Deutschland/Luxemburg'
+), neg AS (
+  SELECT zeitpunkt, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM p WHERE preis_eur_mwh < 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM neg
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL:        SELECT MAX(consecutive_quarters) FROM (
+  SELECT COUNT(*) AS consecutive_quarters
+  FROM (
+    SELECT zeitpunkt, preis_eur_mwh, 
+           zeitpunkt - INTERVAL '15 minutes' * ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS grp
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0
+  ) sub
+  GROUP BY grp
+) final;
+Comparator:       column count mismatch at row 0: gold=4 agent=1
+
+--- u_01 (tier 0) ---
+Retrieved tables: ['erzeugung']
+Question:         How much nuclear power was produced in June 2025?
+Gold SQL:         (none — tier 0)
+Agent SQL:        SELECT SUM(mwh) 
+FROM erzeugung 
+WHERE energietraeger = 'Kernenergie' 
+AND zeitpunkt >= '2025-06-01 00:00' 
+AND zeitpunkt < '2025-07-01 00:00';
+Comparator:       tier 0: agent returned SQL when it should have declined
+
+=== Retrieval analysis ===
+  Failed AND retriever missed a gold table: 0 — retrieval-caused candidates
+  Failed with all gold tables supplied:     27 — catalog/model issue, not retrieval
+  Retrieval misses overall (pass or fail): []
+
+Log saved to: /Users/deepaktalwar/Desktop/text-to-SQL/results/v2c_t0_run2_2026-10-27.log
+Per-question records saved to: /Users/deepaktalwar/Desktop/text-to-SQL/results/v2c_t0_run2_2026-10-27.jsonl
+
+##### run 3/3 (tag=t0_run3) #####
+[1/84] t1_01... 2026-10-27 17:41:34,613 INFO catalog_retriever — [retriever] 'How much electricity did solar produce in total in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:34,625 INFO catalog_retriever — [retriever] 'How much electricity did solar produce in total in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:35,704 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[2/84] t1_02... 2026-10-27 17:41:36,767 INFO catalog_retriever — [retriever] 'What was the highest quarter-hour wind onshore output in the whole period?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:36,791 INFO catalog_retriever — [retriever] 'What was the highest quarter-hour wind onshore output in the whole period?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:37,906 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[3/84] t1_03... 2026-10-27 17:41:39,030 INFO catalog_retriever — [retriever] 'What was the total generation across all sources on 15 June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:39,053 INFO catalog_retriever — [retriever] 'What was the total generation across all sources on 15 June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:40,269 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[4/84] t1_04... 2026-10-27 17:41:41,316 INFO catalog_retriever — [retriever] 'wieviel strom lieferte die kohle insgesamt im januar 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:41,342 INFO catalog_retriever — [retriever] 'wieviel strom lieferte die kohle insgesamt im januar 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:42,646 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[5/84] t1_05... 2026-10-27 17:41:43,713 INFO catalog_retriever — [retriever] 'What was the average grid load in 2024?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:41:43,735 INFO catalog_retriever — [retriever] 'What was the average grid load in 2024?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:41:45,615 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[6/84] t1_06... 2026-10-27 17:41:46,687 INFO catalog_retriever — [retriever] "What's the lowest the German day-ahead price ever went?" → ['preise'] (keyword match → preise)
+2026-10-27 17:41:46,711 INFO catalog_retriever — [retriever] "What's the lowest the German day-ahead price ever went?" → ['preise'] (keyword match → preise)
+2026-10-27 17:41:47,765 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[7/84] t1_07... 2026-10-27 17:41:48,912 INFO catalog_retriever — [retriever] 'How many quarter-hours had a negative electricity price in Germany?' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:48,936 INFO catalog_retriever — [retriever] 'How many quarter-hours had a negative electricity price in Germany?' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:49,914 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[8/84] t1_08... 2026-10-27 17:41:51,056 INFO catalog_retriever — [retriever] 'Wie viel lieferten die Windräder auf See im Dezember 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:51,081 INFO catalog_retriever — [retriever] 'Wie viel lieferten die Windräder auf See im Dezember 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:52,271 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[9/84] t1_09... 2026-10-27 17:41:53,337 INFO catalog_retriever — [retriever] 'Show me the total biomass output for the whole dataset.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:53,362 INFO catalog_retriever — [retriever] 'Show me the total biomass output for the whole dataset.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:54,419 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[10/84] t1_10... 2026-10-27 17:41:55,545 INFO catalog_retriever — [retriever] "What was the peak solar output ever recorded? it's per quarter hour right" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:55,569 INFO catalog_retriever — [retriever] "What was the peak solar output ever recorded? it's per quarter hour right" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:41:56,676 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[11/84] t1_11... 2026-10-27 17:41:57,788 INFO catalog_retriever — [retriever] 'Durchschnittlicher Strompreis in Deutschland im Jahr 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:57,812 INFO catalog_retriever — [retriever] 'Durchschnittlicher Strompreis in Deutschland im Jahr 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:41:59,101 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[12/84] t1_12... 2026-10-27 17:42:00,200 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:00,223 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:02,409 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[13/84] t1_13... 2026-10-27 17:42:03,437 INFO catalog_retriever — [retriever] 'What was the maximum residual load in the whole period?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:03,463 INFO catalog_retriever — [retriever] 'What was the maximum residual load in the whole period?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:04,558 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[14/84] t1_14... 2026-10-27 17:42:05,659 INFO catalog_retriever — [retriever] 'total hydro power in 2025 please' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:05,683 INFO catalog_retriever — [retriever] 'total hydro power in 2025 please' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:07,326 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[15/84] t1_15... 2026-10-27 17:42:08,414 INFO catalog_retriever — [retriever] 'How much did hard coal produce in the first quarter of 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:08,437 INFO catalog_retriever — [retriever] 'How much did hard coal produce in the first quarter of 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:09,577 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[16/84] t1_16... 2026-10-27 17:42:10,657 INFO catalog_retriever — [retriever] 'What was the average price in France over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:10,679 INFO catalog_retriever — [retriever] 'What was the average price in France over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:11,829 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[17/84] t1_17... 2026-10-27 17:42:12,982 INFO catalog_retriever — [retriever] 'How much solar did we get on Christmas Day 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:13,004 INFO catalog_retriever — [retriever] 'How much solar did we get on Christmas Day 2024?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:14,492 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[18/84] t1_18... 2026-10-27 17:42:15,538 INFO catalog_retriever — [retriever] 'Highest grid load ever?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:15,558 INFO catalog_retriever — [retriever] 'Highest grid load ever?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:16,730 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[19/84] t1_19... 2026-10-27 17:42:17,839 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im November 2025 aus Speicherkraftwerken?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:42:17,863 INFO catalog_retriever — [retriever] 'Wie viel Strom kam im November 2025 aus Speicherkraftwerken?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:42:19,204 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[20/84] t1_20... 2026-10-27 17:42:20,261 INFO catalog_retriever — [retriever] "What's the average onshore wind output per quarter hour in 2024?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:20,281 INFO catalog_retriever — [retriever] "What's the average onshore wind output per quarter hour in 2024?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:21,456 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[21/84] t1_21... 2026-10-27 17:42:22,544 INFO catalog_retriever — [retriever] 'How many rows of generation data do we have for photovoltaics?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:22,567 INFO catalog_retriever — [retriever] 'How many rows of generation data do we have for photovoltaics?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:23,760 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[22/84] t1_22... 2026-10-27 17:42:24,826 INFO catalog_retriever — [retriever] 'What was the German power price at midday on 3 March 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:24,850 INFO catalog_retriever — [retriever] 'What was the German power price at midday on 3 March 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:26,064 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[23/84] t1_23... 2026-10-27 17:42:27,111 INFO catalog_retriever — [retriever] 'Sum up everything Erdgas produced in summer 2025, so June through August.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:27,136 INFO catalog_retriever — [retriever] 'Sum up everything Erdgas produced in summer 2025, so June through August.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:28,624 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[24/84] t1_24... 2026-10-27 17:42:29,706 INFO catalog_retriever — [retriever] "What's the smallest amount of onshore wind we've ever seen in a quarter hour?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:29,732 INFO catalog_retriever — [retriever] "What's the smallest amount of onshore wind we've ever seen in a quarter hour?" → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:30,751 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[25/84] t1_25... 2026-10-27 17:42:31,872 INFO catalog_retriever — [retriever] 'How much other renewables generation in total?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:31,897 INFO catalog_retriever — [retriever] 'How much other renewables generation in total?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:33,137 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[26/84] t1_26... 2026-10-27 17:42:34,260 INFO catalog_retriever — [retriever] 'Was war der höchste Sonnenstrom-Wert im Mai 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:34,283 INFO catalog_retriever — [retriever] 'Was war der höchste Sonnenstrom-Wert im Mai 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:35,596 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[27/84] t1_27... 2026-10-27 17:42:36,625 INFO catalog_retriever — [retriever] 'average Dutch price in 2024?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:36,651 INFO catalog_retriever — [retriever] 'average Dutch price in 2024?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:38,092 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[28/84] t1_28... 2026-10-27 17:42:39,191 INFO catalog_retriever — [retriever] 'How much lignite did we burn in October 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:39,212 INFO catalog_retriever — [retriever] 'How much lignite did we burn in October 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:40,559 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[29/84] t1_29... 2026-10-27 17:42:41,616 INFO catalog_retriever — [retriever] 'What was the total residual load in 2025?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:41,640 INFO catalog_retriever — [retriever] 'What was the total residual load in 2025?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:42,892 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[30/84] t1_30... 2026-10-27 17:42:43,968 INFO catalog_retriever — [retriever] 'Give me the number of quarter-hours where solar output was exactly zero.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:43,993 INFO catalog_retriever — [retriever] 'Give me the number of quarter-hours where solar output was exactly zero.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:45,212 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[31/84] t1_31... 2026-10-27 17:42:46,344 INFO catalog_retriever — [retriever] 'How high did the German price get in 2024 at most?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:46,368 INFO catalog_retriever — [retriever] 'How high did the German price get in 2024 at most?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:48,695 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[32/84] t1_32... 2026-10-27 17:42:49,802 INFO catalog_retriever — [retriever] 'Wie hoch war der Stromverbrauch im März 2026?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:49,827 INFO catalog_retriever — [retriever] 'Wie hoch war der Stromverbrauch im März 2026?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:51,459 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[33/84] t1_33... 2026-10-27 17:42:52,514 INFO catalog_retriever — [retriever] 'How much energy went into pumped storage in 2025, according to the consumption f' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:52,540 INFO catalog_retriever — [retriever] 'How much energy went into pumped storage in 2025, according to the consumption f' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:42:54,133 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[34/84] t1_34... 2026-10-27 17:42:55,211 INFO catalog_retriever — [retriever] 'wie viel windkraft an land gab es am 1. januar 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:55,236 INFO catalog_retriever — [retriever] 'wie viel windkraft an land gab es am 1. januar 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:42:56,945 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[35/84] t1_35... 2026-10-27 17:42:57,996 INFO catalog_retriever — [retriever] 'What was the average price in Austria in December 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:58,021 INFO catalog_retriever — [retriever] 'What was the average price in Austria in December 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:42:59,345 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[36/84] t2_01... 2026-10-27 17:43:00,395 INFO catalog_retriever — [retriever] 'Which energy source produced the most overall?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:00,418 INFO catalog_retriever — [retriever] 'Which energy source produced the most overall?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:01,470 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[37/84] t2_02... 2026-10-27 17:43:02,681 INFO catalog_retriever — [retriever] 'Rank all sources by total output in July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:02,703 INFO catalog_retriever — [retriever] 'Rank all sources by total output in July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:04,158 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[38/84] t2_03... 2026-10-27 17:43:05,226 INFO catalog_retriever — [retriever] 'What was the average solar output for each hour of the day?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:05,249 INFO catalog_retriever — [retriever] 'What was the average solar output for each hour of the day?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:06,669 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[39/84] t2_04... 2026-10-27 17:43:07,858 INFO catalog_retriever — [retriever] 'Give me total generation per month for 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:07,882 INFO catalog_retriever — [retriever] 'Give me total generation per month for 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:09,192 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[40/84] t2_05... 2026-10-27 17:43:10,428 INFO catalog_retriever — [retriever] 'What were the top 3 sources over the 2024/25 winter, December through February?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:10,451 INFO catalog_retriever — [retriever] 'What were the top 3 sources over the 2024/25 winter, December through February?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:12,146 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[41/84] t2_06... 2026-10-27 17:43:13,250 INFO catalog_retriever — [retriever] 'Which price zone had the highest average price over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:13,274 INFO catalog_retriever — [retriever] 'Which price zone had the highest average price over the whole period?' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:14,615 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[42/84] t2_07... 2026-10-27 17:43:15,874 INFO catalog_retriever — [retriever] "Break down 2025 generation by source and show each one's share in percent." → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:15,897 INFO catalog_retriever — [retriever] "Break down 2025 generation by source and show each one's share in percent." → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:18,151 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[43/84] t2_08... 2026-10-27 17:43:19,296 INFO catalog_retriever — [retriever] 'Average grid load by hour of day, please.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:43:19,320 INFO catalog_retriever — [retriever] 'Average grid load by hour of day, please.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:43:20,775 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[44/84] t2_09... 2026-10-27 17:43:21,939 INFO catalog_retriever — [retriever] 'Which month had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:21,964 INFO catalog_retriever — [retriever] 'Which month had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:23,534 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[45/84] t2_10... 2026-10-27 17:43:24,675 INFO catalog_retriever — [retriever] 'Average German price by hour of day in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:24,698 INFO catalog_retriever — [retriever] 'Average German price by hour of day in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:26,280 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[46/84] t2_11... 2026-10-27 17:43:27,439 INFO catalog_retriever — [retriever] 'Welche Stromquelle hat 2024 wie viel geliefert? Bitte absteigend sortieren.' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:27,463 INFO catalog_retriever — [retriever] 'Welche Stromquelle hat 2024 wie viel geliefert? Bitte absteigend sortieren.' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:29,113 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[47/84] t2_12... 2026-10-27 17:43:30,246 INFO catalog_retriever — [retriever] 'Which day of the week has the highest average consumption?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:43:30,268 INFO catalog_retriever — [retriever] 'Which day of the week has the highest average consumption?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:43:31,751 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[48/84] t2_13... 2026-10-27 17:43:32,900 INFO catalog_retriever — [retriever] 'Total wind, onshore and offshore together, per year.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:32,924 INFO catalog_retriever — [retriever] 'Total wind, onshore and offshore together, per year.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:34,352 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[49/84] t2_14... 2026-10-27 17:43:35,621 INFO catalog_retriever — [retriever] 'Which 5 quarter-hours had the most expensive German power ever?' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:35,643 INFO catalog_retriever — [retriever] 'Which 5 quarter-hours had the most expensive German power ever?' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:36,763 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[50/84] t2_15... 2026-10-27 17:43:37,885 INFO catalog_retriever — [retriever] 'Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:37,909 INFO catalog_retriever — [retriever] 'Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:39,711 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[51/84] t2_16... 2026-10-27 17:43:40,860 INFO catalog_retriever — [retriever] 'Average German price month by month in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:40,884 INFO catalog_retriever — [retriever] 'Average German price month by month in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:42,562 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[52/84] t2_17... 2026-10-27 17:43:43,725 INFO catalog_retriever — [retriever] 'For each source, what was its single biggest quarter-hour, sorted by that peak?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:43,748 INFO catalog_retriever — [retriever] 'For each source, what was its single biggest quarter-hour, sorted by that peak?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:45,530 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[53/84] t2_18... 2026-10-27 17:43:46,725 INFO catalog_retriever — [retriever] 'How many negative-price quarter-hours were there each year?' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:46,749 INFO catalog_retriever — [retriever] 'How many negative-price quarter-hours were there each year?' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:47,885 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[54/84] t2_19... 2026-10-27 17:43:49,018 INFO catalog_retriever — [retriever] 'Average solar output by calendar month across all the years.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:49,041 INFO catalog_retriever — [retriever] 'Average solar output by calendar month across all the years.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:50,649 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[55/84] t2_20... 2026-10-27 17:43:51,850 INFO catalog_retriever — [retriever] 'Which quarter of 2025 had the most onshore wind?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:51,872 INFO catalog_retriever — [retriever] 'Which quarter of 2025 had the most onshore wind?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:43:53,787 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[56/84] t2_21... 2026-10-27 17:43:54,892 INFO catalog_retriever — [retriever] 'List all the price zones sorted by how low their price ever got.' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:54,912 INFO catalog_retriever — [retriever] 'List all the price zones sorted by how low their price ever got.' → ['preise'] (keyword match → preise)
+2026-10-27 17:43:57,800 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[57/84] t2_22... 2026-10-27 17:43:59,056 INFO catalog_retriever — [retriever] 'On 21 June 2025, how much did each source produce? sorted highest first' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:43:59,076 INFO catalog_retriever — [retriever] 'On 21 June 2025, how much did each source produce? sorted highest first' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:44:00,471 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[58/84] t2_23... 2026-10-27 17:44:01,531 INFO catalog_retriever — [retriever] 'How many quarter-hours per year did solar output go above 10000 MWh?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:01,550 INFO catalog_retriever — [retriever] 'How many quarter-hours per year did solar output go above 10000 MWh?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:02,977 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[59/84] t2_24... 2026-10-27 17:44:04,091 INFO catalog_retriever — [retriever] 'Average residual load per month in 2025.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:44:04,115 INFO catalog_retriever — [retriever] 'Average residual load per month in 2025.' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:44:06,124 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[60/84] t2_25... 2026-10-27 17:44:07,231 INFO catalog_retriever — [retriever] 'Rank the neighbouring countries by their average price in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:44:07,254 INFO catalog_retriever — [retriever] 'Rank the neighbouring countries by their average price in 2025.' → ['preise'] (keyword match → preise)
+2026-10-27 17:44:08,868 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[61/84] t3_01... 2026-10-27 17:44:10,053 INFO catalog_retriever — [retriever] 'Which single day had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:10,073 INFO catalog_retriever — [retriever] 'Which single day had the highest total solar production?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:11,439 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[62/84] t3_02... 2026-10-27 17:44:12,572 INFO catalog_retriever — [retriever] 'What share of all generation came from wind, onshore and offshore combined, in J' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:12,597 INFO catalog_retriever — [retriever] 'What share of all generation came from wind, onshore and offshore combined, in J' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:13,866 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[63/84] t3_03... 2026-10-27 17:44:14,946 INFO catalog_retriever — [retriever] 'Compare average solar output in June 2025 against July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:14,971 INFO catalog_retriever — [retriever] 'Compare average solar output in June 2025 against July 2025.' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:16,608 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[64/84] t3_04... 2026-10-27 17:44:17,718 INFO catalog_retriever — [retriever] 'On the day electricity was most expensive, what was the generation mix?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:44:17,742 INFO catalog_retriever — [retriever] 'On the day electricity was most expensive, what was the generation mix?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:44:19,486 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[65/84] t3_05... 2026-10-27 17:44:20,779 INFO catalog_retriever — [retriever] 'Which day had the biggest swing between its highest and lowest grid load?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:44:20,803 INFO catalog_retriever — [retriever] 'Which day had the biggest swing between its highest and lowest grid load?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:44:22,397 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[66/84] t3_06... 2026-10-27 17:44:23,524 INFO catalog_retriever — [retriever] 'How did solar in 2025 compare to 2024, in absolute terms and percent?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:23,547 INFO catalog_retriever — [retriever] 'How did solar in 2025 compare to 2024, in absolute terms and percent?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:25,879 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[67/84] t3_07... 2026-10-27 17:44:27,017 INFO catalog_retriever — [retriever] 'What share of consumption was covered by renewables in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:44:27,040 INFO catalog_retriever — [retriever] 'What share of consumption was covered by renewables in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:44:28,949 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[68/84] t3_08... 2026-10-27 17:44:30,107 INFO catalog_retriever — [retriever] 'Was power more expensive on weekends or on weekdays in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:44:30,129 INFO catalog_retriever — [retriever] 'Was power more expensive on weekends or on weekdays in 2025?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:44:31,816 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[69/84] t3_09... 2026-10-27 17:44:32,943 INFO catalog_retriever — [retriever] 'On the windiest day for onshore wind, what was the average German price?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:44:32,965 INFO catalog_retriever — [retriever] 'On the windiest day for onshore wind, what was the average German price?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:44:35,259 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[70/84] t3_10... 2026-10-27 17:44:36,536 INFO catalog_retriever — [retriever] 'Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:36,560 INFO catalog_retriever — [retriever] 'Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:37,906 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[71/84] t3_11... 2026-10-27 17:44:39,106 INFO catalog_retriever — [retriever] 'In 2025, was the price different in quarter-hours with a lot of solar, say above' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:44:39,130 INFO catalog_retriever — [retriever] 'In 2025, was the price different in quarter-hours with a lot of solar, say above' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, preise) → all tables)
+2026-10-27 17:44:40,885 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[72/84] t3_12... 2026-10-27 17:44:42,061 INFO catalog_retriever — [retriever] 'Which day had the lowest total generation, and how far below the daily average w' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:42,084 INFO catalog_retriever — [retriever] 'Which day had the lowest total generation, and how far below the daily average w' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:43,591 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[73/84] t4_01... 2026-10-27 17:44:44,942 INFO catalog_retriever — [retriever] 'For each week, which source was the top producer?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:44:44,966 INFO catalog_retriever — [retriever] 'For each week, which source was the top producer?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:44:46,108 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[74/84] t4_02... 2026-10-27 17:44:47,484 INFO catalog_retriever — [retriever] 'What was the longest unbroken stretch where solar output was zero?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:47,507 INFO catalog_retriever — [retriever] 'What was the longest unbroken stretch where solar output was zero?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:49,476 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[75/84] t4_03... 2026-10-27 17:44:50,571 INFO catalog_retriever — [retriever] 'Which hours had more generation than consumption?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:44:50,593 INFO catalog_retriever — [retriever] 'Which hours had more generation than consumption?' → ['erzeugung', 'verbrauch', 'preise'] (multiple matches (erzeugung, verbrauch) → all tables)
+2026-10-27 17:44:52,262 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[76/84] t4_04... 2026-10-27 17:44:53,923 INFO catalog_retriever — [retriever] 'What was the longest run of consecutive quarter-hours with a negative German pri' → ['preise'] (keyword match → preise)
+2026-10-27 17:44:53,945 INFO catalog_retriever — [retriever] 'What was the longest run of consecutive quarter-hours with a negative German pri' → ['preise'] (keyword match → preise)
+2026-10-27 17:44:56,124 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+done
+[77/84] u_01... 2026-10-27 17:44:57,315 INFO catalog_retriever — [retriever] 'How much nuclear power was produced in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:57,338 INFO catalog_retriever — [retriever] 'How much nuclear power was produced in June 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:44:58,446 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[78/84] u_02... 2026-10-27 17:44:59,456 INFO catalog_retriever — [retriever] 'How much electricity did Bavaria produce last year?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:44:59,481 INFO catalog_retriever — [retriever] 'How much electricity did Bavaria produce last year?' → ['erzeugung', 'verbrauch', 'preise'] (no keyword match → all tables)
+2026-10-27 17:45:00,916 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[79/84] u_03... 2026-10-27 17:45:01,921 INFO catalog_retriever — [retriever] 'What will demand be next winter?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:45:01,947 INFO catalog_retriever — [retriever] 'What will demand be next winter?' → ['verbrauch'] (keyword match → verbrauch)
+2026-10-27 17:45:02,892 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[80/84] u_04... 2026-10-27 17:45:03,901 INFO catalog_retriever — [retriever] 'How much CO2 did German electricity generation emit in 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:03,924 INFO catalog_retriever — [retriever] 'How much CO2 did German electricity generation emit in 2025?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:04,885 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[81/84] u_05... 2026-10-27 17:45:05,899 INFO catalog_retriever — [retriever] 'Which power plant produced the most electricity?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:05,921 INFO catalog_retriever — [retriever] 'Which power plant produced the most electricity?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:07,312 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[82/84] u_06... 2026-10-27 17:45:08,324 INFO catalog_retriever — [retriever] 'How much solar capacity is installed in Germany?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:08,350 INFO catalog_retriever — [retriever] 'How much solar capacity is installed in Germany?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:09,563 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[83/84] u_07... 2026-10-27 17:45:10,566 INFO catalog_retriever — [retriever] 'What was the average price in the DE/AT/LU zone in 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:45:10,592 INFO catalog_retriever — [retriever] 'What was the average price in the DE/AT/LU zone in 2025?' → ['preise'] (keyword match → preise)
+2026-10-27 17:45:11,660 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+[84/84] u_08... 2026-10-27 17:45:12,663 INFO catalog_retriever — [retriever] 'How much wind did we generate in July 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:12,684 INFO catalog_retriever — [retriever] 'How much wind did we generate in July 2026?' → ['erzeugung'] (keyword match → erzeugung)
+2026-10-27 17:45:13,826 INFO httpx — HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+declined
+
+=== Per-tier results (v2c: v2b + data date range) ===
+Tier 0 (unanswerable)              8/8  
+Tier 1 (single aggregate)         32/35 
+Tier 2 (grouping/ranking)         15/25 
+Tier 3 (dates/comparisons)         2/12 
+Tier 4 (hard)                      0/4  
+
+Overall                           57/84 
+Valid-SQL rate                    73/84 
+Declines: tier 0 correct           8/8  
+Declines: tiers 1-4 (wrong)        2
+
+=== Failures (27) ===
+
+--- t1_12 (tier 1) ---
+Retrieved tables: ['erzeugung']
+Question:         Wie viel Strom kam im Februar 2026 aus Gaskraftwerken?
+Gold SQL:         SELECT SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Erdgas' AND zeitpunkt >= '2026-02-01' AND zeitpunkt < '2026-03-01';
+Agent SQL:        (empty)
+Model reply:      NO_QUERY: Data for February 2026 is not available.
+Comparator:       declined (no SQL)
+
+--- t1_18 (tier 1) ---
+Retrieved tables: ['verbrauch']
+Question:         Highest grid load ever?
+Gold SQL:         SELECT MAX(mwh) AS mwh FROM verbrauch WHERE metrik = 'grid load';
+Agent SQL:        SELECT zeitpunkt, mwh FROM verbrauch WHERE metrik = 'grid load' ORDER BY mwh DESC LIMIT 1;
+Comparator:       column count mismatch at row 0: gold=1 agent=2
+
+--- t1_26 (tier 1) ---
+Retrieved tables: ['erzeugung']
+Question:         Was war der höchste Sonnenstrom-Wert im Mai 2025?
+Gold SQL:         SELECT MAX(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Photovoltaik' AND zeitpunkt >= '2025-05-01' AND zeitpunkt < '2025-06-01';
+Agent SQL:        (empty)
+Model reply:      NO_QUERY: The data does not cover May 2025.
+Comparator:       declined (no SQL)
+
+--- t2_01 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Which energy source produced the most overall?
+Gold SQL:         SELECT energietraeger, SUM(mwh) AS mwh FROM erzeugung GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST LIMIT 1;
+Agent SQL:        SELECT energietraeger
+FROM erzeugung
+GROUP BY energietraeger
+ORDER BY SUM(mwh) DESC NULLS LAST
+LIMIT 1;
+Comparator:       column count mismatch at row 0: gold=2 agent=1
+
+--- t2_07 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Break down 2025 generation by source and show each one's share in percent.
+Gold SQL:         SELECT energietraeger, SUM(mwh) AS mwh,
+       ROUND(100 * SUM(mwh) / SUM(SUM(mwh)) OVER (), 2) AS anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST;
+Agent SQL:        SELECT 
+    energietraeger, 
+    SUM(mwh) AS total_mwh, 
+    SUM(mwh) * 100.0 / (SELECT SUM(mwh) FROM erzeugung WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01') AS share_percent
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 
+    energietraeger
+ORDER BY 
+    share_percent DESC NULLS LAST;
+Comparator:       cell mismatch row 6 col 2: numeric mismatch: gold=0.22 agent=0.21765907157507222 (toleranz=0.001)
+
+--- t2_14 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         Which 5 quarter-hours had the most expensive German power ever?
+Gold SQL:         SELECT zeitpunkt, preis_eur_mwh AS eur_mwh FROM preise WHERE preiszone = 'Deutschland/Luxemburg' ORDER BY preis_eur_mwh DESC NULLS LAST, zeitpunkt LIMIT 5;
+Agent SQL:        SELECT zeitpunkt, preis_eur_mwh FROM preise WHERE preiszone = 'Deutschland/Luxemburg' ORDER BY preis_eur_mwh DESC NULLS LAST LIMIT 5;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.datetime(2024, 12, 12, 17, 0) agent=datetime.datetime(2024, 12, 12, 17, 30)
+
+--- t2_15 (tier 2) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?
+Gold SQL:         SELECT CASE WHEN energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+            THEN 'Erneuerbar' ELSE 'Konventionell' END AS kategorie,
+       SUM(mwh) AS mwh
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY mwh DESC;
+Agent SQL:        SELECT 
+    SUM(CASE WHEN energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare') THEN mwh ELSE 0 END) AS oekostrom_mwh,
+    SUM(CASE WHEN energietraeger IN ('Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher', 'Sonstige Konventionelle') THEN mwh ELSE 0 END) AS konventioneller_strom_mwh
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01 00:00' AND zeitpunkt < '2026-01-01 00:00';
+Comparator:       row count mismatch: gold=2 agent=1
+
+--- t2_18 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         How many negative-price quarter-hours were there each year?
+Gold SQL:         SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, COUNT(*) AS n FROM preise WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0 GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT EXTRACT(YEAR FROM zeitpunkt) AS year, COUNT(*) AS negative_price_quarter_hours
+FROM preise
+WHERE preis_eur_mwh < 0
+GROUP BY year
+ORDER BY year;
+Comparator:       cell mismatch row 0 col 1: numeric mismatch: gold=936.0 agent=8220.0 (toleranz=1e-06)
+
+--- t2_19 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Average solar output by calendar month across all the years.
+Gold SQL:         SELECT EXTRACT(MONTH FROM zeitpunkt)::int AS monat, AVG(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Photovoltaik' GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    EXTRACT(YEAR FROM zeitpunkt) AS year,
+    EXTRACT(MONTH FROM zeitpunkt) AS month,
+    AVG(mwh) AS average_solar_output_mwh
+FROM 
+    erzeugung
+WHERE 
+    energietraeger = 'Photovoltaik'
+GROUP BY 
+    year, month
+ORDER BY 
+    year, month;
+Comparator:       row count mismatch: gold=12 agent=37
+
+--- t2_20 (tier 2) ---
+Retrieved tables: ['erzeugung']
+Question:         Which quarter of 2025 had the most onshore wind?
+Gold SQL:         SELECT date_trunc('quarter', zeitpunkt)::date AS quartal, SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Wind Onshore' AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01' GROUP BY 1 ORDER BY mwh DESC LIMIT 1;
+Agent SQL:        SELECT EXTRACT(QUARTER FROM zeitpunkt) AS quarter, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025 AND energietraeger = 'Wind Onshore'
+GROUP BY quarter
+ORDER BY total_mwh DESC
+LIMIT 1;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 10, 1) agent=Decimal('4')
+
+--- t2_21 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         List all the price zones sorted by how low their price ever got.
+Gold SQL:         SELECT preiszone, MIN(preis_eur_mwh) AS min_eur_mwh FROM preise GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0 ORDER BY min_eur_mwh ASC;
+Agent SQL:        SELECT preiszone
+FROM preise
+WHERE preis_eur_mwh IS NOT NULL
+GROUP BY preiszone
+ORDER BY MIN(preis_eur_mwh) ASC;
+Comparator:       column count mismatch at row 0: gold=2 agent=1
+
+--- t2_22 (tier 2) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         On 21 June 2025, how much did each source produce? sorted highest first
+Gold SQL:         SELECT energietraeger, SUM(mwh) AS mwh FROM erzeugung WHERE zeitpunkt >= '2025-06-21' AND zeitpunkt < '2025-06-22' GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST;
+Agent SQL:        SELECT energietraeger, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-21 00:00' AND zeitpunkt < '2025-06-22 00:00'
+GROUP BY energietraeger
+ORDER BY total_mwh DESC;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Photovoltaik' agent='Kernenergie'
+
+--- t2_25 (tier 2) ---
+Retrieved tables: ['preise']
+Question:         Rank the neighbouring countries by their average price in 2025.
+Gold SQL:         SELECT preiszone, AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+  AND preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0
+ORDER BY eur_mwh DESC;
+Agent SQL:        SELECT preiszone, AVG(preis_eur_mwh) AS avg_price
+FROM preise
+WHERE preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+  AND zeitpunkt >= '2025-01-01 00:00' AND zeitpunkt < '2026-01-01 00:00'
+GROUP BY preiszone
+ORDER BY avg_price;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Polen' agent='Schweden 4'
+
+--- t3_02 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         What share of all generation came from wind, onshore and offshore combined, in June 2025?
+Gold SQL:         SELECT ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger IN ('Wind Onshore','Wind Offshore'))
+             / SUM(mwh), 2) AS wind_anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-07-01';
+Agent SQL:        SELECT SUM(CASE WHEN energietraeger IN ('Wind Onshore', 'Wind Offshore') THEN mwh ELSE 0 END) / SUM(mwh) AS wind_share
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01 00:00' AND zeitpunkt < '2025-07-01 00:00';
+Comparator:       cell mismatch row 0 col 0: numeric mismatch: gold=30.51 agent=0.3050639518164282 (toleranz=0.001)
+
+--- t3_03 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Compare average solar output in June 2025 against July 2025.
+Gold SQL:         SELECT date_trunc('month', zeitpunkt)::date AS monat, AVG(mwh) AS mwh
+FROM erzeugung
+WHERE energietraeger = 'Photovoltaik'
+  AND zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-08-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    EXTRACT(MONTH FROM zeitpunkt) AS month,
+    AVG(mwh) AS average_solar_output
+FROM 
+    erzeugung
+WHERE 
+    EXTRACT(YEAR FROM zeitpunkt) = 2025
+    AND energietraeger = 'Photovoltaik'
+    AND EXTRACT(MONTH FROM zeitpunkt) IN (6, 7)
+GROUP BY 
+    EXTRACT(MONTH FROM zeitpunkt)
+ORDER BY 
+    month;
+Comparator:       cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 6, 1) agent=Decimal('6')
+
+--- t3_04 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         On the day electricity was most expensive, what was the generation mix?
+Gold SQL:         WITH teuerster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM preise
+  WHERE preiszone = 'Deutschland/Luxemburg'
+  GROUP BY 1 ORDER BY AVG(preis_eur_mwh) DESC LIMIT 1
+)
+SELECT t.tag, e.energietraeger, SUM(e.mwh) AS mwh
+FROM erzeugung e JOIN teuerster_tag t ON e.zeitpunkt::date = t.tag
+GROUP BY t.tag, e.energietraeger
+ORDER BY mwh DESC NULLS LAST;
+Agent SQL:        SELECT e.energietraeger, SUM(e.mwh) AS total_generation_mwh
+FROM erzeugung e
+JOIN (
+    SELECT zeitpunkt
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg'
+    GROUP BY zeitpunkt
+    ORDER BY AVG(preis_eur_mwh) DESC NULLS LAST
+    LIMIT 96
+) AS max_price_day ON e.zeitpunkt = max_price_day.zeitpunkt
+GROUP BY e.energietraeger
+ORDER BY total_generation_mwh DESC;
+Comparator:       column count mismatch at row 0: gold=3 agent=2
+
+--- t3_06 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         How did solar in 2025 compare to 2024, in absolute terms and percent?
+Gold SQL:         WITH j AS (
+  SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, SUM(mwh) AS mwh
+  FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+  GROUP BY 1
+)
+SELECT
+  MAX(mwh) FILTER (WHERE jahr = 2024) AS mwh_2024,
+  MAX(mwh) FILTER (WHERE jahr = 2025) AS mwh_2025,
+  MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024) AS differenz_mwh,
+  ROUND(100 * (MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024))
+        / MAX(mwh) FILTER (WHERE jahr = 2024), 2) AS veraenderung_prozent
+FROM j;
+Agent SQL:        SELECT 
+    '2024' AS year, 
+    SUM(mwh) AS total_mwh 
+FROM 
+    erzeugung 
+WHERE 
+    energietraeger = 'Photovoltaik' 
+    AND zeitpunkt >= '2024-01-01' 
+    AND zeitpunkt < '2025-01-01'
+UNION ALL
+SELECT 
+    '2025' AS year, 
+    SUM(mwh) AS total_mwh 
+FROM 
+    erzeugung 
+WHERE 
+    energietraeger = 'Photovoltaik' 
+    AND zeitpunkt >= '2025-01-01' 
+    AND zeitpunkt < '2026-01-01';
+Comparator:       row count mismatch: gold=1 agent=2
+
+--- t3_07 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         What share of consumption was covered by renewables in 2025?
+Gold SQL:         WITH ee AS (
+  SELECT SUM(mwh) AS mwh FROM erzeugung
+  WHERE energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+), last AS (
+  SELECT SUM(mwh) AS mwh FROM verbrauch
+  WHERE metrik = 'grid load'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT ee.mwh AS erneuerbar_mwh, last.mwh AS netzlast_mwh,
+       ROUND(100 * ee.mwh / last.mwh, 2) AS deckung_prozent
+FROM ee, last;
+Agent SQL:        SELECT SUM(e.mwh) / SUM(v.mwh) * 100 AS renewables_share
+FROM erzeugung e
+JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt
+WHERE e.energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare')
+AND v.metrik = 'grid load'
+AND e.zeitpunkt >= '2025-01-01' AND e.zeitpunkt < '2026-01-01';
+Comparator:       column count mismatch at row 0: gold=3 agent=1
+
+--- t3_08 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Was power more expensive on weekends or on weekdays in 2025?
+Gold SQL:         SELECT CASE WHEN EXTRACT(ISODOW FROM zeitpunkt) >= 6 THEN 'Wochenende' ELSE 'Werktag' END AS typ,
+       AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg'
+  AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY eur_mwh DESC;
+Agent SQL:        SELECT 
+    CASE 
+        WHEN EXTRACT(ISODOW FROM zeitpunkt) IN (6, 7) THEN 'Weekend'
+        ELSE 'Weekday'
+    END AS day_type,
+    AVG(preis_eur_mwh) AS avg_price
+FROM 
+    preise
+WHERE 
+    EXTRACT(YEAR FROM zeitpunkt) = 2025
+    AND preiszone = 'Deutschland/Luxemburg'
+GROUP BY 
+    day_type
+ORDER BY 
+    day_type;
+Comparator:       cell mismatch row 0 col 0: text mismatch: gold='Werktag' agent='Weekday'
+
+--- t3_09 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         On the windiest day for onshore wind, what was the average German price?
+Gold SQL:         WITH windigster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM erzeugung WHERE energietraeger = 'Wind Onshore'
+  GROUP BY 1 ORDER BY SUM(mwh) DESC LIMIT 1
+)
+SELECT w.tag, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM preise p JOIN windigster_tag w ON p.zeitpunkt::date = w.tag
+WHERE p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY w.tag;
+Agent SQL:        SELECT AVG(p.preis_eur_mwh) AS average_german_price
+FROM preise p
+JOIN (
+  SELECT zeitpunkt
+  FROM erzeugung
+  WHERE energietraeger = 'Wind Onshore'
+  GROUP BY zeitpunkt
+  ORDER BY SUM(mwh) DESC
+  LIMIT 96
+) AS windiest_day ON p.zeitpunkt = windiest_day.zeitpunkt
+WHERE p.preiszone = 'Deutschland/Luxemburg';
+Comparator:       column count mismatch at row 0: gold=2 agent=1
+
+--- t3_10 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025?
+Gold SQL:         SELECT date_trunc('month', zeitpunkt)::date AS monat,
+       ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger = 'Photovoltaik') / SUM(mwh), 2) AS solaranteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    DATE_TRUNC('month', zeitpunkt) AS monat,
+    SUM(CASE WHEN energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) / SUM(mwh) * 100 AS sonnenstrom_anteil_prozent
+FROM 
+    erzeugung
+WHERE 
+    zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 
+    monat
+ORDER BY 
+    monat;
+Comparator:       cell mismatch row 0 col 1: numeric mismatch: gold=3.84 agent=3.8355513892628204 (toleranz=0.001)
+
+--- t3_11 (tier 3) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         In 2025, was the price different in quarter-hours with a lot of solar, say above 5000 MWh, compared to the rest?
+Gold SQL:         WITH pv AS (
+  SELECT zeitpunkt, mwh FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT CASE WHEN pv.mwh > 5000 THEN 'viel Solar' ELSE 'wenig Solar' END AS gruppe,
+       COUNT(*) AS n, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM pv JOIN preise p ON p.zeitpunkt = pv.zeitpunkt AND p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY 1 ORDER BY 1;
+Agent SQL:        SELECT 
+    AVG(CASE WHEN e.mwh > 5000 THEN p.preis_eur_mwh END) AS avg_price_high_solar,
+    AVG(CASE WHEN e.mwh <= 5000 THEN p.preis_eur_mwh END) AS avg_price_low_solar
+FROM 
+    erzeugung e
+JOIN 
+    preise p ON e.zeitpunkt = p.zeitpunkt
+WHERE 
+    e.energietraeger = 'Photovoltaik'
+    AND p.preiszone = 'Deutschland/Luxemburg'
+    AND e.zeitpunkt >= '2025-01-01' 
+    AND e.zeitpunkt < '2026-01-01';
+Comparator:       row count mismatch: gold=2 agent=1
+
+--- t3_12 (tier 3) ---
+Retrieved tables: ['erzeugung']
+Question:         Which day had the lowest total generation, and how far below the daily average was it?
+Gold SQL:         WITH tage AS (
+  SELECT zeitpunkt::date AS tag, SUM(mwh) AS mwh FROM erzeugung GROUP BY 1
+)
+SELECT tag, mwh AS tages_mwh,
+       ROUND(AVG(mwh) OVER (), 2) AS durchschnitt_mwh,
+       ROUND(100 * (mwh - AVG(mwh) OVER ()) / AVG(mwh) OVER (), 2) AS abweichung_prozent
+FROM tage ORDER BY mwh ASC LIMIT 1;
+Agent SQL:        SELECT 
+    date(zeitpunkt) AS day, 
+    SUM(mwh) AS total_generation, 
+    SUM(mwh) - (SELECT AVG(daily_total) FROM (SELECT SUM(mwh) AS daily_total FROM erzeugung GROUP BY date(zeitpunkt)) AS daily_totals) AS difference_from_average
+FROM 
+    erzeugung
+GROUP BY 
+    date(zeitpunkt)
+ORDER BY 
+    total_generation ASC
+LIMIT 1;
+Comparator:       column count mismatch at row 0: gold=4 agent=3
+
+--- t4_01 (tier 4) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         For each week, which source was the top producer?
+Gold SQL:         WITH wochen AS (
+  SELECT date_trunc('week', zeitpunkt)::date AS woche, energietraeger, SUM(mwh) AS mwh
+  FROM erzeugung GROUP BY 1, 2
+), rang AS (
+  SELECT woche, energietraeger, mwh,
+         ROW_NUMBER() OVER (PARTITION BY woche ORDER BY mwh DESC NULLS LAST) AS rn
+  FROM wochen
+)
+SELECT woche, energietraeger, mwh FROM rang WHERE rn = 1 ORDER BY woche;
+Agent SQL:        SELECT 
+    DATE_TRUNC('week', zeitpunkt) AS week_start,
+    energietraeger,
+    SUM(mwh) AS total_mwh
+FROM 
+    erzeugung
+GROUP BY 
+    week_start, energietraeger
+ORDER BY 
+    week_start, total_mwh DESC NULLS LAST
+LIMIT 1;
+Comparator:       row count mismatch: gold=158 agent=1
+
+--- t4_02 (tier 4) ---
+Retrieved tables: ['erzeugung']
+Question:         What was the longest unbroken stretch where solar output was zero?
+Gold SQL:         WITH pv AS (
+  SELECT zeitpunkt, mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM erzeugung WHERE energietraeger = 'Photovoltaik'
+), null_lauf AS (
+  SELECT zeitpunkt, rn, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM pv WHERE mwh = 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM null_lauf
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL:        SELECT MAX(streak_length) FROM (
+  SELECT zeitpunkt, 
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) - 
+         ROW_NUMBER() OVER (PARTITION BY (mwh = 0) ORDER BY zeitpunkt) AS grp,
+         COUNT(*) OVER (PARTITION BY (mwh = 0), 
+                        ROW_NUMBER() OVER (ORDER BY zeitpunkt) - 
+                        ROW_NUMBER() OVER (PARTITION BY (mwh = 0) ORDER BY zeitpunkt)) AS streak_length
+  FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+) AS subquery
+WHERE mwh = 0;
+Comparator:       agent SQL error: window functions are not allowed in window definitions
+LINE 6:                         ROW_NUMBER() OVER (ORDER BY zeitpunk...
+                                ^
+
+
+--- t4_03 (tier 4) ---
+Retrieved tables: ['erzeugung', 'verbrauch', 'preise']
+Question:         Which hours had more generation than consumption?
+Gold SQL:         WITH e AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS erzeugt
+  FROM erzeugung GROUP BY 1
+), v AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS verbraucht
+  FROM verbrauch WHERE metrik = 'grid load' GROUP BY 1
+)
+SELECT e.stunde, e.erzeugt, v.verbraucht, e.erzeugt - v.verbraucht AS ueberschuss_mwh
+FROM e JOIN v USING (stunde)
+WHERE e.erzeugt > v.verbraucht
+ORDER BY e.stunde;
+Agent SQL:        SELECT DISTINCT date_trunc('hour', e.zeitpunkt) AS hour
+FROM erzeugung e
+JOIN (
+    SELECT zeitpunkt, SUM(mwh) AS total_consumption
+    FROM verbrauch
+    WHERE metrik = 'grid load'
+    GROUP BY zeitpunkt
+) v ON e.zeitpunkt = v.zeitpunkt
+GROUP BY hour
+HAVING SUM(e.mwh) > SUM(v.total_consumption);
+Comparator:       row count mismatch: gold=8568 agent=0
+
+--- t4_04 (tier 4) ---
+Retrieved tables: ['preise']
+Question:         What was the longest run of consecutive quarter-hours with a negative German price?
+Gold SQL:         WITH p AS (
+  SELECT zeitpunkt, preis_eur_mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM preise WHERE preiszone = 'Deutschland/Luxemburg'
+), neg AS (
+  SELECT zeitpunkt, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM p WHERE preis_eur_mwh < 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM neg
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL:        SELECT MAX(consecutive_quarters) FROM (
+  SELECT COUNT(*) AS consecutive_quarters
+  FROM (
+    SELECT zeitpunkt, preis_eur_mwh,
+           zeitpunkt - INTERVAL '15 minutes' * ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS grp
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0
+  ) sub
+  GROUP BY grp
+) final;
+Comparator:       column count mismatch at row 0: gold=4 agent=1
+
+=== Retrieval analysis ===
+  Failed AND retriever missed a gold table: 0 — retrieval-caused candidates
+  Failed with all gold tables supplied:     27 — catalog/model issue, not retrieval
+  Retrieval misses overall (pass or fail): []
+
+Log saved to: /Users/deepaktalwar/Desktop/text-to-SQL/results/v2c_t0_run3_2026-10-27.log
+Per-question records saved to: /Users/deepaktalwar/Desktop/text-to-SQL/results/v2c_t0_run3_2026-10-27.jsonl
