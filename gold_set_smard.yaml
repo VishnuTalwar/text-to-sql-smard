@@ -728,15 +728,16 @@ fragen:
     frage: "Rank the neighbouring countries by their average price in 2025."
     reihenfolge_relevant: true
     toleranz: 1.0e-06
-    gold_zeilen: 14
+    gold_zeilen: 11
     gold_sql: |
       SELECT preiszone, AVG(preis_eur_mwh) AS eur_mwh
       FROM preise
       WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
-        AND preiszone NOT IN ('Deutschland/Luxemburg', 'DE/AT/LU', '∅ Anrainer DE/LU')
+        AND preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
       GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0
       ORDER BY eur_mwh DESC;
-    gold_antwort: "Erste Zeilen: preiszone=Italien (Nord), eur_mwh=115.86 EUR/MWh; preiszone=Ungarn, eur_mwh=108.51 EUR/MWh; preiszone=Slowenien, eur_mwh=104.64 EUR/MWh; ..."
+    gold_antwort: "Erste Zeilen: preiszone=Polen, eur_mwh=104.29 EUR/MWh; preiszone=Schweiz, eur_mwh=101.69 EUR/MWh; preiszone=Österreich, eur_mwh=98.94 EUR/MWh; ..."
+    hinweis: "\"Nachbarn\" folgt den 11 Zonen, die im Mittelwert '∅ Anrainer DE/LU' stecken: Belgien, Dänemark 1, Dänemark 2, Frankreich, Niederlande, Norwegen 2, Österreich, Polen, Schweden 4, Schweiz, Tschechien. Italien (Nord), Slowenien und Ungarn grenzen nicht an Deutschland und zaehlen nicht dazu. Deutschland/Luxemburg selbst, DE/AT/LU (leer) und '∅ Anrainer DE/LU' (ein Durchschnitt, kein Land) sind ebenfalls ausgeschlossen. Die Zonenliste steht deshalb als IN (...) in der gold_sql."
 
   - id: t3_01
     tier: 3

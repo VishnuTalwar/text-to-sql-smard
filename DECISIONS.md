@@ -101,6 +101,11 @@ Design decisions, in the order they were made. Each entry: the decision, why, an
 **Why:** The old note said "this column", but the model sorts by its own SUM, so it likely did not see the note as applying (Step D in `PROJECT_PROGRESS.md`). Catalog v2 is split into three rows (v2a, v2b, v2c) so each change can be measured on its own.
 **Evidence:** `results/v2a_t0_run{1,2,3}_2026-10-27.log`. Mean 59.67 vs 55.33. t2_05 and t2_22 went from 0/3 to 3/3 with NULLS LAST added (+2.00, clean). NULLS LAST now appears on 8 ranking questions instead of 1. The other +2.33 (t1_02, t2_09, t3_06) are likely side effects of the rewording. The 28 questions with unchanged prompts netted exactly 0. t1_22 is now wrongly declined in 3/3 runs ("no data for 2025") with an unchanged prompt, so not caused by this row.
 
+## D24. t2_25 gold: "neighbours" = the 11 zones in ∅ Anrainer DE/LU
+**Decision:** The gold SQL for t2_25 now ranks exactly these 11 zones: Belgien, Dänemark 1, Dänemark 2, Frankreich, Niederlande, Norwegen 2, Österreich, Polen, Schweden 4, Schweiz, Tschechien. Year 2025, ORDER BY the average DESC and `reihenfolge_relevant: true` are unchanged. `gold_zeilen` is 11 (was 14), `gold_antwort` is updated, and a `hinweis` explains that "neighbours" follows the 11 zones used in '∅ Anrainer DE/LU'.
+**Why:** The question asks for "the neighbouring countries", but the old gold ranked 14 zones, including Italien (Nord), Slowenien and Ungarn, which do not border Germany. The data's own neighbour set, the 11 zones averaged in '∅ Anrainer DE/LU' (checked on 26 Oct: it matches in all 105,312 timestamps, against 0.1% when the three extra zones are added), excludes them.
+**Evidence:** The self-test still scores 84/84, and only t2_25 differs between the old and new gold file. t2_25 was re-graded against the new gold for all 15 earlier runs that stored its SQL (naive 4, schema-linked 5, decline 3, v2a 3). It failed in every one before and after (row count 14 or 15 against 11), so no earlier score changed.
+
 ## Principles
 - The grader must exist and be validated before any agent code.
 - Never change the model between stages.
