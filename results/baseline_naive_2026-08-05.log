@@ -1,0 +1,642 @@
+
+=== Per-tier results ===
+Tier 0 (unanswerable)              0/8
+Tier 1 (single aggregate)         32/35
+Tier 2 (grouping/ranking)         12/25
+Tier 3 (dates/comparisons)         2/12
+Tier 4 (hard)                      0/4
+
+Overall                           46/84
+Valid-SQL rate                    83/84
+
+=== Failures (38) ===
+
+--- t1_02 (tier 1) ---
+Question:  What was the highest quarter-hour wind onshore output in the whole period?
+Gold SQL:  SELECT MAX(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Wind Onshore';
+Agent SQL: SELECT zeitpunkt, mwh
+FROM erzeugung
+WHERE energietraeger = 'Wind Onshore'
+ORDER BY mwh DESC
+LIMIT 1;
+Comparator: column count mismatch at row 0: gold=1 agent=2
+
+--- t1_18 (tier 1) ---
+Question:  Highest grid load ever?
+Gold SQL:  SELECT MAX(mwh) AS mwh FROM verbrauch WHERE metrik = 'grid load';
+Agent SQL: SELECT zeitpunkt, mwh FROM verbrauch WHERE metrik = 'grid load' ORDER BY mwh DESC LIMIT 1;
+Comparator: column count mismatch at row 0: gold=1 agent=2
+
+--- t1_32 (tier 1) ---
+Question:  Wie hoch war der Stromverbrauch im März 2026?
+Gold SQL:  SELECT SUM(mwh) AS mwh FROM verbrauch WHERE metrik = 'grid load' AND zeitpunkt >= '2026-03-01' AND zeitpunkt < '2026-04-01';
+Agent SQL: SELECT SUM(mwh) AS stromverbrauch_maerz_2026
+FROM verbrauch
+WHERE zeitpunkt >= '2026-03-01' AND zeitpunkt < '2026-04-01';
+Comparator: cell mismatch row 0 col 0: numeric mismatch: gold=40563325.29 agent=105110366.17 (toleranz=1e-06)
+
+--- t2_02 (tier 2) ---
+Question:  Rank all sources by total output in July 2025.
+Gold SQL:  SELECT energietraeger, SUM(mwh) AS mwh FROM erzeugung WHERE zeitpunkt >= '2025-07-01' AND zeitpunkt < '2025-08-01' GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST;
+Agent SQL: SELECT energietraeger, SUM(mwh) AS total_output
+FROM erzeugung
+WHERE zeitpunkt >= '2025-07-01' AND zeitpunkt < '2025-08-01'
+GROUP BY energietraeger
+ORDER BY total_output DESC;
+Comparator: cell mismatch row 0 col 0: text mismatch: gold='Photovoltaik' agent='Kernenergie'
+
+--- t2_05 (tier 2) ---
+Question:  What were the top 3 sources over the 2024/25 winter, December through February?
+Gold SQL:  SELECT energietraeger, SUM(mwh) AS mwh FROM erzeugung WHERE zeitpunkt >= '2024-12-01' AND zeitpunkt < '2025-03-01' GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST LIMIT 3;
+Agent SQL: SELECT energietraeger, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE zeitpunkt >= '2024-12-01' AND zeitpunkt < '2025-03-01'
+GROUP BY energietraeger
+ORDER BY total_mwh DESC
+LIMIT 3;
+Comparator: cell mismatch row 0 col 0: text mismatch: gold='Wind Onshore' agent='Kernenergie'
+
+--- t2_06 (tier 2) ---
+Question:  Which price zone had the highest average price over the whole period?
+Gold SQL:  SELECT preiszone, AVG(preis_eur_mwh) AS eur_mwh FROM preise GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0 ORDER BY eur_mwh DESC LIMIT 1;
+Agent SQL: SELECT preiszone, AVG(preis_eur_mwh) AS average_price
+FROM preise
+GROUP BY preiszone
+ORDER BY average_price DESC
+LIMIT 1;
+Comparator: cell mismatch row 0 col 0: text mismatch: gold='Italien (Nord)' agent='DE/AT/LU'
+
+--- t2_07 (tier 2) ---
+Question:  Break down 2025 generation by source and show each one's share in percent.
+Gold SQL:  SELECT energietraeger, SUM(mwh) AS mwh,
+       ROUND(100 * SUM(mwh) / SUM(SUM(mwh)) OVER (), 2) AS anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST;
+Agent SQL: SELECT
+  energietraeger,
+  SUM(mwh) AS total_mwh,
+  (SUM(mwh) / (SELECT SUM(mwh) FROM erzeugung WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025) * 100) AS share_percent
+FROM
+  erzeugung
+WHERE
+  EXTRACT(YEAR FROM zeitpunkt) = 2025
+GROUP BY
+  energietraeger;
+Comparator: cell mismatch row 6 col 2: numeric mismatch: gold=0.22 agent=0.21765907157507222 (toleranz=0.001)
+
+--- t2_09 (tier 2) ---
+Question:  Which month had the highest total solar production?
+Gold SQL:  SELECT date_trunc('month', zeitpunkt)::date AS monat, SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Photovoltaik' GROUP BY 1 ORDER BY mwh DESC LIMIT 1;
+Agent SQL: SELECT TO_CHAR(zeitpunkt, 'YYYY-MM') AS month, SUM(mwh) AS total_solar_production
+FROM erzeugung
+WHERE energietraeger = 'Photovoltaik'
+GROUP BY month
+ORDER BY total_solar_production DESC
+LIMIT 1;
+Comparator: cell mismatch row 0 col 0: expected date/timestamp, agent returned '2026-05'
+
+--- t2_14 (tier 2) ---
+Question:  Which 5 quarter-hours had the most expensive German power ever?
+Gold SQL:  SELECT zeitpunkt, preis_eur_mwh AS eur_mwh FROM preise WHERE preiszone = 'Deutschland/Luxemburg' ORDER BY preis_eur_mwh DESC NULLS LAST, zeitpunkt LIMIT 5;
+Agent SQL: SELECT zeitpunkt, preis_eur_mwh
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg'
+ORDER BY preis_eur_mwh DESC
+LIMIT 5;
+Comparator: cell mismatch row 0 col 0: datetime mismatch: gold=datetime.datetime(2024, 12, 12, 17, 0) agent=datetime.datetime(2024, 12, 12, 17, 30)
+
+--- t2_15 (tier 2) ---
+Question:  Wie viel Ökostrom gab es 2025 im Vergleich zum konventionellen Strom?
+Gold SQL:  SELECT CASE WHEN energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+            THEN 'Erneuerbar' ELSE 'Konventionell' END AS kategorie,
+       SUM(mwh) AS mwh
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY mwh DESC;
+Agent SQL: SELECT
+    SUM(CASE WHEN energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare') THEN mwh ELSE 0 END) AS oekostrom_mwh,
+    SUM(CASE WHEN energietraeger IN ('Kernenergie', 'Braunkohle', 'Steinkohle', 'Erdgas', 'Pumpspeicher', 'Sonstige Konventionelle') THEN mwh ELSE 0 END) AS konventioneller_strom_mwh
+FROM
+    erzeugung
+WHERE
+    EXTRACT(YEAR FROM zeitpunkt) = 2025;
+Comparator: row count mismatch: gold=2 agent=1
+
+--- t2_17 (tier 2) ---
+Question:  For each source, what was its single biggest quarter-hour, sorted by that peak?
+Gold SQL:  SELECT energietraeger, MAX(mwh) AS spitze_mwh FROM erzeugung GROUP BY energietraeger ORDER BY spitze_mwh DESC NULLS LAST;
+Agent SQL: SELECT energietraeger, zeitpunkt, max_mwh
+FROM (
+  SELECT energietraeger, zeitpunkt, mwh AS max_mwh,
+         ROW_NUMBER() OVER (PARTITION BY energietraeger ORDER BY mwh DESC) AS rn
+  FROM erzeugung
+) sub
+WHERE rn = 1
+ORDER BY max_mwh DESC;
+Comparator: column count mismatch at row 0: gold=2 agent=3
+
+--- t2_18 (tier 2) ---
+Question:  How many negative-price quarter-hours were there each year?
+Gold SQL:  SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, COUNT(*) AS n FROM preise WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0 GROUP BY 1 ORDER BY 1;
+Agent SQL: SELECT
+    EXTRACT(YEAR FROM zeitpunkt) AS year,
+    COUNT(*) AS negative_price_quarter_hours
+FROM
+    preise
+WHERE
+    preis_eur_mwh < 0
+GROUP BY
+    EXTRACT(YEAR FROM zeitpunkt)
+ORDER BY
+    year;
+Comparator: cell mismatch row 0 col 1: numeric mismatch: gold=936.0 agent=8220.0 (toleranz=1e-06)
+
+--- t2_20 (tier 2) ---
+Question:  Which quarter of 2025 had the most onshore wind?
+Gold SQL:  SELECT date_trunc('quarter', zeitpunkt)::date AS quartal, SUM(mwh) AS mwh FROM erzeugung WHERE energietraeger = 'Wind Onshore' AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01' GROUP BY 1 ORDER BY mwh DESC LIMIT 1;
+Agent SQL: SELECT EXTRACT(QUARTER FROM zeitpunkt) AS quarter, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE energietraeger = 'Wind Onshore' AND EXTRACT(YEAR FROM zeitpunkt) = 2025
+GROUP BY quarter
+ORDER BY total_mwh DESC
+LIMIT 1;
+Comparator: cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 10, 1) agent=Decimal('4')
+
+--- t2_21 (tier 2) ---
+Question:  List all the price zones sorted by how low their price ever got.
+Gold SQL:  SELECT preiszone, MIN(preis_eur_mwh) AS min_eur_mwh FROM preise GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0 ORDER BY min_eur_mwh ASC;
+Agent SQL: SELECT preiszone
+FROM preise
+GROUP BY preiszone
+ORDER BY MIN(preis_eur_mwh) ASC;
+Comparator: row count mismatch: gold=16 agent=17
+
+--- t2_22 (tier 2) ---
+Question:  On 21 June 2025, how much did each source produce? sorted highest first
+Gold SQL:  SELECT energietraeger, SUM(mwh) AS mwh FROM erzeugung WHERE zeitpunkt >= '2025-06-21' AND zeitpunkt < '2025-06-22' GROUP BY energietraeger ORDER BY mwh DESC NULLS LAST;
+Agent SQL: SELECT energietraeger, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE DATE(zeitpunkt) = '2025-06-21'
+GROUP BY energietraeger
+ORDER BY total_mwh DESC;
+Comparator: cell mismatch row 0 col 0: text mismatch: gold='Photovoltaik' agent='Kernenergie'
+
+--- t2_25 (tier 2) ---
+Question:  Rank the neighbouring countries by their average price in 2025.
+Gold SQL:  SELECT preiszone, AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+  AND preiszone NOT IN ('Deutschland/Luxemburg', 'DE/AT/LU', '∅ Anrainer DE/LU')
+GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0
+ORDER BY eur_mwh DESC;
+Agent SQL: SELECT preiszone, AVG(preis_eur_mwh) AS average_price
+FROM preise
+WHERE zeitpunkt BETWEEN '2025-01-01' AND '2025-12-31'
+  AND preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien', 'Italien (Nord)', 'Slowenien', 'Ungarn')
+GROUP BY preiszone
+ORDER BY average_price;
+Comparator: cell mismatch row 0 col 0: text mismatch: gold='Italien (Nord)' agent='Schweden 4'
+
+--- t3_02 (tier 3) ---
+Question:  What share of all generation came from wind, onshore and offshore combined, in June 2025?
+Gold SQL:  SELECT ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger IN ('Wind Onshore','Wind Offshore'))
+             / SUM(mwh), 2) AS wind_anteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-07-01';
+Agent SQL: SELECT SUM(CASE WHEN energietraeger IN ('Wind Onshore', 'Wind Offshore') THEN mwh ELSE 0 END) / SUM(mwh) AS wind_share
+FROM erzeugung
+WHERE zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-07-01';
+Comparator: cell mismatch row 0 col 0: numeric mismatch: gold=30.51 agent=0.3050639518164282 (toleranz=0.001)
+
+--- t3_03 (tier 3) ---
+Question:  Compare average solar output in June 2025 against July 2025.
+Gold SQL:  SELECT date_trunc('month', zeitpunkt)::date AS monat, AVG(mwh) AS mwh
+FROM erzeugung
+WHERE energietraeger = 'Photovoltaik'
+  AND zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-08-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL: SELECT
+    EXTRACT(MONTH FROM zeitpunkt) AS month,
+    AVG(mwh) AS average_solar_output
+FROM
+    erzeugung
+WHERE
+    energietraeger = 'Photovoltaik' AND
+    EXTRACT(YEAR FROM zeitpunkt) = 2025 AND
+    EXTRACT(MONTH FROM zeitpunkt) IN (6, 7)
+GROUP BY
+    EXTRACT(MONTH FROM zeitpunkt)
+ORDER BY
+    month;
+Comparator: cell mismatch row 0 col 0: datetime mismatch: gold=datetime.date(2025, 6, 1) agent=Decimal('6')
+
+--- t3_04 (tier 3) ---
+Question:  On the day electricity was most expensive, what was the generation mix?
+Gold SQL:  WITH teuerster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM preise
+  WHERE preiszone = 'Deutschland/Luxemburg'
+  GROUP BY 1 ORDER BY AVG(preis_eur_mwh) DESC LIMIT 1
+)
+SELECT t.tag, e.energietraeger, SUM(e.mwh) AS mwh
+FROM erzeugung e JOIN teuerster_tag t ON e.zeitpunkt::date = t.tag
+GROUP BY t.tag, e.energietraeger
+ORDER BY mwh DESC NULLS LAST;
+Agent SQL: SELECT e.energietraeger, SUM(e.mwh) AS total_mwh
+FROM erzeugung e
+JOIN (
+    SELECT zeitpunkt::date AS date, MAX(preis_eur_mwh) AS max_price
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg'
+    GROUP BY zeitpunkt::date
+    ORDER BY max_price DESC
+    LIMIT 1
+) p ON e.zeitpunkt::date = p.date
+GROUP BY e.energietraeger
+ORDER BY total_mwh DESC;
+Comparator: column count mismatch at row 0: gold=3 agent=2
+
+--- t3_06 (tier 3) ---
+Question:  How did solar in 2025 compare to 2024, in absolute terms and percent?
+Gold SQL:  WITH j AS (
+  SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, SUM(mwh) AS mwh
+  FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+  GROUP BY 1
+)
+SELECT
+  MAX(mwh) FILTER (WHERE jahr = 2024) AS mwh_2024,
+  MAX(mwh) FILTER (WHERE jahr = 2025) AS mwh_2025,
+  MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024) AS differenz_mwh,
+  ROUND(100 * (MAX(mwh) FILTER (WHERE jahr = 2025) - MAX(mwh) FILTER (WHERE jahr = 2024))
+        / MAX(mwh) FILTER (WHERE jahr = 2024), 2) AS veraenderung_prozent
+FROM j;
+Agent SQL: SELECT
+    '2024' AS year,
+    SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2024 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) AS mwh_2024,
+    '2025' AS year,
+    SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2025 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) AS mwh_2025,
+    SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2025 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) -
+    SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2024 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) AS difference_mwh,
+    CASE WHEN SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2024 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) = 0 THEN NULL
+    ELSE
+    ((SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2025 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END) -
+    SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2024 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END)) /
+    SUM(CASE WHEN DATE_PART('year', zeitpunkt) = 2024 AND energietraeger = 'Photovoltaik' THEN mwh ELSE 0 END)::numeric * 100) END AS percent_change
+FROM erzeugung
+WHERE DATE_PART('year', zeitpunkt) IN (2024, 2025) AND energietraeger = 'Photovoltaik';
+Comparator: column count mismatch at row 0: gold=4 agent=6
+
+--- t3_07 (tier 3) ---
+Question:  What share of consumption was covered by renewables in 2025?
+Gold SQL:  WITH ee AS (
+  SELECT SUM(mwh) AS mwh FROM erzeugung
+  WHERE energietraeger IN ('Biomasse','Wasserkraft','Wind Offshore','Wind Onshore','Photovoltaik','Sonstige Erneuerbare')
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+), last AS (
+  SELECT SUM(mwh) AS mwh FROM verbrauch
+  WHERE metrik = 'grid load'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT ee.mwh AS erneuerbar_mwh, last.mwh AS netzlast_mwh,
+       ROUND(100 * ee.mwh / last.mwh, 2) AS deckung_prozent
+FROM ee, last;
+Agent SQL: SELECT
+    SUM(renewables.mwh) / NULLIF(SUM(verbrauch.mwh), 0) * 100 AS renewables_share
+FROM
+    (SELECT zeitpunkt, mwh
+     FROM erzeugung
+     WHERE energietraeger IN ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore', 'Photovoltaik', 'Sonstige Erneuerbare')) AS renewables
+JOIN
+    verbrauch ON renewables.zeitpunkt = verbrauch.zeitpunkt
+WHERE
+    EXTRACT(YEAR FROM verbrauch.zeitpunkt) = 2025
+    AND verbrauch.metrik = 'grid load';
+Comparator: column count mismatch at row 0: gold=3 agent=1
+
+--- t3_08 (tier 3) ---
+Question:  Was power more expensive on weekends or on weekdays in 2025?
+Gold SQL:  SELECT CASE WHEN EXTRACT(ISODOW FROM zeitpunkt) >= 6 THEN 'Wochenende' ELSE 'Werktag' END AS typ,
+       AVG(preis_eur_mwh) AS eur_mwh
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg'
+  AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY eur_mwh DESC;
+Agent SQL: SELECT EXTRACT(ISODOW FROM zeitpunkt) AS day_of_week,
+       AVG(preis_eur_mwh) AS avg_price
+FROM preise
+WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025
+GROUP BY day_of_week
+ORDER BY day_of_week;
+Comparator: row count mismatch: gold=2 agent=7
+
+--- t3_09 (tier 3) ---
+Question:  On the windiest day for onshore wind, what was the average German price?
+Gold SQL:  WITH windigster_tag AS (
+  SELECT zeitpunkt::date AS tag
+  FROM erzeugung WHERE energietraeger = 'Wind Onshore'
+  GROUP BY 1 ORDER BY SUM(mwh) DESC LIMIT 1
+)
+SELECT w.tag, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM preise p JOIN windigster_tag w ON p.zeitpunkt::date = w.tag
+WHERE p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY w.tag;
+Agent SQL: SELECT AVG(p.preis_eur_mwh) AS average_price
+FROM preise p
+JOIN (
+  SELECT e.zeitpunkt::date AS date, SUM(e.mwh) AS total_mwh
+  FROM erzeugung e
+  WHERE e.energietraeger = 'Wind Onshore'
+  GROUP BY e.zeitpunkt::date
+  ORDER BY total_mwh DESC
+  LIMIT 1
+) AS windiest ON p.zeitpunkt::date = windiest.date
+WHERE p.preiszone = 'Deutschland/Luxemburg';
+Comparator: column count mismatch at row 0: gold=2 agent=1
+
+--- t3_10 (tier 3) ---
+Question:  Monat für Monat: wie hoch war der Sonnenstrom-Anteil an der Gesamterzeugung 2025?
+Gold SQL:  SELECT date_trunc('month', zeitpunkt)::date AS monat,
+       ROUND(100 * SUM(mwh) FILTER (WHERE energietraeger = 'Photovoltaik') / SUM(mwh), 2) AS solaranteil_prozent
+FROM erzeugung
+WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1 ORDER BY 1;
+Agent SQL: SELECT
+  DATE_TRUNC('month', e.zeitpunkt) AS monat,
+  SUM(CASE WHEN e.energietraeger = 'Photovoltaik' THEN e.mwh ELSE 0 END) / SUM(e.mwh) * 100 AS sonnenstrom_anteil_prozent
+FROM
+  erzeugung e
+WHERE
+  e.zeitpunkt >= '2025-01-01' AND e.zeitpunkt < '2026-01-01'
+GROUP BY
+  DATE_TRUNC('month', e.zeitpunkt)
+ORDER BY
+  monat;
+Comparator: cell mismatch row 0 col 1: numeric mismatch: gold=3.84 agent=3.8355513892628204 (toleranz=0.001)
+
+--- t3_11 (tier 3) ---
+Question:  In 2025, was the price different in quarter-hours with a lot of solar, say above 5000 MWh, compared to the rest?
+Gold SQL:  WITH pv AS (
+  SELECT zeitpunkt, mwh FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+)
+SELECT CASE WHEN pv.mwh > 5000 THEN 'viel Solar' ELSE 'wenig Solar' END AS gruppe,
+       COUNT(*) AS n, AVG(p.preis_eur_mwh) AS eur_mwh
+FROM pv JOIN preise p ON p.zeitpunkt = pv.zeitpunkt AND p.preiszone = 'Deutschland/Luxemburg'
+GROUP BY 1 ORDER BY 1;
+Agent SQL: SELECT
+  CASE WHEN e.mwh > 5000 THEN 'above 5000 MWh' ELSE '5000 MWh or less' END AS solar_generation,
+  AVG(p.preis_eur_mwh) AS average_price
+FROM
+  preise p
+JOIN
+  erzeugung e ON p.zeitpunkt = e.zeitpunkt
+WHERE
+  e.energietraeger = 'Photovoltaik' AND
+  EXTRACT(YEAR FROM e.zeitpunkt) = 2025
+GROUP BY
+  solar_generation;
+Comparator: column count mismatch at row 0: gold=3 agent=2
+
+--- t3_12 (tier 3) ---
+Question:  Which day had the lowest total generation, and how far below the daily average was it?
+Gold SQL:  WITH tage AS (
+  SELECT zeitpunkt::date AS tag, SUM(mwh) AS mwh FROM erzeugung GROUP BY 1
+)
+SELECT tag, mwh AS tages_mwh,
+       ROUND(AVG(mwh) OVER (), 2) AS durchschnitt_mwh,
+       ROUND(100 * (mwh - AVG(mwh) OVER ()) / AVG(mwh) OVER (), 2) AS abweichung_prozent
+FROM tage ORDER BY mwh ASC LIMIT 1;
+Agent SQL: SELECT
+    e_min.day,
+    e_min.total_generation AS lowest_total_generation,
+    ROUND((e_min.total_generation - e_avg.avg_daily_generation), 2) AS difference_below_avg
+FROM (
+    SELECT
+        DATE(zeitpunkt) AS day,
+        SUM(mwh) AS total_generation
+    FROM
+        erzeugung
+    GROUP BY
+        DATE(zeitpunkt)
+    ORDER BY
+        total_generation ASC
+    LIMIT 1
+) e_min
+CROSS JOIN (
+    SELECT
+        ROUND(AVG(daily_generation), 2) AS avg_daily_generation
+    FROM (
+        SELECT
+            DATE(zeitpunkt) AS day,
+            SUM(mwh) AS daily_generation
+        FROM
+            erzeugung
+        GROUP BY
+            DATE(zeitpunkt)
+    ) AS daily_totals
+) e_avg;
+Comparator: column count mismatch at row 0: gold=4 agent=3
+
+--- t4_01 (tier 4) ---
+Question:  For each week, which source was the top producer?
+Gold SQL:  WITH wochen AS (
+  SELECT date_trunc('week', zeitpunkt)::date AS woche, energietraeger, SUM(mwh) AS mwh
+  FROM erzeugung GROUP BY 1, 2
+), rang AS (
+  SELECT woche, energietraeger, mwh,
+         ROW_NUMBER() OVER (PARTITION BY woche ORDER BY mwh DESC NULLS LAST) AS rn
+  FROM wochen
+)
+SELECT woche, energietraeger, mwh FROM rang WHERE rn = 1 ORDER BY woche;
+Agent SQL: SELECT
+    DATE_TRUNC('week', zeitpunkt) AS week_start,
+    energietraeger,
+    SUM(mwh) AS total_mwh
+FROM
+    erzeugung
+GROUP BY
+    week_start, energietraeger
+ORDER BY
+    week_start, total_mwh DESC
+LIMIT 1;
+Comparator: row count mismatch: gold=158 agent=1
+
+--- t4_02 (tier 4) ---
+Question:  What was the longest unbroken stretch where solar output was zero?
+Gold SQL:  WITH pv AS (
+  SELECT zeitpunkt, mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM erzeugung WHERE energietraeger = 'Photovoltaik'
+), null_lauf AS (
+  SELECT zeitpunkt, rn, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM pv WHERE mwh = 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM null_lauf
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL: SELECT MAX(consecutive_hours) AS longest_zero_solar_output
+FROM (
+  SELECT
+    zeitpunkt,
+    COUNT(*) OVER (PARTITION BY grp) AS consecutive_hours
+  FROM (
+    SELECT
+      zeitpunkt,
+      SUM(mwh) AS total_mwh,
+      SUM(mwh) = 0 AND LAG(SUM(mwh), 1, 1) OVER (ORDER BY zeitpunkt) = 0 AS grp
+    FROM erzeugung
+    WHERE energietraeger = 'Photovoltaik'
+    GROUP BY zeitpunkt
+  ) subquery
+  WHERE total_mwh = 0
+) final_query;
+Comparator: column count mismatch at row 0: gold=4 agent=1
+
+--- t4_03 (tier 4) ---
+Question:  Which hours had more generation than consumption?
+Gold SQL:  WITH e AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS erzeugt
+  FROM erzeugung GROUP BY 1
+), v AS (
+  SELECT date_trunc('hour', zeitpunkt) AS stunde, SUM(mwh) AS verbraucht
+  FROM verbrauch WHERE metrik = 'grid load' GROUP BY 1
+)
+SELECT e.stunde, e.erzeugt, v.verbraucht, e.erzeugt - v.verbraucht AS ueberschuss_mwh
+FROM e JOIN v USING (stunde)
+WHERE e.erzeugt > v.verbraucht
+ORDER BY e.stunde;
+Agent SQL: SELECT e.zeitpunkt
+FROM erzeugung e
+JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt
+GROUP BY e.zeitpunkt
+HAVING SUM(e.mwh) > SUM(v.mwh);
+Comparator: row count mismatch: gold=8568 agent=0
+
+--- t4_04 (tier 4) ---
+Question:  What was the longest run of consecutive quarter-hours with a negative German price?
+Gold SQL:  WITH p AS (
+  SELECT zeitpunkt, preis_eur_mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS rn
+  FROM preise WHERE preiszone = 'Deutschland/Luxemburg'
+), neg AS (
+  SELECT zeitpunkt, rn - ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS gruppe
+  FROM p WHERE preis_eur_mwh < 0
+)
+SELECT MIN(zeitpunkt) AS beginn, MAX(zeitpunkt) AS ende,
+       COUNT(*) AS viertelstunden, ROUND(COUNT(*) / 4.0, 2) AS stunden
+FROM neg
+GROUP BY gruppe
+ORDER BY viertelstunden DESC LIMIT 1;
+Agent SQL: SELECT MAX(consecutive_quarters) AS longest_run
+FROM (
+  SELECT zeitpunkt,
+         SUM(is_negative * is_new_group) OVER (ORDER BY zeitpunkt) AS group_id
+  FROM (
+    SELECT zeitpunkt,
+           CASE WHEN preis_eur_mwh < 0 THEN 1 ELSE 0 END AS is_negative,
+           CASE WHEN preis_eur_mwh < 0 AND LAG(preis_eur_mwh) OVER (ORDER BY zeitpunkt) >= 0 THEN 1 ELSE 0 END AS is_new_group
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg'
+  ) subquery
+) grouped_prices
+WHERE is_negative = 1
+GROUP BY group_id
+ORDER BY longest_run DESC
+LIMIT 1;
+Comparator: agent SQL error: column "consecutive_quarters" does not exist
+LINE 1: SELECT MAX(consecutive_quarters) AS longest_run
+                   ^
+
+
+--- u_01 (tier 0) ---
+Question:  How much nuclear power was produced in June 2025?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT SUM(mwh) AS total_nuclear_power
+FROM erzeugung
+WHERE energietraeger = 'Kernenergie'
+AND zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-07-01';
+Comparator: tier 0: agent returned SQL when it should have declined
+
+--- u_02 (tier 0) ---
+Question:  How much electricity did Bavaria produce last year?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT SUM(mwh) as total_mwh_produced
+FROM erzeugung
+WHERE zeitpunkt >= date_trunc('year', current_date) - interval '1 year'
+AND zeitpunkt < date_trunc('year', current_date);
+Comparator: tier 0: agent returned SQL when it should have declined
+
+--- u_03 (tier 0) ---
+Question:  What will demand be next winter?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT zeitpunkt, SUM(mwh) AS total_demand
+FROM verbrauch
+WHERE zeitpunkt >= '2022-12-01' AND zeitpunkt < '2023-03-01'
+  AND metrik = 'grid load'
+GROUP BY zeitpunkt
+ORDER BY zeitpunkt;
+Comparator: tier 0: agent returned SQL when it should have declined
+
+--- u_04 (tier 0) ---
+Question:  How much CO2 did German electricity generation emit in 2025?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT SUM(e.mwh * c.co2_emission_factor) AS total_co2_emissions_2025
+FROM erzeugung e
+JOIN (
+  SELECT 'Biomasse' AS energietraeger, 0.2 AS co2_emission_factor
+  UNION SELECT 'Wasserkraft', 0.0
+  UNION SELECT 'Wind Offshore', 0.0
+  UNION SELECT 'Wind Onshore', 0.0
+  UNION SELECT 'Photovoltaik', 0.0
+  UNION SELECT 'Sonstige Erneuerbare', 0.05
+  UNION SELECT 'Kernenergie', 0.0
+  UNION SELECT 'Braunkohle', 1.2
+  UNION SELECT 'Steinkohle', 1.0
+  UNION SELECT 'Erdgas', 0.4
+  UNION SELECT 'Pumpspeicher', 0.0
+  UNION SELECT 'Sonstige Konventionelle', 0.8
+) c ON e.energietraeger = c.energietraeger
+WHERE EXTRACT(YEAR FROM e.zeitpunkt) = 2025;
+Comparator: tier 0: agent returned SQL when it should have declined
+
+--- u_05 (tier 0) ---
+Question:  Which power plant produced the most electricity?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT energietraeger, SUM(mwh) AS total_mwh
+FROM erzeugung
+GROUP BY energietraeger
+ORDER BY total_mwh DESC
+LIMIT 1;
+Comparator: tier 0: agent returned SQL when it should have declined
+
+--- u_06 (tier 0) ---
+Question:  How much solar capacity is installed in Germany?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT SUM(mwh) AS total_solar_capacity
+FROM erzeugung
+WHERE energietraeger = 'Photovoltaik';
+Comparator: tier 0: agent returned SQL when it should have declined
+
+--- u_07 (tier 0) ---
+Question:  What was the average price in the DE/AT/LU zone in 2025?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT AVG(preis_eur_mwh) AS average_price
+FROM preise
+WHERE preiszone = 'DE/AT/LU' AND EXTRACT(YEAR FROM zeitpunkt) = 2025;
+Comparator: tier 0: agent returned SQL when it should have declined
+
+--- u_08 (tier 0) ---
+Question:  How much wind did we generate in July 2026?
+Gold SQL:  (none — tier 0, unanswerable)
+Agent SQL: SELECT SUM(mwh) AS total_wind_generation
+FROM erzeugung
+WHERE energietraeger IN ('Wind Offshore', 'Wind Onshore')
+AND EXTRACT(YEAR FROM zeitpunkt) = 2026
+AND EXTRACT(MONTH FROM zeitpunkt) = 7;
+Comparator: tier 0: agent returned SQL when it should have declined

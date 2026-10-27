@@ -1,0 +1,121 @@
+zeitpunkt,metrik,mwh
+2023-06-01 00:00:00,grid load,11053.00
+2023-06-01 00:00:00,Grid load incl. hydro pumped storage,11180.75
+2023-06-01 00:00:00,Hydro pumped storage,127.75
+2023-06-01 00:00:00,Residual load,6816.50
+2023-06-01 00:15:00,grid load,10916.25
+2023-06-01 00:15:00,Grid load incl. hydro pumped storage,11091.50
+2023-06-01 00:15:00,Hydro pumped storage,175.25
+2023-06-01 00:15:00,Residual load,6741.75
+2023-06-01 00:30:00,grid load,10795.00
+2023-06-01 00:30:00,Grid load incl. hydro pumped storage,10983.25
+2023-06-01 00:30:00,Hydro pumped storage,188.25
+2023-06-01 00:30:00,Residual load,6667.75
+2023-06-01 00:45:00,grid load,10685.25
+2023-06-01 00:45:00,Grid load incl. hydro pumped storage,10913.75
+2023-06-01 00:45:00,Hydro pumped storage,228.50
+2023-06-01 00:45:00,Residual load,6581.75
+2023-06-01 01:00:00,grid load,10582.50
+2023-06-01 01:00:00,Grid load incl. hydro pumped storage,10747.00
+2023-06-01 01:00:00,Hydro pumped storage,164.50
+2023-06-01 01:00:00,Residual load,6531.00
+2023-06-01 01:15:00,grid load,10473.50
+2023-06-01 01:15:00,Grid load incl. hydro pumped storage,10653.75
+2023-06-01 01:15:00,Hydro pumped storage,180.25
+2023-06-01 01:15:00,Residual load,6512.00
+2023-06-01 01:30:00,grid load,10379.00
+2023-06-01 01:30:00,Grid load incl. hydro pumped storage,10578.50
+2023-06-01 01:30:00,Hydro pumped storage,199.50
+2023-06-01 01:30:00,Residual load,6425.50
+2023-06-01 01:45:00,grid load,10338.50
+2023-06-01 01:45:00,Grid load incl. hydro pumped storage,10563.25
+2023-06-01 01:45:00,Hydro pumped storage,224.75
+2023-06-01 01:45:00,Residual load,6441.50
+2023-06-01 02:00:00,grid load,10203.00
+2023-06-01 02:00:00,Grid load incl. hydro pumped storage,10527.00
+2023-06-01 02:00:00,Hydro pumped storage,324.00
+2023-06-01 02:00:00,Residual load,6401.50
+2023-06-01 02:15:00,grid load,10222.25
+2023-06-01 02:15:00,Grid load incl. hydro pumped storage,10656.50
+2023-06-01 02:15:00,Hydro pumped storage,434.25
+2023-06-01 02:15:00,Residual load,6452.50
+2023-06-01 02:30:00,grid load,10261.00
+2023-06-01 02:30:00,Grid load incl. hydro pumped storage,10659.75
+2023-06-01 02:30:00,Hydro pumped storage,398.75
+2023-06-01 02:30:00,Residual load,6495.75
+2023-06-01 02:45:00,grid load,10272.25
+2023-06-01 02:45:00,Grid load incl. hydro pumped storage,10792.75
+2023-06-01 02:45:00,Hydro pumped storage,520.50
+2023-06-01 02:45:00,Residual load,6524.00
+2023-06-01 03:00:00,grid load,10349.25
+2023-06-01 03:00:00,Grid load incl. hydro pumped storage,11038.75
+2023-06-01 03:00:00,Hydro pumped storage,689.50
+2023-06-01 03:00:00,Residual load,6599.75
+2023-06-01 03:15:00,grid load,10320.75
+2023-06-01 03:15:00,Grid load incl. hydro pumped storage,11042.25
+2023-06-01 03:15:00,Hydro pumped storage,721.50
+2023-06-01 03:15:00,Residual load,6590.25
+2023-06-01 03:30:00,grid load,10298.50
+2023-06-01 03:30:00,Grid load incl. hydro pumped storage,11064.25
+2023-06-01 03:30:00,Hydro pumped storage,765.75
+2023-06-01 03:30:00,Residual load,6585.00
+2023-06-01 03:45:00,grid load,10343.00
+2023-06-01 03:45:00,Grid load incl. hydro pumped storage,11130.25
+2023-06-01 03:45:00,Hydro pumped storage,787.25
+2023-06-01 03:45:00,Residual load,6651.00
+2023-06-01 04:00:00,grid load,10501.25
+2023-06-01 04:00:00,Grid load incl. hydro pumped storage,11168.75
+2023-06-01 04:00:00,Hydro pumped storage,667.50
+2023-06-01 04:00:00,Residual load,6738.75
+2023-06-01 04:15:00,grid load,10567.00
+2023-06-01 04:15:00,Grid load incl. hydro pumped storage,11197.50
+2023-06-01 04:15:00,Hydro pumped storage,630.50
+2023-06-01 04:15:00,Residual load,6831.50
+2023-06-01 04:30:00,grid load,10637.25
+2023-06-01 04:30:00,Grid load incl. hydro pumped storage,11176.00
+2023-06-01 04:30:00,Hydro pumped storage,538.75
+2023-06-01 04:30:00,Residual load,6956.75
+2023-06-01 04:45:00,grid load,10672.25
+2023-06-01 04:45:00,Grid load incl. hydro pumped storage,11079.25
+2023-06-01 04:45:00,Hydro pumped storage,407.00
+2023-06-01 04:45:00,Residual load,7029.75
+2023-06-01 05:00:00,grid load,10901.75
+2023-06-01 05:00:00,Grid load incl. hydro pumped storage,11235.00
+2023-06-01 05:00:00,Hydro pumped storage,333.25
+2023-06-01 05:00:00,Residual load,7119.00
+2023-06-01 05:15:00,grid load,10929.75
+2023-06-01 05:15:00,Grid load incl. hydro pumped storage,11221.25
+2023-06-01 05:15:00,Hydro pumped storage,291.50
+2023-06-01 05:15:00,Residual load,7122.50
+2023-06-01 05:30:00,grid load,11110.50
+2023-06-01 05:30:00,Grid load incl. hydro pumped storage,11285.75
+2023-06-01 05:30:00,Hydro pumped storage,175.25
+2023-06-01 05:30:00,Residual load,7331.00
+2023-06-01 05:45:00,grid load,11460.75
+2023-06-01 05:45:00,Grid load incl. hydro pumped storage,11575.50
+2023-06-01 05:45:00,Hydro pumped storage,114.75
+2023-06-01 05:45:00,Residual load,7622.00
+2023-06-01 06:00:00,grid load,12214.75
+2023-06-01 06:00:00,Grid load incl. hydro pumped storage,12458.25
+2023-06-01 06:00:00,Hydro pumped storage,243.50
+2023-06-01 06:00:00,Residual load,8290.00
+2023-06-01 06:15:00,grid load,12667.50
+2023-06-01 06:15:00,Grid load incl. hydro pumped storage,12751.75
+2023-06-01 06:15:00,Hydro pumped storage,84.25
+2023-06-01 06:15:00,Residual load,8639.50
+2023-06-01 06:30:00,grid load,12964.50
+2023-06-01 06:30:00,Grid load incl. hydro pumped storage,12977.50
+2023-06-01 06:30:00,Hydro pumped storage,13.00
+2023-06-01 06:30:00,Residual load,8747.00
+2023-06-01 06:45:00,grid load,13214.75
+2023-06-01 06:45:00,Grid load incl. hydro pumped storage,13222.25
+2023-06-01 06:45:00,Hydro pumped storage,7.50
+2023-06-01 06:45:00,Residual load,8796.00
+2023-06-01 07:00:00,grid load,13714.25
+2023-06-01 07:00:00,Grid load incl. hydro pumped storage,13717.75
+2023-06-01 07:00:00,Hydro pumped storage,3.50
+2023-06-01 07:00:00,Residual load,9167.50
+2023-06-01 07:15:00,grid load,13932.00
+2023-06-01 07:15:00,Grid load incl. hydro pumped storage,13933.75
+2023-06-01 07:15:00,Hydro pumped storage,1.75
+2023-06-01 07:15:00,Residual load,9120.25
