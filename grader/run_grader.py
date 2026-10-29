@@ -9,6 +9,7 @@ grader bug, not an agent failure (see README/PROJECT.md section 8).
 
 import argparse
 import sys
+from pathlib import Path
 
 from comparator import compare
 from executor import QueryError
@@ -23,12 +24,13 @@ TIER_NAMES = {
 }
 
 
-def run(self_test: bool) -> int:
+def run(self_test: bool, gold_file: Path | None = None) -> int:
     if not self_test:
         print("No agent is wired up yet — run with --self-test to grade the grader against itself.")
         return 2
 
-    questions = load_questions()
+    # No --gold-file: load_questions() with no argument, exactly as before.
+    questions = load_questions() if gold_file is None else load_questions(path=gold_file)
     results = []
 
     for question in questions:
@@ -76,9 +78,18 @@ def main() -> None:
         action="store_true",
         help="Feed gold_sql back in as if it were the agent's answer. Must score 84/84.",
     )
+    parser.add_argument(
+        "--gold-file",
+        metavar="PATH",
+        type=Path,
+        default=None,
+        help="Load questions from this YAML instead of gold_set_smard.yaml.",
+    )
     args = parser.parse_args()
+    if args.gold_file is not None and not args.gold_file.is_file():
+        parser.error(f"--gold-file: no such file: {args.gold_file}")
 
-    sys.exit(run(self_test=args.self_test))
+    sys.exit(run(self_test=args.self_test, gold_file=args.gold_file))
 
 
 if __name__ == "__main__":

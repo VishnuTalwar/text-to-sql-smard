@@ -1,0 +1,436 @@
+standard:
+  reihenfolge_relevant: false
+  toleranz: 1.0e-06
+fragen:
+  # ---------------- Tier 0: unanswerable ----------------
+  - id: hu_01
+    tier: 0
+    frage: "What was the average German day-ahead power price in 2022?"
+    beantwortbar: false
+    erwartetes_verhalten: "The data starts on 2023-06-01, so 2022 is outside the coverage."
+    gold_sql: null
+    beleg_sql: |
+      SELECT COUNT(*) AS zeilen
+      FROM preise
+      WHERE zeitpunkt >= '2022-01-01' AND zeitpunkt < '2023-01-01';
+
+  - id: hu_02
+    tier: 0
+    frage: "Wie viel Strom hat Deutschland 2024 netto nach Frankreich exportiert?"
+    beantwortbar: false
+    erwartetes_verhalten: "The tables hold generation, consumption and prices only. There are no cross-border flows, imports or exports."
+    gold_sql: null
+    beleg_sql: |
+      SELECT 'verbrauch' AS tabelle, metrik AS kategorie FROM (SELECT DISTINCT metrik FROM verbrauch) v
+      UNION ALL
+      SELECT 'erzeugung', energietraeger FROM (SELECT DISTINCT energietraeger FROM erzeugung) e
+      ORDER BY tabelle, kategorie;
+
+  - id: hu_03
+    tier: 0
+    frage: "What was Germany's photovoltaic output in the month of July 2026?"
+    beantwortbar: false
+    erwartetes_verhalten: "The data ends on 2026-06-01, so July 2026 is after the end of coverage."
+    gold_sql: null
+    beleg_sql: |
+      SELECT COUNT(*) AS zeilen
+      FROM erzeugung
+      WHERE energietraeger = 'Photovoltaik'
+        AND zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01';
+
+  # ---------------- Tier 1 ----------------
+  - id: h1_01
+    tier: 1
+    frage: "How much electricity did onshore wind generate in Germany in 2024 in total?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT SUM(mwh) AS mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Wind Onshore'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01';
+
+  - id: h1_02
+    tier: 1
+    frage: "Wie hoch war der durchschnittliche deutsche Day-Ahead-Strompreis im Jahr 2025?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT AVG(preis_eur_mwh) AS durchschnittspreis
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+    hinweis: "Simple (unweighted) average over all quarter-hour prices."
+
+  - id: h1_03
+    tier: 1
+    frage: "What was the highest German power price in any single quarter-hour in 2024?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT MAX(preis_eur_mwh) AS hoechstpreis
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01';
+
+  - id: h1_04
+    tier: 1
+    frage: "How much solar power was generated in Germany in July 2025?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT SUM(mwh) AS mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Photovoltaik'
+        AND zeitpunkt >= '2025-07-01' AND zeitpunkt < '2025-08-01';
+
+  - id: h1_05
+    tier: 1
+    frage: "In wie vielen Viertelstunden war der deutsche Strompreis 2024 negativ?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT COUNT(*) AS viertelstunden
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND preis_eur_mwh < 0
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01';
+    hinweis: "Strictly below 0. Repeated clock-change quarter-hours count as separate quarter-hours."
+
+  - id: h1_06
+    tier: 1
+    frage: "What was the lowest residual load in any single quarter-hour in 2025?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT MIN(mwh) AS mwh
+      FROM verbrauch
+      WHERE metrik = 'Residual load'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+
+  - id: h1_07
+    tier: 1
+    frage: "Wie viel Strom wurde im ersten Quartal 2025 insgesamt aus Erdgas erzeugt?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT SUM(mwh) AS mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Erdgas'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2025-04-01';
+
+  - id: h1_08
+    tier: 1
+    frage: "What was Germany's total electricity demand in 2024?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT SUM(mwh) AS mwh
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01';
+
+  - id: h1_09
+    tier: 1
+    frage: "How much electricity was used in 2025 to pump water up into pumped-storage plants?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT SUM(mwh) AS mwh
+      FROM verbrauch
+      WHERE metrik = 'Hydro pumped storage'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+    hinweis: "Pumping consumption is the verbrauch metric, not the Pumpspeicher generation in erzeugung."
+
+  - id: h1_10
+    tier: 1
+    frage: "What was the average day-ahead power price in France in December 2024?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT AVG(preis_eur_mwh) AS durchschnittspreis
+      FROM preise
+      WHERE preiszone = 'Frankreich'
+        AND zeitpunkt >= '2024-12-01' AND zeitpunkt < '2025-01-01';
+
+  # ---------------- Tier 2 ----------------
+  - id: h2_01
+    tier: 2
+    frage: "Across Germany in 2024, which type of generation delivered the largest total, and what was that total?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT energietraeger, SUM(mwh) AS mwh
+      FROM erzeugung
+      WHERE zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY energietraeger
+      ORDER BY mwh DESC NULLS LAST
+      LIMIT 1;
+
+  - id: h2_02
+    tier: 2
+    frage: "Welche fünf Gebotszonen hatten 2025 im Schnitt die höchsten Day-Ahead-Strompreise?"
+    reihenfolge_relevant: true
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT preiszone, AVG(preis_eur_mwh) AS durchschnittspreis
+      FROM preise
+      WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+        AND preiszone <> '∅ Anrainer DE/LU'
+      GROUP BY preiszone
+      HAVING COUNT(preis_eur_mwh) > 0
+      ORDER BY durchschnittspreis DESC NULLS LAST
+      LIMIT 5;
+    hinweis: "'∅ Anrainer DE/LU' is not a bidding zone, so it is excluded. DE/AT/LU drops out through HAVING. Germany is a candidate."
+
+  - id: h2_03
+    tier: 2
+    frage: "What share of Germany's electricity generation came from renewable sources in 2025?"
+    reihenfolge_relevant: false
+    toleranz: 0.001
+    gold_sql: |
+      SELECT ROUND(
+               100.0 * SUM(mwh) FILTER (WHERE energietraeger IN
+                 ('Biomasse', 'Wasserkraft', 'Wind Offshore', 'Wind Onshore',
+                  'Photovoltaik', 'Sonstige Erneuerbare'))
+               / SUM(mwh), 2) AS anteil_prozent
+      FROM erzeugung
+      WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+    hinweis: "Renewables use the SMARD grouping. Pumpspeicher counts as conventional. The denominator is generation from all sources."
+
+  - id: h2_04
+    tier: 2
+    frage: "How much solar power was generated in Germany in each month of 2024?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT date_trunc('month', zeitpunkt)::date AS monat, SUM(mwh) AS mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Photovoltaik'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY 1
+      ORDER BY 1;
+
+  - id: h2_05
+    tier: 2
+    frage: "Zu welcher Tagesstunde war der deutsche Strompreis 2025 im Durchschnitt am niedrigsten?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT EXTRACT(HOUR FROM zeitpunkt)::int AS stunde, AVG(preis_eur_mwh) AS durchschnittspreis
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY 1
+      ORDER BY durchschnittspreis ASC
+      LIMIT 1;
+
+  - id: h2_06
+    tier: 2
+    frage: "Rank lignite, hard coal and natural gas by how much electricity each generated in Germany in 2025."
+    reihenfolge_relevant: true
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT energietraeger, SUM(mwh) AS mwh
+      FROM erzeugung
+      WHERE energietraeger IN ('Braunkohle', 'Steinkohle', 'Erdgas')
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY energietraeger
+      ORDER BY mwh DESC NULLS LAST;
+
+  - id: h2_07
+    tier: 2
+    frage: "On which day of the week was average quarter-hourly electricity demand highest in 2024?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT trim(to_char(zeitpunkt, 'Day')) AS wochentag, AVG(mwh) AS durchschnitt_mwh
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY 1
+      ORDER BY durchschnitt_mwh DESC
+      LIMIT 1;
+
+  - id: h2_08
+    tier: 2
+    frage: "Wie hoch war der Anteil von Sonnenstrom an der gesamten Stromerzeugung in jedem Quartal 2025?"
+    reihenfolge_relevant: false
+    toleranz: 0.001
+    gold_sql: |
+      SELECT date_trunc('quarter', zeitpunkt)::date AS quartal,
+             ROUND(100.0 * SUM(mwh) FILTER (WHERE energietraeger = 'Photovoltaik')
+                   / SUM(mwh), 2) AS anteil_prozent
+      FROM erzeugung
+      WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY 1
+      ORDER BY 1;
+
+  - id: h2_09
+    tier: 2
+    frage: "Which three months in 2024 and 2025 had the highest offshore wind generation?"
+    reihenfolge_relevant: true
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT date_trunc('month', zeitpunkt)::date AS monat, SUM(mwh) AS mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Wind Offshore'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY 1
+      ORDER BY mwh DESC
+      LIMIT 3;
+
+  - id: h2_10
+    tier: 2
+    frage: "Which of Germany's neighbouring bidding zones had the lowest average day-ahead price in 2024?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      SELECT preiszone, AVG(preis_eur_mwh) AS durchschnittspreis
+      FROM preise
+      WHERE preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande',
+                          'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY preiszone
+      HAVING COUNT(preis_eur_mwh) > 0
+      ORDER BY durchschnittspreis ASC
+      LIMIT 1;
+    hinweis: "Neighbouring zones are the 11 zones behind '∅ Anrainer DE/LU'."
+
+  # ---------------- Tier 3 ----------------
+  - id: h3_01
+    tier: 3
+    frage: "Um wie viel Prozent hat sich die Stromerzeugung aus Braunkohle 2025 gegenüber 2024 verändert?"
+    reihenfolge_relevant: false
+    toleranz: 0.001
+    gold_sql: |
+      SELECT ROUND(
+               100.0 * (SUM(mwh) FILTER (WHERE zeitpunkt >= '2025-01-01')
+                        - SUM(mwh) FILTER (WHERE zeitpunkt < '2025-01-01'))
+               / SUM(mwh) FILTER (WHERE zeitpunkt < '2025-01-01'), 2) AS veraenderung_prozent
+      FROM erzeugung
+      WHERE energietraeger = 'Braunkohle'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01';
+    hinweis: "Change relative to 2024. A decline is negative."
+
+  - id: h3_02
+    tier: 3
+    frage: "What was the average German power price on the ten days of 2025 with the most solar generation?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      WITH top_tage AS (
+        SELECT zeitpunkt::date AS tag, SUM(mwh) AS solar_mwh
+        FROM erzeugung
+        WHERE energietraeger = 'Photovoltaik'
+          AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+        GROUP BY 1
+        ORDER BY solar_mwh DESC
+        LIMIT 10
+      )
+      SELECT AVG(p.preis_eur_mwh) AS durchschnittspreis
+      FROM preise p
+      JOIN top_tage t ON p.zeitpunkt::date = t.tag
+      WHERE p.preiszone = 'Deutschland/Luxemburg';
+    hinweis: "Days ranked by daily total solar MWh. The price is the average over all quarter-hours of those ten days, pooled."
+
+  - id: h3_03
+    tier: 3
+    frage: "On how many days in 2024 was Germany's daily average power price higher than the average price of its neighbouring zones?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      WITH tag AS (
+        SELECT zeitpunkt::date AS tag,
+               AVG(preis_eur_mwh) FILTER (WHERE preiszone = 'Deutschland/Luxemburg') AS de,
+               AVG(preis_eur_mwh) FILTER (WHERE preiszone = '∅ Anrainer DE/LU') AS anrainer
+        FROM preise
+        WHERE preiszone IN ('Deutschland/Luxemburg', '∅ Anrainer DE/LU')
+          AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+        GROUP BY 1
+      )
+      SELECT COUNT(*) AS tage
+      FROM tag
+      WHERE de > anrainer;
+    hinweis: "Uses the precomputed '∅ Anrainer DE/LU' series. Both are averaged per calendar day and compared with a strict >."
+
+  - id: h3_04
+    tier: 3
+    frage: "Um wie viel Prozent lag der durchschnittliche Stromverbrauch pro Viertelstunde 2025 an Werktagen (Montag bis Freitag) über dem an Wochenenden?"
+    reihenfolge_relevant: false
+    toleranz: 0.001
+    gold_sql: |
+      SELECT ROUND(
+               100.0 * (AVG(mwh) FILTER (WHERE EXTRACT(ISODOW FROM zeitpunkt) <= 5)
+                        / AVG(mwh) FILTER (WHERE EXTRACT(ISODOW FROM zeitpunkt) >= 6)
+                        - 1), 2) AS mehr_prozent
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+    hinweis: "Public holidays are not treated specially. Mon-Fri vs Sat-Sun only."
+
+  - id: h3_05
+    tier: 3
+    frage: "What percentage of Germany's electricity demand in 2025 was covered by wind and solar generation?"
+    reihenfolge_relevant: false
+    toleranz: 0.001
+    gold_sql: |
+      SELECT ROUND(
+               100.0 * (SELECT SUM(mwh) FROM erzeugung
+                        WHERE energietraeger IN ('Wind Onshore', 'Wind Offshore', 'Photovoltaik')
+                          AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01')
+               / (SELECT SUM(mwh) FROM verbrauch
+                  WHERE metrik = 'grid load'
+                    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'), 2) AS anteil_prozent;
+    hinweis: "Wind = onshore + offshore. Demand = grid load."
+
+  # ---------------- Tier 4 ----------------
+  - id: h4_01
+    tier: 4
+    frage: "What was the longest uninterrupted stretch of negative German power prices in 2025? When did it start and how many quarter-hours did it last?"
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      WITH p AS (
+        SELECT zeitpunkt, preis_eur_mwh,
+               ROW_NUMBER() OVER (ORDER BY zeitpunkt, id) AS rn
+        FROM preise
+        WHERE preiszone = 'Deutschland/Luxemburg'
+          AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      ),
+      neg AS (
+        SELECT zeitpunkt, rn - ROW_NUMBER() OVER (ORDER BY rn) AS grp
+        FROM p
+        WHERE preis_eur_mwh < 0
+      )
+      SELECT MIN(zeitpunkt) AS beginn, COUNT(*) AS viertelstunden
+      FROM neg
+      GROUP BY grp
+      ORDER BY viertelstunden DESC, beginn
+      LIMIT 1;
+    hinweis: "Gaps-and-islands over consecutive rows ordered by (zeitpunkt, id), so repeated clock-change timestamps do not break or merge runs. Negative means strictly < 0. Runs are cut at the year boundary."
+
+  - id: h4_02
+    tier: 4
+    frage: "Wie hat sich der durchschnittliche deutsche Day-Ahead-Strompreis 2025 von Monat zu Monat entwickelt? Gib für jeden Monat den Durchschnittspreis und die Veränderung gegenüber dem Vormonat in EUR/MWh an (für Januar gegenüber Dezember 2024)."
+    reihenfolge_relevant: false
+    toleranz: 1.0e-06
+    gold_sql: |
+      WITH monat AS (
+        SELECT date_trunc('month', zeitpunkt)::date AS monat,
+               AVG(preis_eur_mwh) AS durchschnittspreis
+        FROM preise
+        WHERE preiszone = 'Deutschland/Luxemburg'
+          AND zeitpunkt >= '2024-12-01' AND zeitpunkt < '2026-01-01'
+        GROUP BY 1
+      ),
+      d AS (
+        SELECT monat, durchschnittspreis,
+               durchschnittspreis - LAG(durchschnittspreis) OVER (ORDER BY monat) AS veraenderung
+        FROM monat
+      )
+      SELECT monat, durchschnittspreis, veraenderung
+      FROM d
+      WHERE monat >= '2025-01-01'
+      ORDER BY monat;
+    hinweis: "Monthly average is the unweighted mean of quarter-hour prices. December 2024 is computed only as the LAG base for January."

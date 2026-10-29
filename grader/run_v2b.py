@@ -17,6 +17,12 @@ naive_agent) starts with NO_QUERY, in any letter case, it is a decline = no SQL.
     replaced here with "declined (no SQL)" so wrong declines can be counted.
 
 Logs are written to results/v2b<_tag>_<date>.log and .jsonl.
+
+Optional --gold-file PATH loads the questions from another YAML instead of
+gold_set_smard.yaml. The gold file's stem is then put into the log tag
+(results/v2b_<gold stem>[_<tag>]_run<k>_<date>.log), so results for a
+different gold file never share a file name with the exam results. Without the
+flag nothing changes.
 """
 
 import logging
@@ -93,8 +99,12 @@ def _retrieval_missing(question, tables: list[str]) -> set[str]:
     return _gold_tables(question.gold_sql) - set(tables)
 
 
-def run(tag: str = "") -> int:
-    questions = load_questions()
+def run(tag: str = "", gold_file: Path | None = None) -> int:
+    if gold_file is None:
+        questions = load_questions()
+    else:
+        print(f"Gold file: {gold_file}")
+        questions = load_questions(path=gold_file)
     results = []
     agent_sqls: dict[str, str] = {}
     replies: dict[str, str] = {}  # full model reply for declined questions
@@ -283,12 +293,26 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--runs", type=int, default=1, help="number of repeated full runs")
     ap.add_argument("--tag", default="", help="log filename tag prefix")
+    ap.add_argument(
+        "--gold-file",
+        metavar="PATH",
+        type=Path,
+        default=None,
+        help="load questions from this YAML instead of gold_set_smard.yaml; "
+             "its name is added to the log/jsonl file names",
+    )
     args = ap.parse_args()
+    base_tag = args.tag
+    if args.gold_file is not None:
+        if not args.gold_file.is_file():
+            ap.error(f"--gold-file: no such file: {args.gold_file}")
+        gold_label = re.sub(r"[^A-Za-z0-9]+", "_", args.gold_file.stem).strip("_")
+        base_tag = f"{gold_label}_{args.tag}" if args.tag else gold_label
     codes = []
     for k in range(1, args.runs + 1):
-        tag = f"{args.tag + '_' if args.tag else ''}run{k}" if args.runs > 1 or args.tag else ""
+        tag = f"{base_tag + '_' if base_tag else ''}run{k}" if args.runs > 1 or base_tag else ""
         print(f"\n##### run {k}/{args.runs} (tag={tag or '-'}) #####")
-        codes.append(run(tag))
+        codes.append(run(tag, args.gold_file))
     sys.exit(0 if all(c == 0 for c in codes) else 1)
 
 
