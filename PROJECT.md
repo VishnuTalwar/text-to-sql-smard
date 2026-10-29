@@ -362,6 +362,7 @@ Findings from the benchmark review, roughly in priority order.
 | O10 | No "ambiguous, should ask back" category | Optional third behaviour: e.g. *"wie viel Kohle?"* could mean Braunkohle or Steinkohle |
 | O11 | Read-only database role | Confirm it exists and that the agent will use it, not the loader account |
 | O12 | Duplicate DST timestamps appear to have been inserted | **Resolved.** The tables use a surrogate `id` primary key (confirmed in the database), which is what lets the 12 duplicate daylight-saving timestamps be stored |
+| O13 | No held-out set. Every ablation row is tuned and measured on the same 84 questions, so repeated rewording risks fitting the prompt to the exam | Build a small held-out set (questions not used for tuning) before the final README numbers |
 
 ---
 
