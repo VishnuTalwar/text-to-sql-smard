@@ -1,11 +1,11 @@
 # Text-to-SQL Agent (SMARD): Full Progress Handoff
 
-**Last updated:** 26 October 2026
+**Last updated:** 29 October 2026
 **Purpose of this file:** a complete record of where the project stands, so a brand-new chat session (or a new laptop, or you after a long break) can pick up without any other context. It is written in plain language on purpose. Read it top to bottom once, then use the section headings to jump around.
 
 **Owner:** Vishnu (M.Sc. Data and Knowledge Engineering, OVGU Magdeburg)
 **Project folder on laptop:** `/Users/deepaktalwar/Desktop/text-to-SQL`
-**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D22), `gold_set_smard.yaml`
+**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D27), `gold_set_smard.yaml`
 
 ---
 
@@ -64,6 +64,7 @@ Note: the real tables use a **surrogate `id` primary key**, not a composite key 
 - **energietraeger (12):** Biomasse, Wasserkraft, Wind Offshore, Wind Onshore, Photovoltaik, Sonstige Erneuerbare, Kernenergie, Braunkohle, Steinkohle, Erdgas, Pumpspeicher, Sonstige Konventionelle
 - **metrik (4):** 'grid load', 'Grid load incl. hydro pumped storage', 'Hydro pumped storage', 'Residual load' (English, unlike the other two tables; checked against the database on 24 Oct, 0 mismatches)
 - **preiszone (17):** Deutschland/Luxemburg, ∅ Anrainer DE/LU, Belgien, Dänemark 1, Dänemark 2, Frankreich, Niederlande, Norwegen 2, Österreich, Polen, Schweden 4, Schweiz, Tschechien, DE/AT/LU, Italien (Nord), Slowenien, Ungarn
+- **What the values mean (checked against the data on 26 Oct):** 'Grid load incl. hydro pumped storage' is exactly 'grid load' plus 'Hydro pumped storage' (all 105,312 rows, rounding only). 'Residual load' is exactly 'grid load' minus (Wind Onshore + Wind Offshore + Photovoltaik) (all rows). Residual load is the only metrik that can be negative (2,101 rows). `Deutschland/Luxemburg` is the German price zone, `∅ Anrainer DE/LU` is the average of the 11 neighbouring zones (quirk 8), `DE/AT/LU` is the empty old joint zone. Italien (Nord) never goes below 0.
 
 ### Data quirks (real properties of the data, several exploited by exam questions)
 
@@ -174,7 +175,7 @@ Mental model: a new analyst on their first day. Smart, but has never seen this d
 | # | Component | Status |
 |---|---|---|
 | 1 | PostgreSQL in Docker | Done |
-| 2 | Schema catalog (table/column notes) | Built, first version (section 8) |
+| 2 | Schema catalog (table/column notes) | Built; catalog v2b is the current base (section 8, Steps H to L) |
 | 3 | Example bank (about 30 question/SQL pairs, retrieved by similarity) | Not started |
 | 4 | Query writer (the AI call) | Built as the naive version |
 | 5 | Validator (sqlglot AST check plus `EXPLAIN` dry run) | Not started |
@@ -267,7 +268,7 @@ Full report: `results/analysis_notes_vs_targets_2026-10-24.md`. It is a read-onl
 
 - **The notes reached the prompt every time.** The retriever chose a table set that contained the right table for all five target questions, and the exact note text was in each prompt.
 - **DE/AT/LU note: followed in 6 of 6 runs.** It even removed a real naive failure (naive run 2 of t2_06 put DE/AT/LU on top). But t2_06 and t2_25 still failed, for other reasons: t2_06 returned only the zone name (1 column, the gold wants 2), and t2_25 included the `∅ Anrainer DE/LU` zone (15 rows, the gold has 14).
-- **Kernenergie note: ignored.** None of the 8 failing schema-linked queries used `NULLS LAST` or filtered the NULLs, and t2_05's SQL is identical in the naive and schema-linked runs. A likely reason, *not tested*: the note says "any ORDER BY ... DESC over this column", but Kernenergie is a value inside the energietraeger column, and the model sorts by its own `SUM(...)`. It may not see the note as applying to what it wrote.
+- **Kernenergie note: ignored.** None of the 8 failing schema-linked queries used `NULLS LAST` or filtered the NULLs, and t2_05's SQL is identical in the naive and schema-linked runs. A likely reason, *not tested*: the note says "any ORDER BY ... DESC over this column", but Kernenergie is a value inside the energietraeger column, and the model sorts by its own `SUM(...)`. It may not see the note as applying to what it wrote. *Tested later in row v2a (Step H): rewording the note fixed it.*
 - **What the failures look like.** Of the roughly 29 non-tier-0 failures per schema-linked run, about 14 are the wrong shape (wrong number of columns or rows) and about 15 are wrong values or SQL errors. Roughly half and half. On top of that come the 8 tier 0 questions that fail every time.
 - **Labels: 0 mismatches.** The metrik, preiszone and energietraeger values in the database match both prompts and every literal in the 84 gold queries, character for character.
 
@@ -306,25 +307,120 @@ The runners (`run_baseline.py`, `run_schema_linked.py` and the new decline runne
 - **Format check:** half the replies (125 of 252) came wrapped in a code fence, which the extraction strips. Every extracted statement starts with SELECT or WITH, so no explanation text leaked into the SQL.
 - **File names:** the three runs went past midnight, so the runner wrote the files with 2026-10-25 in the name. They were renamed by hand to `*_2026-10-24.*` to match the plan. The runs themselves took place just after midnight on 25 Oct.
 
+### The v2 series at a glance (means of 3 runs, temperature 0)
+
+Catalog v2 was split into separate rows so each change could be measured on its own, all on top of the decline row.
+
+| Row | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total | Status |
+|---|---|---|---|---|---|---|---|
+| Decline (D22) | 7.00 | 32.33 | 14.00 | 2.00 | 0.00 | 55.33 | start of the series |
+| v2a: Kernenergie note reworded (D23) | 7.00 | 33.00 | 17.00 | 2.67 | 0.00 | 59.67 | kept |
+| v2b: metrik and preiszone descriptions (D25) | 7.00 | 34.00 | 17.67 | 2.00 | 0.00 | **60.67** | kept, **current base** |
+| v2c: data date range (D26) | 7.67 | 32.00 | 15.33 | 2.00 | 0.00 | 57.00 | tested, dropped |
+| v2b2: "zones" to "countries" (D27) | 7.00 | 33.33 | 16.00 | 2.33 | 0.00 | 58.67 | tested, dropped |
+
+v2b is built on v2a; v2c and v2b2 are each built on v2b (not on each other). The catalog series ends at v2b.
+
+### Step H: Kernenergie note reworded (row v2a, D23)
+
+**What changed:** only the Kernenergie note. It now says that any SUM, AVG or MAX of Kernenergie after 2024-01-30 is NULL, and that NULL sorts first in DESC order, so a ranking by a total needs `ORDER BY <total> DESC NULLS LAST`. Code: `grader/schema_catalog_v2a.py` (built from the original catalog by swapping that one note) and `grader/run_v2a.py`. 56 of the 84 prompts changed (those that show the erzeugung table), in that one bullet; the other 28 are byte-identical to the decline prompts.
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| v2a run 1 | 7/8 | 33/35 | 17/25 | 3/12 | 0/4 | 60 |
+| v2a run 2 | 7/8 | 33/35 | 17/25 | 2/12 | 0/4 | 59 |
+| v2a run 3 | 7/8 | 33/35 | 17/25 | 3/12 | 0/4 | 60 |
+| **v2a mean** | 7.00 | 33.00 | 17.00 | 2.67 | 0.00 | **59.67** |
+
+- **Target questions: clean gain.** t2_05 and t2_22 went from 0/3 to 3/3, with `NULLS LAST` added (+2.00). t2_02 was already 3/3. `NULLS LAST` now appears on 8 ranking questions instead of 1. This confirms the Step D hypothesis: the old note said "this column", and the model did not connect it to its own `SUM`.
+- **The other +2.33** comes from t1_02, t2_09 and t3_06 (style changes: `MAX(mwh)` instead of two columns, `DATE_TRUNC` instead of `TO_CHAR`). Likely side effects of the rewording; they cannot be separated from noise.
+- **Control group:** the 28 questions whose prompt did not change netted exactly 0.00.
+- **t1_22 was wrongly declined in 3 of 3 runs** ("no data for the year 2025") although its prompt was unchanged, so this is not caused by this row.
+
+### Step I: The t2_25 gold was wrong (D24)
+
+While checking what `∅ Anrainer DE/LU` means against the data, we found that the gold SQL of t2_25 ("Rank the neighbouring countries by their average price in 2025") ranked 14 zones, including Italien (Nord), Slowenien and Ungarn, which do not border Germany. The data's own neighbour set, the 11 zones averaged in `∅ Anrainer DE/LU`, excludes them (it matches in all 105,312 timestamps; adding the three extra zones matches only 0.1%).
+
+**Fix:** the gold SQL now ranks exactly the 11 neighbours (`gold_zeilen` 11, a `hinweis` explains it). The self-test is still 84/84, and we re-graded t2_25 for all 15 earlier runs that stored its SQL: all failed before and after, so **no earlier score changed**.
+
+**It still fails**, now for a different reason (see section 9): the question says "rank" without saying which direction. We noted this as ambiguous (next to O10) and did not change the question.
+
+### Step J: Descriptions of the metrik and preiszone values (row v2b, D25) - current base
+
+**What changed:** a new "Value meanings" section under the values line in the prompt: "grid load" is for general questions about consumption, demand or load; "Hydro pumped storage" is electricity used to pump water up; the "incl." metric is the sum of the two; "Residual load" is grid load minus wind and solar and can be negative; "Deutschland/Luxemburg" is the German price zone; `∅ Anrainer DE/LU` is not a market zone but the average of the 11 neighbours (leave it out when ranking or comparing zones); `DE/AT/LU` is the empty old joint zone. In verbrauch the Pumpspeicher quirk was rewritten to name "Hydro pumped storage". Code: `grader/schema_catalog_v2b.py`, `grader/prompt_template_v2b.py` (a renderer that shows the new section), `grader/run_v2b.py`. 42 of 84 prompts changed (those that show verbrauch or preise); the 42 erzeugung-only prompts are byte-identical to v2a.
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| v2b run 1 | 7/8 | 34/35 | 17/25 | 2/12 | 0/4 | 60 |
+| v2b run 2 | 7/8 | 34/35 | 18/25 | 2/12 | 0/4 | 61 |
+| v2b run 3 | 7/8 | 34/35 | 18/25 | 2/12 | 0/4 | 61 |
+| **v2b mean** | 7.00 | 34.00 | 17.67 | 2.00 | 0.00 | **60.67** |
+
+- **Target questions: gain.** t2_12, t1_32 (German: electricity consumption in March 2026) and t1_22 (German price at midday) each went from 0/3 to 3/3 with the intended SQL: the first two now filter `metrik = 'grid load'`, and t1_22 uses `Deutschland/Luxemburg` (+3.00 together). t1_22 is no longer declined.
+- **Side effects (-1.67):** t1_18 went from 3/3 to 0/3 (now returns an extra column), t2_21 from 1/3 to 0/3 (it now leaves out `∅ Anrainer DE/LU`, but the gold lists all 16 zones including it) and t2_06 from 3/3 to 2/3.
+- **Control group:** the 42 unchanged prompts moved by -0.33 (noise level); the 42 changed prompts by +1.33. The net gain of +1.00 is too small to separate from noise, but the three target gains are consistent and the SQL shows why.
+- **t2_25** now ranks exactly the 11 right zones, but sorts ascending, so it still fails (section 9). No wrong declines. Tier 0 unchanged at 7/8.
+- **Cost:** about 629 prompt tokens per question (v2a: 546), mean latency 1.48 s.
+
+### Step K: Data date range (row v2c, D26) - tested and dropped
+
+**What changed:** one line at the very top of the prompt, on top of v2b: the data covers 2023-06-01 00:00 to 2026-06-01 23:45 in 15-minute steps, there is no data before or after, and June 2026 has only one day. Code: `grader/prompt_template_v2c.py`, `grader/run_v2c.py`. Every prompt changed, so there is no unchanged-prompt control group.
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| v2c run 1 | 8/8 | 32/35 | 15/25 | 2/12 | 0/4 | 57 |
+| v2c run 2 | 7/8 | 32/35 | 16/25 | 2/12 | 0/4 | 57 |
+| v2c run 3 | 8/8 | 32/35 | 15/25 | 2/12 | 0/4 | 57 |
+| **v2c mean** | 7.67 | 32.00 | 15.33 | 2.00 | 0.00 | **57.00** |
+
+- **The target worked:** u_08 (July 2026) was declined in 3 of 3 runs for the first time (+1.00).
+- **But two German questions about dates inside the range were wrongly declined in 3 of 3 runs:** t1_12 ("Data for February 2026 is not available") and t1_26 ("The data does not cover May 2025"), -2.00. Why the line triggers this is not clear. t2_19 fell from 3/3 to 0/3 (it also grouped by year), -1.00, and smaller drops cost another -1.67. Net **-3.67**, outside the run-to-run range (57, 57, 57 against 60, 61, 61).
+- **No unnecessary date filters appeared:** on the 28 questions without a date filter in the gold, the agent added one in 3 runs both before and after, and no boundary date appears in any SQL.
+- **Decision (D26): not carried forward.** Later rows build on v2b.
+
+### Step L: One word in the ∅ Anrainer description (row v2b2, D27) - tested and dropped
+
+**What changed:** on top of v2b, the last sentence of the `∅ Anrainer DE/LU` description now says "comparing **countries**" instead of "comparing zones", to see whether "zones" made the model drop it in t2_21. Code: `grader/schema_catalog_v2b2.py`, `grader/run_v2b2.py` (the v2b prompt template). 31 prompts changed by that one word (those that show the price table); the other 53 are byte-identical to v2b.
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| v2b2 run 1 | 7/8 | 34/35 | 17/25 | 2/12 | 0/4 | 60 |
+| v2b2 run 2 | 7/8 | 34/35 | 16/25 | 3/12 | 0/4 | 60 |
+| v2b2 run 3 | 7/8 | 32/35 | 15/25 | 2/12 | 0/4 | 56 |
+| **v2b2 mean** | 7.00 | 33.33 | 16.00 | 2.33 | 0.00 | **58.67** |
+
+- **The target did not move:** t2_21 still leaves out `∅ Anrainer DE/LU` in 3 of 3 runs (15 rows against 16), exactly as in v2b, so the word "zones" was not the cause. t2_25 is unchanged (right zones, ascending).
+- **Side effects:** in run 3 only, two wrong declines (t1_27 "no data specifically for the year 2024" and t1_35 "no data for December 2025"), and t2_06 went from 2/3 to 0/3. Run 3 alone scored 4 points below runs 1 and 2.
+- **Control group:** the 53 unchanged prompts moved by -0.67; the 31 changed prompts by -1.33. No gain.
+- **Decision (D27): not carried forward.** The catalog series ends at v2b.
+
+### Notes from the v2 series
+
+- **Noise is about 2 to 4 points per run.** Same-prompt runs of one setup range from 1 point (v2b: 60 to 61) to 4 points (v2b2: 56 to 60), and questions whose prompt did not change still swing by about 0.7 points on the mean. So **effects of about 1 point cannot be measured with 3 runs.** Only large, consistent effects (such as the target questions going from 0/3 to 3/3 with the intended SQL) are trustworthy.
+- **An emerging pattern: invented "no data for <date>" declines.** With the decline option the model sometimes gives a false reason about the data's dates: t1_22 ("no data for the year 2025", decline and v2a), t1_12 and t1_26 (v2c), t1_27 and t1_35 (v2b2 run 3). An idea for later, at the validator stage: when the model declines because of a date, check that claim against the database (does any row exist in that period?) and, if rows exist, send the question back to the model or answer it.
+- **Why the series stops at v2b:** further wording tweaks have effects smaller than the noise, and every extra tweak risks tuning the prompt to these 84 questions (open item O13).
+
 ---
 
-## 9. Specific cases still open from the schema-linked runs
+## 9. Specific cases still open from the runs so far
 
-**t2_01** ("Which energy source produced the most overall?"). Gold returns the name and the total (2 columns). In the schema-linked runs the agent returned just the name, so the strict comparator failed it. With the decline wording (Step G) it now returns name and total and passes in 3 of 3 runs. So the shape rule only bit here because of phrasing, and the rule itself is still unchanged (D19).
+**t2_01** ("Which energy source produced the most overall?"). Gold returns the name and the total (2 columns). In the schema-linked runs the agent returned just the name, so the strict comparator failed it. With the decline wording (Step G) it returns name and total and passes in 3 of 3 runs (also in v2a and v2b). So the shape rule only bit here because of phrasing, and the rule itself is still unchanged (D19).
 
-**t2_06** ("Which price zone had the highest average price?"). Same story: the DE/AT/LU note was followed, but the zone-only answer failed the column rule. With the decline wording it returns the zone and its average and passes in 3 of 3 runs.
+**t2_06** ("Which price zone had the highest average price?"). The DE/AT/LU note was followed, but the zone-only answer failed the column rule. With the decline wording it passed 3 of 3 (also in v2a); in v2b it passed 2 of 3 (one run again returned only the zone name) and in v2b2 0 of 3 (same reason).
 
-**t2_12** ("Which day of the week has the highest average consumption?"). Gold filters `WHERE metrik = 'grid load'`. The agent forgot the filter and averaged all four metrics (9306 vs 14104). The catalog never explains what the four metrik values mean. The right fix is a **plain description of each metrik value** (helps every consumption question), NOT a note aimed at this one question. Writing a note just to fix one exam question is teaching to the test and would inflate the score dishonestly. Still fails in every run so far (naive, schema-linked and decline).
+**t2_12** ("Which day of the week has the highest average consumption?"). Gold filters `WHERE metrik = 'grid load'`. **Fixed in v2b:** the plain description of each metrik value (a general fix, not a note aimed at this question) made the agent filter on `grid load` in 3 of 3 runs. Before, it averaged all four metrics (9306 vs 14104) and failed in every run. The same description fixed t1_32. It dropped to 1 of 3 in v2c, which is not carried forward. Writing a note just to fix one exam question would be teaching to the test and would inflate the score dishonestly.
 
-**t2_25** ("Rank the neighbouring countries by their average price in 2025"). The agent follows the DE/AT/LU note but includes `∅ Anrainer DE/LU`, which is an average of the neighbours and not a country (see section 3, quirk 8). Gold leaves it out, so the agent returns 15 rows instead of 14. No note covers this zone yet. Fails in every run so far. Catalog v2 (section 13) will describe it, for all questions and not just this one.
+**t1_22** ("What was the German power price at midday on 3 March 2025?"). Gold reads "midday" as the quarter-hour starting 12:00. In the decline runs the model called "midday" ambiguous and declined in 2 of 3 runs; in v2a it declined 3 of 3 ("no data for the year 2025"). **Fixed in v2b:** the description "Deutschland/Luxemburg is the German price zone" made it answer in 3 of 3 runs, and it is no longer declined. It remains a natural example for open item O10 (an "ask back" behaviour: "do you mean 12:00 to 12:15 or the hourly average?").
 
-**t1_22** ("What was the German power price at midday on 3 March 2025?"). Gold reads "midday" as the quarter-hour starting 12:00. In the decline runs the model called "midday" ambiguous and declined in 2 of 3 runs. This is a natural candidate for open item O10 (a "this is ambiguous, ask back" behaviour): there, asking "do you mean 12:00 to 12:15 or the hourly average?" would be the right answer.
+**t2_25** ("Rank the neighbouring countries by their average price in 2025"). The gold was fixed in Step I (D24): "neighbours" are the 11 zones in `∅ Anrainer DE/LU`. Since v2b the agent picks exactly those 11 zones, but it sorts **ascending**, because "rank" does not say which direction. The gold sorts highest first. This is an **ambiguity in the question** (a natural example next to O10); we did not change the question. Fails 3 of 3 in v2b and v2b2.
+
+**t2_21** ("List all the price zones sorted by how low their price ever got"). The gold lists all 16 zones with data, including `∅ Anrainer DE/LU`. Since v2b the agent leaves `∅ Anrainer` out in every run (15 rows), because its description says "Leave it out when ranking or comparing zones". Changing "zones" to "countries" (v2b2) did not change this, so the wording of that sentence is not the cause; the rule itself is. It was not fixed, and we stopped tweaking the wording (O13).
 
 ---
 
 ## 10. Decisions made
 
-**All decisions now live in `DECISIONS.md` (D1 to D22), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D22). Add new decisions there as they are made, one at a time.
+**All decisions now live in `DECISIONS.md` (D1 to D27), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27) and the t2_25 gold fix (D24).
 
 **Principles that came out of the work** (also at the end of `DECISIONS.md`):
 - The grader must exist and be validated before any agent code.
@@ -348,9 +444,10 @@ The runners (`run_baseline.py`, `run_schema_linked.py` and the new decline runne
 | O7 | Tier 1 dominates the exam | Open. Report per-tier, ignore the headline |
 | O8 | Few German questions, most use exact schema words | Open. Add questions like "Sonnenstrom", "Kohlestrom", "Windkraft an Land" |
 | O9 | t1_30 and t4_02 depend on preliminary data | Open. Annotate in the YAML |
-| O10 | No "ambiguous, ask back" category | Open, optional. t1_22 ("midday") is a natural example (section 9) |
+| O10 | No "ambiguous, ask back" category | Open, optional. Natural examples: t1_22 ("midday") and t2_25 ("rank" without a direction) (section 9) |
 | O11 | Read-only DB role | **Grader side done, live agent runner open.** `grader_ro` exists and the grader uses it (section 4). Still to build: the agent's own safe runner |
 | O12 | Duplicate DST timestamps and primary key | **Resolved.** Surrogate `id` key; the 12 duplicates are stored. Still be careful in gaps-and-islands queries on changeover days |
+| O13 | No held-out set | Open. Every ablation row is tuned and measured on the same 84 questions, so repeated rewording risks fitting the prompt to the exam. Build a small held-out set (questions not used for tuning) before the final README numbers |
 
 **Note on old logs:** logs from before 24 Oct store the agent's SQL only for failed questions (see Step F). Nothing can be recovered about the SQL of questions that passed in those runs.
 
@@ -363,22 +460,19 @@ The runners (`run_baseline.py`, `run_schema_linked.py` and the new decline runne
 3. Confirm no other order-sensitive gold question has tied values at the cutoff (section 5).
 4. The very first naive result (46/84) and schema-linked results (35, 47) were single samples before temperature 0. Use only the 3-run, temperature-0 numbers in the final ablation table.
 5. **`sql/create_grader_role.sql`: resolved (26 Oct).** The `CREATE ROLE` step is now built with `\gexec` instead of inside a `DO $$` block (psql does not substitute variables there), the header shows the working stdin command, and the password is passed without extra quotes (the old instruction would have stored the quote characters as part of the password). Tested on a throwaway database and role, both dropped afterwards: it creates the role on a fresh database, a second run is safe, and the role can log in and SELECT but not INSERT, create tables or create temp tables. The role in the real database was not touched.
-6. **New:** there is no git repository in the project folder yet (checked 26 Oct), so none of the code, logs or decisions have version history.
+6. **Version control: resolved (27 Oct).** The project folder is now a git repository (branch `main`) and is pushed to a **private** GitHub repository, `VishnuTalwar/text-to-sql-smard`. `.env`, `data/raw/` and `.claude/` are ignored and were checked not to be in any commit. Each ablation row and decision since then has its own commit.
 
 ---
 
 ## 13. What to do next (in order)
 
-1. **Catalog v2, as one ablation row** (3 runs, temperature 0, on top of the decline row). All of it general, none of it aimed at single questions:
-   - Reword the Kernenergie note so it talks about aggregates over the energietraeger *value* (for example "an aggregate over Kernenergie after 2024-01-30 is NULL, and NULL sorts first in DESC order"), not "this column". This tests the Step D hypothesis.
-   - Add a plain description of each metrik value and each preiszone value, including that `∅ Anrainer DE/LU` is an average of the neighbours and not a country.
-   - State the date range of the data (2023-06-01 to 2026-06-01, with only one day in June 2026), which may help with questions like u_08.
-2. **Example bank** (about 30 question/SQL pairs, retrieved by similarity). Aimed at the shape failures: percentage style, date style, column shape. Make sure the examples are NOT copies of exam questions.
-3. **Validator and retry loop** (sqlglot AST check plus `EXPLAIN`, max 3 attempts, LangGraph). Check the Step E prediction: it should fix the crashes (t3_12, t3_04, t4_01) but not t4_02 and t4_04. Track retry rate and p95 latency.
+1. **Example bank on top of v2b** (about 30 question/SQL pairs, retrieved by similarity), as the next ablation row (3 runs, temperature 0). Aimed at the shape failures: percentage style, date style, column shape, the ascending/descending ambiguity of "rank". Make sure the examples are NOT copies of exam questions.
+2. **Held-out set (O13), before the final README numbers.** A small set of new questions that were never used for tuning, so the final numbers are not fitted to the 84 exam questions. Decide how many and how to write them so they do not copy the exam.
+3. **Validator and retry loop** (sqlglot AST check plus `EXPLAIN`, max 3 attempts, LangGraph). Check the Step E prediction: it should fix the crashes (t3_12, t3_04, t4_01) but not t4_02 and t4_04. **Include the date-decline check** from the notes in section 8: when the model declines because of a date, test the claim against the database. Track retry rate and p95 latency.
 4. **Optional: the decline option on the naive setup**, to test whether the catalog notes are what made u_01 and u_07 declinable.
 5. **Then:** the agent's safe runner, Streamlit UI with charts and visible SQL, Langfuse tracing, benchmark in CI, final README with the ablation table.
 
-**Also worth deciding later:** whether to relax the column-count rule (t2_01 case), adding German-language questions that avoid the schema words (O8), and an "ask back" behaviour for ambiguous questions (O10, t1_22).
+**Also worth deciding later:** whether to relax the column-count rule (D19), adding German-language questions that avoid the schema words (O8), and an "ask back" behaviour for ambiguous questions (O10: t1_22, t2_25).
 
 ---
 
@@ -389,11 +483,22 @@ The runners (`run_baseline.py`, `run_schema_linked.py` and the new decline runne
 | Naive prompt, tables and columns only | 46.0 / 84 (54.8%) |
 | + schema catalog with quirk notes (keyword retrieval) | 46.7 / 84 (55.6%), not distinguishable from baseline |
 | + decline option (D22) | 55.33 / 84 (65.9%): tier 0 +7.0 (clean); tiers 1-4 +1.67, too small to separate from noise |
-| + catalog v2 (Kernenergie reword, value descriptions, date range) | to do |
-| + retrieved few-shot examples | to do |
+| + Kernenergie note reworded (v2a, D23) | 59.67 / 84 (71.0%): t2_05 and t2_22 fixed (+2.00, clean) |
+| + metrik and preiszone descriptions (v2b, D25) | **60.67 / 84 (72.2%): current base.** t2_12, t1_32, t1_22 fixed (+3.00), side effects -1.67 |
+| *tested and dropped:* v2c data date range (D26) | 57.00 / 84 (67.9%): u_08 declined, but false declines on t1_12 and t1_26 |
+| *tested and dropped:* v2b2 "countries" wording (D27) | 58.67 / 84 (69.8%): target unchanged, no gain |
+| + retrieved few-shot examples (on top of v2b) | to do |
 | + validation and self-correction | to do |
 
-Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL rate: 80 to 81 out of 84 for schema-linked, 74 to 75 for the decline runs (not comparable, because declines count as no SQL). Latency and tokens are only recorded from 24 Oct on: the decline runs average 1.08 s, 521 prompt and 56 completion tokens per question. Still to fill in: retry rate, p95 latency, cost per query.
+**Held-out set (30 items, never used for tuning)**
+
+| Configuration | Mean of 3 runs, temp 0 | Per tier (mean) |
+|---|---|---|
+| v2b (starting point) | 19.33 / 30 (64.4%) | tier 0: 2.00, tier 1: 10.00, tier 2: 6.00, tier 3: 1.33, tier 4: 0.00 |
+
+Measured only at the start and at the end; per-question results are not looked at.
+
+Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL rate: 80 to 81 out of 84 for schema-linked, 74 to 75 for the decline runs (not comparable, because declines count as no SQL). Latency and tokens are only recorded from 24 Oct on: the decline runs average 1.08 s, 521 prompt and 56 completion tokens per question; v2b averages 1.48 s and 629 prompt tokens. Still to fill in: retry rate, p95 latency, cost per query. Remember the noise level (section 8, notes): differences of about 1 point between rows are not meaningful.
 
 ---
 
@@ -401,27 +506,40 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 **Project folder:** `README.md` (empty template), `PROJECT.md`, `DECISIONS.md`, `PROJECT_PROGRESS.md` (this file), `gold_set_smard.yaml`, `docker-compose.yml`, `.env` (not committed), `.gitignore`, `requirements.txt`, `package.json`.
 **Folders:** `data/raw/` (not committed), `data/new/` (samples), `scripts/` (loaders and sanity checks), `grader/`, `sql/`, `results/`.
-**Grader and agent files, all in `grader/`:** `loader.py`, `executor.py`, `comparator.py`, `run_grader.py`; `naive_agent.py` (the one function that calls the API, shared by all setups), `prompt_template.py`, `run_baseline.py`; `schema_catalog.py`, `catalog_retriever.py`, `prompt_template_schema_linked.py`, `run_schema_linked.py`; **new:** `prompt_template_decline.py`, `run_schema_linked_decline.py`, `result_logging.py`.
+**Grader and agent files, all in `grader/`:** `loader.py`, `executor.py`, `comparator.py`, `run_grader.py`; `naive_agent.py` (the one function that calls the API, shared by all setups), `prompt_template.py`, `run_baseline.py`; `schema_catalog.py`, `catalog_retriever.py`, `prompt_template_schema_linked.py`, `run_schema_linked.py`; `prompt_template_decline.py`, `run_schema_linked_decline.py`, `result_logging.py`.
+**The v2 series, in `grader/` (all new files, nothing earlier was edited):**
+- v2a: `schema_catalog_v2a.py`, `run_v2a.py`
+- v2b (current base): `schema_catalog_v2b.py`, `prompt_template_v2b.py`, `run_v2b.py`
+- v2c (dropped): `prompt_template_v2c.py`, `run_v2c.py`
+- v2b2 (dropped): `schema_catalog_v2b2.py`, `run_v2b2.py`
+
 **`sql/`:** `create_grader_role.sql` (the read-only role; fixed and tested on 26 Oct, safe to re-run).
 **Result logs in `results/`:**
 - `baseline_naive_2026-08-05.log` (first naive run, 46/84)
 - `schema_linked_2026-10-20.log` (the bad x4 run, 35/84, keep it)
 - `schema_linked_mwh_reworded_2026-10-20.log` (47/84)
 - six `*_t0_run{1,2,3}_2026-10-21.log` files (the 3-run noise measurement: naive and schema-linked)
-- **new:** `analysis_notes_vs_targets_2026-10-24.md` (Step D report)
-- **new:** `schema_linked_decline_t0_run{1,2,3}_2026-10-24.log` and `.jsonl` (Step G; the `.jsonl` files have one line per question)
-- **new:** `_stdout_decline_t0.txt` (raw console output of those three runs); similar `_stdout_*` files exist for the earlier runs
+- `analysis_notes_vs_targets_2026-10-24.md` (Step D report)
+- `schema_linked_decline_t0_run{1,2,3}_2026-10-24.log` and `.jsonl` (Step G; the `.jsonl` files have one line per question)
+- `v2a_t0_run{1,2,3}_2026-10-27.log` and `.jsonl` (Step H)
+- `v2b_t0_run{1,2,3}_2026-10-27.log` and `.jsonl` (Step J, current base)
+- `v2c_t0_run{1,2,3}_2026-10-27.log` and `.jsonl` (Step K, dropped)
+- `v2b2_t0_run{1,2,3}_2026-10-29.log` and `.jsonl` (Step L, dropped)
+- `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
 
-**What to commit:** loader scripts, grader, benchmark YAML, one small sample CSV, README with attribution. **Never commit:** `data/raw/`, `.env`, credentials. (There is no git repository yet; see section 12, item 6.)
+**What to commit:** loader scripts, grader, benchmark YAML, one small sample CSV, README with attribution. **Never commit:** `data/raw/`, `.env`, credentials. The repository exists and is on GitHub (private); see section 12, item 6.
 
 ---
 
 ## 15A. Findings worth telling in interviews
 
-- **Note wording decided the outcome three times.** The "multiply by 4" note cost 11 points. The Kernenergie note was ignored. The decline sentence changed the answer style on 8 questions, in both directions. Small wording is a real lever, and it needs measuring.
-- **The catalog notes did not improve the answers, but they helped the model decline.** For u_01 and u_07 the model's own reason quotes the catalog notes.
+- **Note wording decided the outcome many times.** The "multiply by 4" note cost 11 points. The Kernenergie note was ignored until it was reworded to talk about aggregates (then +2.00). The decline sentence changed the answer style on 8 questions, in both directions. Small wording is a real lever, and it needs measuring.
+- **The catalog notes did not improve the answers at first, but they helped the model decline.** For u_01 and u_07 the model's own reason quotes the catalog notes.
 - **The extra SQL errors looked like a regression but cost no passes.** They were all on questions that fail in every run anyway. Checking before reacting mattered.
 - **The one-change-per-row rule caught a real mistake.** A draft decline prompt had silently dropped the "Return only the SQL" sentence. It was caught in review, before any money was spent.
+- **Checking catalog facts against the data found a bug in the exam.** To write the description of `∅ Anrainer DE/LU`, we verified it against the data. That showed the gold of t2_25 counted three zones that do not border Germany. We fixed the gold (D24) and re-graded all 15 earlier runs to show that no earlier score changed.
+- **A measured negative result was kept and not carried forward.** The date-range line (v2c) fixed its target (u_08) but caused false declines on questions inside the range, net -3.67. It stays in the table, marked as tested and dropped (D26).
+- **Wording tweaks were stopped once their effects fell below the noise level.** The last one (v2b2) moved the score by less than the run-to-run swing, so the series ended at v2b rather than tuning the prompt to the exam (O13).
 
 ---
 
@@ -429,4 +547,4 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 Paste this as your first message in the new chat, and attach this file (and `DECISIONS.md`):
 
-> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D22). Short version: the grader works (self-test 84/84, runs through a read-only role). Over 3 runs at temperature 0 the naive baseline averages 46.0/84, schema-linked 46.7/84 (no measurable gain), and schema-linked plus the decline option 55.3/84 (tier 0 went from 0/8 to 7/8; tiers 1-4 moved only +1.67, within noise). Next I want to build catalog v2 as one ablation row: reword the Kernenergie note to talk about the value, add plain descriptions of the metrik and preiszone values, and state the data's date range. Please explain things in plain language and small chunks, and write commands I can paste into Claude Code.
+> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D27). Short version: the grader works (self-test 84/84, runs through a read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0 the naive baseline averages 46.0/84, schema-linked 46.7/84 (no measurable gain), schema-linked plus the decline option 55.3/84, and the current base, catalog v2b (decline option, reworded Kernenergie note, plain descriptions of the metrik and preiszone values), 60.7/84. Two more wording rows (v2c, v2b2) were tested and dropped, and the catalog series ends at v2b. Noise is about 2 to 4 points per run, so differences of about 1 point mean nothing. Next I want to build the example bank (about 30 question/SQL pairs, not copies of exam questions) on top of v2b as the next ablation row, then a held-out set (O13) before the final numbers. Please explain things in plain language and small chunks, and write commands I can paste into Claude Code.
