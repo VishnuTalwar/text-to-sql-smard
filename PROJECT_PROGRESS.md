@@ -448,6 +448,7 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 | O11 | Read-only DB role | **Grader side done, live agent runner open.** `grader_ro` exists and the grader uses it (section 4). Still to build: the agent's own safe runner |
 | O12 | Duplicate DST timestamps and primary key | **Resolved.** Surrogate `id` key; the 12 duplicates are stored. Still be careful in gaps-and-islands queries on changeover days |
 | O13 | No held-out set | Open. Every ablation row is tuned and measured on the same 84 questions, so repeated rewording risks fitting the prompt to the exam. Build a small held-out set (questions not used for tuning) before the final README numbers |
+| O14 | Invented declines | Open. With the decline option the model sometimes declines with a false reason ("no data for 2025", "no information about the day of the week"). Seen in v2a, v2c, v2b2 and ex-a (35 wrong declines). Planned fix at the validator stage: check whether a decline's reason is true and, if not, send the question back. |
 
 **Note on old logs:** logs from before 24 Oct store the agent's SQL only for failed questions (see Step F). Nothing can be recovered about the SQL of questions that passed in those runs.
 
@@ -487,6 +488,7 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 | + metrik and preiszone descriptions (v2b, D25) | **60.67 / 84 (72.2%): current base.** t2_12, t1_32, t1_22 fixed (+3.00), side effects -1.67 |
 | *tested and dropped:* v2c data date range (D26) | 57.00 / 84 (67.9%): u_08 declined, but false declines on t1_12 and t1_26 |
 | *tested and dropped:* v2b2 "countries" wording (D27) | 58.67 / 84 (69.8%): target unchanged, no gain |
+| *tested and dropped:* ex-a static 8-example block (on top of v2b) | 59.33 / 84 (70.6%): u_08 and 3 more fixed, but 35 wrong declines over 3 runs (0 for v2b); t2_12, t3_05 lost; t2_16 copies ex_20 |
 | + retrieved few-shot examples (on top of v2b) | to do |
 | + validation and self-correction | to do |
 
