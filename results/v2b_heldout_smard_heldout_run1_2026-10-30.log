@@ -1,0 +1,309 @@
+=== Per-tier results (v2b: v2a + metrik/preiszone descriptions) ===
+Tier 0 (unanswerable)              1/3  
+Tier 1 (single aggregate)          9/10 
+Tier 2 (grouping/ranking)          7/10 
+Tier 3 (dates/comparisons)         1/5  
+Tier 4 (hard)                      0/2  
+
+Overall                           18/30 
+Valid-SQL rate                    27/30 
+Declines: tier 0 correct           1/3  
+Declines: tiers 1-4 (wrong)        1
+
+=== Per-question retrieval + outcome ===
+ID           Tier   Retrieved                      Pass
+----------------------------------------------------------------------
+hu_01        0      preise                         FAIL (tier 0: agent returned SQL when it should have declined)
+hu_02        0      preise                         PASS
+hu_03        0      erzeugung                      FAIL (tier 0: agent returned SQL when it should have declined)
+h1_01        1      erzeugung                      PASS
+h1_02        1      preise                         FAIL (declined (no SQL))
+h1_03        1      preise                         PASS
+h1_04        1      erzeugung                      PASS
+h1_05        1      erzeugung, verbrauch, preise   PASS
+h1_06        1      verbrauch                      PASS
+h1_07        1      erzeugung                      PASS
+h1_08        1      verbrauch                      PASS
+h1_09        1      erzeugung, verbrauch, preise   PASS
+h1_10        1      preise                         PASS
+h2_01        2      erzeugung                      PASS
+h2_02        2      preise                         PASS
+h2_03        2      erzeugung                      PASS
+h2_04        2      erzeugung                      PASS
+h2_05        2      erzeugung, verbrauch, preise   PASS
+h2_06        2      erzeugung                      PASS
+h2_07        2      verbrauch                      FAIL (cell mismatch row 0 col 0: text mismatch: gold='Wednesday' agent=Decimal('3'))
+h2_08        2      erzeugung                      PASS
+h2_09        2      erzeugung                      FAIL (cell mismatch row 0 col 0: expected date/timestamp, agent returned '2025-12')
+h2_10        2      preise                         FAIL (column count mismatch at row 0: gold=2 agent=1)
+h3_01        3      erzeugung                      PASS
+h3_02        3      erzeugung, verbrauch, preise   FAIL (cell mismatch row 0 col 0: numeric mismatch: gold=80.16129166666667 agent=83.88304166666667 (toleranz=1e-06))
+h3_03        3      preise                         FAIL (agent SQL error: column "zeitpunkt" does not exist
+LINE 1: SELECT COUNT(DISTINCT DATE(zeitpunkt)) 
+                                   ^
+)
+h3_04        3      verbrauch                      FAIL (cell mismatch row 0 col 0: numeric mismatch: gold=19.42 agent=21.469656396785343 (toleranz=0.001))
+h3_05        3      erzeugung, verbrauch, preise   FAIL (cell mismatch row 0 col 0: numeric mismatch: gold=44.38 agent=3.6993295716861727 (toleranz=0.001))
+h4_01        4      preise                         FAIL (cell mismatch row 0 col 0: datetime mismatch: gold=datetime.datetime(2025, 10, 4, 21, 30) agent=datetime.datetime(2025, 1, 1, 3, 0))
+h4_02        4      preise                         FAIL (row count mismatch: gold=12 agent=13)
+
+=== Failures ===
+
+--- hu_01 (tier 0) ---
+Retrieved: ['preise']
+Question:  What was the average German day-ahead power price in 2022?
+Gold SQL:  (none)
+Agent SQL: SELECT AVG(preis_eur_mwh) AS average_german_price_2022
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg' AND zeitpunkt >= '2022-01-01' AND zeitpunkt < '2023-01-01';
+Reason:    tier 0: agent returned SQL when it should have declined
+
+--- hu_03 (tier 0) ---
+Retrieved: ['erzeugung']
+Question:  What was Germany's photovoltaic output in the month of July 2026?
+Gold SQL:  (none)
+Agent SQL: SELECT SUM(mwh) AS total_photovoltaic_output
+FROM erzeugung
+WHERE energietraeger = 'Photovoltaik'
+  AND zeitpunkt >= '2026-07-01 00:00'
+  AND zeitpunkt < '2026-08-01 00:00';
+Reason:    tier 0: agent returned SQL when it should have declined
+
+--- h1_02 (tier 1) ---
+Retrieved: ['preise']
+Question:  Wie hoch war der durchschnittliche deutsche Day-Ahead-Strompreis im Jahr 2025?
+Gold SQL:  SELECT AVG(preis_eur_mwh) AS durchschnittspreis
+FROM preise
+WHERE preiszone = 'Deutschland/Luxemburg'
+  AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+Agent SQL: (empty)
+Reply:     NO_QUERY: The table does not contain data for the year 2025.
+Reason:    declined (no SQL)
+
+--- h2_07 (tier 2) ---
+Retrieved: ['verbrauch']
+Question:  On which day of the week was average quarter-hourly electricity demand highest in 2024?
+Gold SQL:  SELECT trim(to_char(zeitpunkt, 'Day')) AS wochentag, AVG(mwh) AS durchschnitt_mwh
+FROM verbrauch
+WHERE metrik = 'grid load'
+  AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+GROUP BY 1
+ORDER BY durchschnitt_mwh DESC
+LIMIT 1;
+Agent SQL: SELECT EXTRACT(DOW FROM zeitpunkt) AS day_of_week, AVG(mwh) AS avg_demand
+FROM verbrauch
+WHERE EXTRACT(YEAR FROM zeitpunkt) = 2024 AND metrik = 'grid load'
+GROUP BY day_of_week
+ORDER BY avg_demand DESC
+LIMIT 1;
+Reason:    cell mismatch row 0 col 0: text mismatch: gold='Wednesday' agent=Decimal('3')
+
+--- h2_09 (tier 2) ---
+Retrieved: ['erzeugung']
+Question:  Which three months in 2024 and 2025 had the highest offshore wind generation?
+Gold SQL:  SELECT date_trunc('month', zeitpunkt)::date AS monat, SUM(mwh) AS mwh
+FROM erzeugung
+WHERE energietraeger = 'Wind Offshore'
+  AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY 1
+ORDER BY mwh DESC
+LIMIT 3;
+Agent SQL: SELECT TO_CHAR(zeitpunkt, 'YYYY-MM') AS month, SUM(mwh) AS total_mwh
+FROM erzeugung
+WHERE energietraeger = 'Wind Offshore' AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+GROUP BY TO_CHAR(zeitpunkt, 'YYYY-MM')
+ORDER BY total_mwh DESC
+LIMIT 3;
+Reason:    cell mismatch row 0 col 0: expected date/timestamp, agent returned '2025-12'
+
+--- h2_10 (tier 2) ---
+Retrieved: ['preise']
+Question:  Which of Germany's neighbouring bidding zones had the lowest average day-ahead price in 2024?
+Gold SQL:  SELECT preiszone, AVG(preis_eur_mwh) AS durchschnittspreis
+FROM preise
+WHERE preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande',
+                    'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+  AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+GROUP BY preiszone
+HAVING COUNT(preis_eur_mwh) > 0
+ORDER BY durchschnittspreis ASC
+LIMIT 1;
+Agent SQL: SELECT preiszone
+FROM preise
+WHERE EXTRACT(YEAR FROM zeitpunkt) = 2024
+  AND preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien')
+GROUP BY preiszone
+ORDER BY AVG(preis_eur_mwh) ASC
+LIMIT 1;
+Reason:    column count mismatch at row 0: gold=2 agent=1
+
+--- h3_02 (tier 3) ---
+Retrieved: ['erzeugung', 'verbrauch', 'preise']
+Question:  What was the average German power price on the ten days of 2025 with the most solar generation?
+Gold SQL:  WITH top_tage AS (
+  SELECT zeitpunkt::date AS tag, SUM(mwh) AS solar_mwh
+  FROM erzeugung
+  WHERE energietraeger = 'Photovoltaik'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+  GROUP BY 1
+  ORDER BY solar_mwh DESC
+  LIMIT 10
+)
+SELECT AVG(p.preis_eur_mwh) AS durchschnittspreis
+FROM preise p
+JOIN top_tage t ON p.zeitpunkt::date = t.tag
+WHERE p.preiszone = 'Deutschland/Luxemburg';
+Agent SQL: SELECT AVG(p.preis_eur_mwh) AS avg_german_price
+FROM (
+  SELECT DATE(e.zeitpunkt) AS day, SUM(e.mwh) AS total_solar_generation
+  FROM erzeugung e
+  WHERE e.energietraeger = 'Photovoltaik'
+  GROUP BY DATE(e.zeitpunkt)
+  ORDER BY total_solar_generation DESC
+  LIMIT 10
+) top_days
+JOIN preise p ON DATE(p.zeitpunkt) = top_days.day
+WHERE p.preiszone = 'Deutschland/Luxemburg';
+Reason:    cell mismatch row 0 col 0: numeric mismatch: gold=80.16129166666667 agent=83.88304166666667 (toleranz=1e-06)
+
+--- h3_03 (tier 3) ---
+Retrieved: ['preise']
+Question:  On how many days in 2024 was Germany's daily average power price higher than the average price of its neighbouring zones?
+Gold SQL:  WITH tag AS (
+  SELECT zeitpunkt::date AS tag,
+         AVG(preis_eur_mwh) FILTER (WHERE preiszone = 'Deutschland/Luxemburg') AS de,
+         AVG(preis_eur_mwh) FILTER (WHERE preiszone = '∅ Anrainer DE/LU') AS anrainer
+  FROM preise
+  WHERE preiszone IN ('Deutschland/Luxemburg', '∅ Anrainer DE/LU')
+    AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+  GROUP BY 1
+)
+SELECT COUNT(*) AS tage
+FROM tag
+WHERE de > anrainer;
+Agent SQL: SELECT COUNT(DISTINCT DATE(zeitpunkt)) 
+FROM (
+  SELECT DATE(zeitpunkt) AS day,
+         AVG(CASE WHEN preiszone = 'Deutschland/Luxemburg' THEN preis_eur_mwh END) AS avg_price_de,
+         AVG(CASE WHEN preiszone IN ('Belgien', 'Dänemark 1', 'Dänemark 2', 'Frankreich', 'Niederlande', 'Norwegen 2', 'Österreich', 'Polen', 'Schweden 4', 'Schweiz', 'Tschechien') THEN preis_eur_mwh END) AS avg_price_neighbors
+  FROM preise
+  WHERE EXTRACT(YEAR FROM zeitpunkt) = 2024
+  GROUP BY DATE(zeitpunkt)
+) AS daily_prices
+WHERE avg_price_de > avg_price_neighbors;
+Reason:    agent SQL error: column "zeitpunkt" does not exist
+LINE 1: SELECT COUNT(DISTINCT DATE(zeitpunkt)) 
+                                   ^
+
+
+--- h3_04 (tier 3) ---
+Retrieved: ['verbrauch']
+Question:  Um wie viel Prozent lag der durchschnittliche Stromverbrauch pro Viertelstunde 2025 an Werktagen (Montag bis Freitag) über dem an Wochenenden?
+Gold SQL:  SELECT ROUND(
+         100.0 * (AVG(mwh) FILTER (WHERE EXTRACT(ISODOW FROM zeitpunkt) <= 5)
+                  / AVG(mwh) FILTER (WHERE EXTRACT(ISODOW FROM zeitpunkt) >= 6)
+                  - 1), 2) AS mehr_prozent
+FROM verbrauch
+WHERE metrik = 'grid load'
+  AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+Agent SQL: SELECT ((weekday_avg - weekend_avg) / weekend_avg) * 100 AS percentage_difference
+FROM (
+  SELECT 
+    AVG(CASE WHEN EXTRACT(DOW FROM zeitpunkt) BETWEEN 1 AND 5 THEN mwh END) AS weekday_avg,
+    AVG(CASE WHEN EXTRACT(DOW FROM zeitpunkt) IN (0, 6) THEN mwh END) AS weekend_avg
+  FROM verbrauch
+  WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025 AND mwh IS NOT NULL
+) AS averages;
+Reason:    cell mismatch row 0 col 0: numeric mismatch: gold=19.42 agent=21.469656396785343 (toleranz=0.001)
+
+--- h3_05 (tier 3) ---
+Retrieved: ['erzeugung', 'verbrauch', 'preise']
+Question:  What percentage of Germany's electricity demand in 2025 was covered by wind and solar generation?
+Gold SQL:  SELECT ROUND(
+         100.0 * (SELECT SUM(mwh) FROM erzeugung
+                  WHERE energietraeger IN ('Wind Onshore', 'Wind Offshore', 'Photovoltaik')
+                    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01')
+         / (SELECT SUM(mwh) FROM verbrauch
+            WHERE metrik = 'grid load'
+              AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'), 2) AS anteil_prozent;
+Agent SQL: SELECT 
+    100.0 * SUM(CASE WHEN e.energietraeger IN ('Wind Onshore', 'Wind Offshore', 'Photovoltaik') THEN e.mwh ELSE 0 END) / SUM(v.mwh) AS wind_solar_coverage_percentage
+FROM 
+    erzeugung e
+JOIN 
+    verbrauch v ON e.zeitpunkt = v.zeitpunkt
+WHERE 
+    v.metrik = 'grid load'
+    AND e.zeitpunkt >= '2025-01-01' AND e.zeitpunkt < '2026-01-01';
+Reason:    cell mismatch row 0 col 0: numeric mismatch: gold=44.38 agent=3.6993295716861727 (toleranz=0.001)
+
+--- h4_01 (tier 4) ---
+Retrieved: ['preise']
+Question:  What was the longest uninterrupted stretch of negative German power prices in 2025? When did it start and how many quarter-hours did it last?
+Gold SQL:  WITH p AS (
+  SELECT zeitpunkt, preis_eur_mwh,
+         ROW_NUMBER() OVER (ORDER BY zeitpunkt, id) AS rn
+  FROM preise
+  WHERE preiszone = 'Deutschland/Luxemburg'
+    AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+),
+neg AS (
+  SELECT zeitpunkt, rn - ROW_NUMBER() OVER (ORDER BY rn) AS grp
+  FROM p
+  WHERE preis_eur_mwh < 0
+)
+SELECT MIN(zeitpunkt) AS beginn, COUNT(*) AS viertelstunden
+FROM neg
+GROUP BY grp
+ORDER BY viertelstunden DESC, beginn
+LIMIT 1;
+Agent SQL: SELECT start_time, max_stretch
+FROM (
+  SELECT start_time, COUNT(*) AS max_stretch
+  FROM (
+    SELECT zeitpunkt AS start_time, 
+           zeitpunkt - INTERVAL '15 minutes' * ROW_NUMBER() OVER (ORDER BY zeitpunkt) AS grp
+    FROM preise
+    WHERE preiszone = 'Deutschland/Luxemburg' AND preis_eur_mwh < 0 AND EXTRACT(YEAR FROM zeitpunkt) = 2025
+  ) sub
+  GROUP BY grp, start_time
+  ORDER BY max_stretch DESC
+  LIMIT 1
+) final;
+Reason:    cell mismatch row 0 col 0: datetime mismatch: gold=datetime.datetime(2025, 10, 4, 21, 30) agent=datetime.datetime(2025, 1, 1, 3, 0)
+
+--- h4_02 (tier 4) ---
+Retrieved: ['preise']
+Question:  Wie hat sich der durchschnittliche deutsche Day-Ahead-Strompreis 2025 von Monat zu Monat entwickelt? Gib für jeden Monat den Durchschnittspreis und die Veränderung gegenüber dem Vormonat in EUR/MWh an (für Januar gegenüber Dezember 2024).
+Gold SQL:  WITH monat AS (
+  SELECT date_trunc('month', zeitpunkt)::date AS monat,
+         AVG(preis_eur_mwh) AS durchschnittspreis
+  FROM preise
+  WHERE preiszone = 'Deutschland/Luxemburg'
+    AND zeitpunkt >= '2024-12-01' AND zeitpunkt < '2026-01-01'
+  GROUP BY 1
+),
+d AS (
+  SELECT monat, durchschnittspreis,
+         durchschnittspreis - LAG(durchschnittspreis) OVER (ORDER BY monat) AS veraenderung
+  FROM monat
+)
+SELECT monat, durchschnittspreis, veraenderung
+FROM d
+WHERE monat >= '2025-01-01'
+ORDER BY monat;
+Agent SQL: SELECT 
+    TO_CHAR(zeitpunkt, 'YYYY-MM') AS monat,
+    AVG(preis_eur_mwh) AS durchschnittspreis,
+    AVG(preis_eur_mwh) - LAG(AVG(preis_eur_mwh)) OVER (ORDER BY TO_CHAR(zeitpunkt, 'YYYY-MM')) AS veraenderung_gegenueber_vormonat
+FROM 
+    preise
+WHERE 
+    preiszone = 'Deutschland/Luxemburg' AND
+    zeitpunkt >= '2024-12-01' AND
+    zeitpunkt < '2026-01-01'
+GROUP BY 
+    TO_CHAR(zeitpunkt, 'YYYY-MM')
+ORDER BY 
+    monat;
+Reason:    row count mismatch: gold=12 agent=13
