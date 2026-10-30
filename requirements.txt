@@ -4,3 +4,6 @@ psycopg2-binary
 python-dotenv
 pyyaml
 openai
+scikit-learn==1.9.1
+sqlglot==30.26.0
+tiktoken==0.14.0
