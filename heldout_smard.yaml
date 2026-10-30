@@ -28,15 +28,15 @@ fragen:
 
   - id: hu_03
     tier: 0
-    frage: "What was Germany's photovoltaic output in the month of July 2026?"
+    frage: "What was the highest German day-ahead price in August 2026?"
     beantwortbar: false
-    erwartetes_verhalten: "The data ends on 2026-06-01, so July 2026 is after the end of coverage."
+    erwartetes_verhalten: "The data ends on 2026-06-01, so August 2026 is after the end of coverage."
     gold_sql: null
     beleg_sql: |
       SELECT COUNT(*) AS zeilen
-      FROM erzeugung
-      WHERE energietraeger = 'Photovoltaik'
-        AND zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01';
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2026-08-01' AND zeitpunkt < '2026-09-01';
 
   # ---------------- Tier 1 ----------------
   - id: h1_01
@@ -156,15 +156,16 @@ fragen:
   # ---------------- Tier 2 ----------------
   - id: h2_01
     tier: 2
-    frage: "Across Germany in 2024, which type of generation delivered the largest total, and what was that total?"
+    frage: "On which weekday was German electricity cheapest on average in 2025?"
     reihenfolge_relevant: false
     toleranz: 1.0e-06
     gold_sql: |
-      SELECT energietraeger, SUM(mwh) AS mwh
-      FROM erzeugung
-      WHERE zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
-      GROUP BY energietraeger
-      ORDER BY mwh DESC NULLS LAST
+      SELECT trim(to_char(zeitpunkt, 'Day')) AS wochentag, AVG(preis_eur_mwh) AS eur_mwh
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY 1
+      ORDER BY eur_mwh ASC
       LIMIT 1;
 
   - id: h2_02
