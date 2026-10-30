@@ -1,7 +1,11 @@
 """
 Validates a gold-set YAML before it is fed to the grader.
 
-    python grader/validate_gold_file.py PATH_TO_YAML
+    python grader/validate_gold_file.py PATH_TO_YAML [--examples]
+
+--examples is for the example bank, which is not graded: the reihenfolge_relevant and
+toleranz checks are skipped and the extra key "muster" is allowed. Everything else is
+checked as usual.
 
 Structural checks (the loader silently ignores some of these problems, which is
 why they are checked here):
@@ -37,6 +41,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
 KNOWN_ITEM_KEYS = {f.name for f in dataclasses.fields(Question)}
+EXAMPLE_ITEM_KEYS = {"muster"}  # extra keys allowed with --examples
 KNOWN_TOP_LEVEL_KEYS = {"standard", "fragen"}
 KNOWN_STANDARD_KEYS = {"reihenfolge_relevant", "toleranz"}
 BELEG_PREVIEW_ROWS = 5
@@ -86,8 +91,9 @@ def _run(sql: str) -> tuple[int, list[tuple]]:
         conn.close()
 
 
-def check_structure(data, report: Report) -> list[dict]:
-    """Top-level and per-item structural checks. Returns the usable item dicts."""
+def check_structure(data, report: Report, examples: bool = False) -> list[dict]:
+    """Top-level and per-item structural checks. Returns the usable item dicts.
+    examples=True: skip the reihenfolge_relevant / toleranz checks, allow the key "muster"."""
     print("Structure")
     if not isinstance(data, dict):
         report.fail("top level", f"expected a dict with 'fragen', got {type(data).__name__}")
@@ -152,7 +158,7 @@ def check_structure(data, report: Report) -> list[dict]:
         elif _is_int(tier) and not 0 <= tier <= 4:
             report.warn(where, f"tier {tier} is outside 0-4")
 
-        unknown = sorted(set(item) - KNOWN_ITEM_KEYS)
+        unknown = sorted(set(item) - KNOWN_ITEM_KEYS - (EXAMPLE_ITEM_KEYS if examples else set()))
         if unknown:
             report.fail(where, f"unknown key(s) {unknown} (the loader ignores them; typo?)")
 
@@ -167,6 +173,8 @@ def check_structure(data, report: Report) -> list[dict]:
             sql = item.get("gold_sql")
             if not (isinstance(sql, str) and sql.strip()):
                 report.fail(where, f"tier {tier}: gold_sql must be a non-empty string")
+            if examples:
+                continue
             if "reihenfolge_relevant" not in item:
                 report.fail(where, f"tier {tier}: reihenfolge_relevant missing")
             elif not isinstance(item["reihenfolge_relevant"], bool):
@@ -225,6 +233,8 @@ def check_sql(items: list[dict], report: Report) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Validate a gold-set YAML file for the grader.")
     ap.add_argument("path", type=Path, help="gold-set YAML to validate")
+    ap.add_argument("--examples", action="store_true",
+                    help="example bank: skip reihenfolge_relevant/toleranz checks, allow the key 'muster'")
     args = ap.parse_args()
 
     try:
@@ -236,7 +246,7 @@ def main() -> None:
 
     print(f"Validating {args.path}\n")
     report = Report()
-    items = check_structure(data, report)
+    items = check_structure(data, report, examples=args.examples)
     check_sql(items, report)
 
     print(f"\n{report.failures} failure(s), {report.warnings} warning(s)")

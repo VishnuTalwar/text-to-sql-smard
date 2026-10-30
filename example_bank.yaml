@@ -1,0 +1,373 @@
+fragen:
+  - id: ex_01
+    tier: 1
+    muster: "single total"
+    frage: "What was the total grid load including hydro pumped storage in October 2025?"
+    gold_sql: |
+      SELECT SUM(mwh) AS netzlast_inkl_pumpspeicher_mwh
+      FROM verbrauch
+      WHERE metrik = 'Grid load incl. hydro pumped storage'
+        AND zeitpunkt >= '2025-10-01' AND zeitpunkt < '2025-11-01';
+
+  - id: ex_02
+    tier: 1
+    muster: "single average"
+    frage: "Wie hoch war die durchschnittliche Residuallast pro Viertelstunde im zweiten Halbjahr 2024?"
+    gold_sql: |
+      SELECT AVG(mwh) AS avg_residuallast_mwh
+      FROM verbrauch
+      WHERE metrik = 'Residual load'
+        AND zeitpunkt >= '2024-07-01' AND zeitpunkt < '2025-01-01';
+
+  - id: ex_03
+    tier: 1
+    muster: "single max"
+    frage: "Was war der höchste Pumpstrom-Verbrauch in einer einzelnen Viertelstunde im Jahr 2025?"
+    gold_sql: |
+      SELECT MAX(mwh) AS max_pumpspeicher_mwh
+      FROM verbrauch
+      WHERE metrik = 'Hydro pumped storage'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+
+  - id: ex_04
+    tier: 2
+    muster: "share"
+    frage: "What percentage of the grid load including pumped storage in 2025 went into pumped storage?"
+    gold_sql: |
+      SELECT ROUND(100.0 * SUM(mwh) FILTER (WHERE metrik = 'Hydro pumped storage')
+                   / SUM(mwh) FILTER (WHERE metrik = 'Grid load incl. hydro pumped storage'), 2) AS anteil_pumpspeicher_prozent
+      FROM verbrauch
+      WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01';
+
+  - id: ex_05
+    tier: 3
+    muster: "share per group"
+    frage: "Wie verteilt sich der Netzverbrauch 2025 prozentual auf die Stunden des Tages?"
+    gold_sql: |
+      SELECT EXTRACT(HOUR FROM zeitpunkt)::int AS stunde,
+             ROUND(100.0 * SUM(mwh) / SUM(SUM(mwh)) OVER (), 2) AS anteil_prozent
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY stunde
+      ORDER BY stunde;
+
+  - id: ex_06
+    tier: 2
+    muster: "share of count"
+    frage: "In what share of quarter-hours in 2024 was the German day-ahead price negative?"
+    gold_sql: |
+      SELECT ROUND(100.0 * COUNT(*) FILTER (WHERE preis_eur_mwh < 0)
+                   / COUNT(preis_eur_mwh), 2) AS anteil_negativ_prozent
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01';
+
+  - id: ex_07
+    tier: 2
+    muster: "percent change"
+    frage: "Um wie viel Prozent hat sich der Netzverbrauch im Januar 2026 gegenüber Januar 2025 verändert?"
+    gold_sql: |
+      WITH p AS (
+        SELECT SUM(mwh) FILTER (WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2025-02-01') AS jan_2025,
+               SUM(mwh) FILTER (WHERE zeitpunkt >= '2026-01-01' AND zeitpunkt < '2026-02-01') AS jan_2026
+        FROM verbrauch
+        WHERE metrik = 'grid load'
+          AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-02-01'
+      )
+      SELECT ROUND(100.0 * (jan_2026 - jan_2025) / jan_2025, 2) AS veraenderung_prozent
+      FROM p;
+
+  - id: ex_08
+    tier: 2
+    muster: "percent change"
+    frage: "By what percentage did the average German day-ahead price change from 2024 to 2025?"
+    gold_sql: |
+      WITH p AS (
+        SELECT AVG(preis_eur_mwh) FILTER (WHERE zeitpunkt < '2025-01-01') AS avg_2024,
+               AVG(preis_eur_mwh) FILTER (WHERE zeitpunkt >= '2025-01-01') AS avg_2025
+        FROM preise
+        WHERE preiszone = 'Deutschland/Luxemburg'
+          AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+      )
+      SELECT ROUND(100.0 * (avg_2025 - avg_2024) / avg_2024, 2) AS veraenderung_prozent
+      FROM p;
+
+  - id: ex_09
+    tier: 2
+    muster: "argmax"
+    frage: "Which calendar month had the highest average German day-ahead price across 2024 and 2025?"
+    gold_sql: |
+      SELECT EXTRACT(MONTH FROM zeitpunkt)::int AS monat, AVG(preis_eur_mwh) AS avg_preis_eur_mwh
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY monat
+      ORDER BY avg_preis_eur_mwh DESC NULLS LAST
+      LIMIT 1;
+
+  - id: ex_10
+    tier: 2
+    muster: "argmin"
+    frage: "An welchem Tag im Jahr 2024 war der durchschnittliche deutsche Day-Ahead-Preis am niedrigsten?"
+    gold_sql: |
+      SELECT zeitpunkt::date AS tag, AVG(preis_eur_mwh) AS avg_preis_eur_mwh
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY tag
+      ORDER BY avg_preis_eur_mwh ASC
+      LIMIT 1;
+
+  - id: ex_11
+    tier: 2
+    muster: "argmin day"
+    frage: "On which day in 2024 was the total residual load lowest?"
+    gold_sql: |
+      SELECT zeitpunkt::date AS tag, SUM(mwh) AS residuallast_mwh
+      FROM verbrauch
+      WHERE metrik = 'Residual load'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY tag
+      ORDER BY residuallast_mwh ASC
+      LIMIT 1;
+
+  - id: ex_12
+    tier: 2
+    muster: "top-n"
+    frage: "Nenne die 3 Viertelstunden mit der höchsten Wind-Onshore-Erzeugung im Jahr 2025."
+    gold_sql: |
+      SELECT zeitpunkt, mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Wind Onshore'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      ORDER BY mwh DESC NULLS LAST, zeitpunkt
+      LIMIT 3;
+
+  - id: ex_13
+    tier: 2
+    muster: "full ranking"
+    frage: "Rank the quarters of 2024 and 2025 by total grid load."
+    gold_sql: |
+      SELECT date_trunc('quarter', zeitpunkt)::date AS quartal, SUM(mwh) AS netzlast_mwh
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY quartal
+      ORDER BY netzlast_mwh DESC NULLS LAST;
+
+  - id: ex_14
+    tier: 2
+    muster: "top-n days"
+    frage: "Welche 3 Tage hatten 2024 die höchste Erzeugung aus Wind Onshore?"
+    gold_sql: |
+      SELECT zeitpunkt::date AS tag, SUM(mwh) AS wind_onshore_mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Wind Onshore'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY tag
+      ORDER BY wind_onshore_mwh DESC NULLS LAST
+      LIMIT 3;
+
+  - id: ex_15
+    tier: 2
+    muster: "monthly series"
+    frage: "What was the maximum grid load in each month of 2025?"
+    gold_sql: |
+      SELECT date_trunc('month', zeitpunkt)::date AS monat, MAX(mwh) AS max_netzlast_mwh
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY monat
+      ORDER BY monat;
+
+  - id: ex_16
+    tier: 2
+    muster: "daily series"
+    frage: "Zeige die tägliche Photovoltaik-Erzeugung im Juni 2025."
+    gold_sql: |
+      SELECT zeitpunkt::date AS tag, SUM(mwh) AS photovoltaik_mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Photovoltaik'
+        AND zeitpunkt >= '2025-06-01' AND zeitpunkt < '2025-07-01'
+      GROUP BY tag
+      ORDER BY tag;
+
+  - id: ex_17
+    tier: 2
+    muster: "weekly series"
+    frage: "What was the total electricity demand per week in the first quarter of 2025?"
+    gold_sql: |
+      SELECT date_trunc('week', zeitpunkt)::date AS woche, SUM(mwh) AS verbrauch_mwh
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2025-04-01'
+      GROUP BY woche
+      ORDER BY woche;
+
+  - id: ex_18
+    tier: 2
+    muster: "quarterly series"
+    frage: "Wie viel Strom wurde 2024 und 2025 pro Quartal aus Braunkohle erzeugt?"
+    gold_sql: |
+      SELECT date_trunc('quarter', zeitpunkt)::date AS quartal, SUM(mwh) AS braunkohle_mwh
+      FROM erzeugung
+      WHERE energietraeger = 'Braunkohle'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY quartal
+      ORDER BY quartal;
+
+  - id: ex_19
+    tier: 2
+    muster: "hour of day"
+    frage: "What was the highest German day-ahead price for each hour of the day in 2025?"
+    gold_sql: |
+      SELECT EXTRACT(HOUR FROM zeitpunkt)::int AS stunde, MAX(preis_eur_mwh) AS max_preis_eur_mwh
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY stunde
+      ORDER BY stunde;
+
+  - id: ex_20
+    tier: 2
+    muster: "month of year"
+    frage: "Wie hoch ist der durchschnittliche deutsche Day-Ahead-Preis je Kalendermonat, über den Zeitraum Juni 2023 bis Mai 2026?"
+    gold_sql: |
+      SELECT EXTRACT(MONTH FROM zeitpunkt)::int AS monat, AVG(preis_eur_mwh) AS avg_preis_eur_mwh
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2023-06-01' AND zeitpunkt < '2026-06-01'
+      GROUP BY monat
+      ORDER BY monat;
+
+  - id: ex_21
+    tier: 3
+    muster: "weekday"
+    frage: "What was the average grid load per quarter-hour on each weekday in 2025?"
+    gold_sql: |
+      SELECT trim(to_char(zeitpunkt, 'Day')) AS wochentag, AVG(mwh) AS avg_mwh
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY wochentag
+      ORDER BY MIN(EXTRACT(ISODOW FROM zeitpunkt));
+
+  - id: ex_22
+    tier: 2
+    muster: "by year"
+    frage: "Zeige für jedes Kalenderjahr im Datensatz den mittleren deutschen Day-Ahead-Preis."
+    gold_sql: |
+      SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr, AVG(preis_eur_mwh) AS avg_preis_eur_mwh
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2023-06-01' AND zeitpunkt < '2026-06-01'
+      GROUP BY jahr
+      ORDER BY jahr;
+
+  - id: ex_23
+    tier: 2
+    muster: "weekend vs workday"
+    frage: "Compare the average grid load per quarter-hour on weekends with workdays in 2025."
+    gold_sql: |
+      SELECT CASE WHEN EXTRACT(ISODOW FROM zeitpunkt) IN (6, 7) THEN 'Wochenende'
+                  ELSE 'Werktag' END AS tagtyp,
+             AVG(mwh) AS avg_mwh
+      FROM verbrauch
+      WHERE metrik = 'grid load'
+        AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+      GROUP BY tagtyp
+      ORDER BY tagtyp;
+
+  - id: ex_24
+    tier: 2
+    muster: "two-way split"
+    frage: "Wie hoch war der durchschnittliche deutsche Day-Ahead-Preis 2024 tagsüber (6 bis 22 Uhr) im Vergleich zur Nacht?"
+    gold_sql: |
+      SELECT CASE WHEN EXTRACT(HOUR FROM zeitpunkt) >= 6 AND EXTRACT(HOUR FROM zeitpunkt) < 22
+                  THEN 'Tag' ELSE 'Nacht' END AS tageszeit,
+             AVG(preis_eur_mwh) AS avg_preis_eur_mwh
+      FROM preise
+      WHERE preiszone = 'Deutschland/Luxemburg'
+        AND zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01'
+      GROUP BY tageszeit
+      ORDER BY tageszeit;
+
+  - id: ex_25
+    tier: 3
+    muster: "join filter"
+    frage: "Wie hoch war im 2. Quartal 2025 der durchschnittliche deutsche Day-Ahead-Preis in Viertelstunden mit negativer Residuallast?"
+    gold_sql: |
+      SELECT AVG(p.preis_eur_mwh) AS avg_preis_eur_mwh
+      FROM preise p
+      JOIN verbrauch v ON v.zeitpunkt = p.zeitpunkt
+      WHERE p.preiszone = 'Deutschland/Luxemburg'
+        AND v.metrik = 'Residual load'
+        AND v.mwh < 0
+        AND p.zeitpunkt >= '2025-04-01' AND p.zeitpunkt < '2025-07-01';
+
+  - id: ex_26
+    tier: 3
+    muster: "join daily series"
+    frage: "For each day in May 2026, show total Photovoltaik generation and the average German day-ahead price."
+    gold_sql: |
+      SELECT e.zeitpunkt::date AS tag,
+             SUM(e.mwh) AS photovoltaik_mwh,
+             AVG(p.preis_eur_mwh) AS avg_preis_eur_mwh
+      FROM erzeugung e
+      JOIN preise p ON p.zeitpunkt = e.zeitpunkt
+      WHERE e.energietraeger = 'Photovoltaik'
+        AND p.preiszone = 'Deutschland/Luxemburg'
+        AND e.zeitpunkt >= '2026-05-01' AND e.zeitpunkt < '2026-06-01'
+      GROUP BY tag
+      ORDER BY tag;
+
+  - id: ex_27
+    tier: 4
+    muster: "running total"
+    frage: "Wie entwickelte sich die kumulierte Photovoltaik-Erzeugung Monat für Monat im Jahr 2025?"
+    gold_sql: |
+      WITH m AS (
+        SELECT date_trunc('month', zeitpunkt)::date AS monat, SUM(mwh) AS mwh
+        FROM erzeugung
+        WHERE energietraeger = 'Photovoltaik'
+          AND zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'
+        GROUP BY monat
+      )
+      SELECT monat, SUM(mwh) OVER (ORDER BY monat) AS kumuliert_mwh
+      FROM m
+      ORDER BY monat;
+
+  - id: ex_28
+    tier: 4
+    muster: "rank within group"
+    frage: "For 2024 and 2025 separately, list the three largest energy sources by generation with their rank."
+    gold_sql: |
+      WITH j AS (
+        SELECT EXTRACT(YEAR FROM zeitpunkt)::int AS jahr,
+               energietraeger,
+               SUM(mwh) AS gesamt_mwh,
+               RANK() OVER (PARTITION BY EXTRACT(YEAR FROM zeitpunkt)::int
+                            ORDER BY SUM(mwh) DESC NULLS LAST) AS rang
+        FROM erzeugung
+        WHERE zeitpunkt >= '2024-01-01' AND zeitpunkt < '2026-01-01'
+        GROUP BY jahr, energietraeger
+      )
+      SELECT jahr, energietraeger, gesamt_mwh, rang
+      FROM j
+      WHERE rang <= 3
+      ORDER BY jahr, rang;
+
+  - id: ex_29
+    tier: 0
+    muster: "decline"
+    frage: "How high were the grid fees for household customers in Germany in 2025?"
+    gold_sql: null
+    erwartetes_verhalten: "NO_QUERY: The database contains no grid fees or retail prices."
+
+  - id: ex_30
+    tier: 0
+    muster: "decline"
+    frage: "Wie viele Sonnenstunden gab es im Sommer 2025 in Deutschland?"
+    gold_sql: null
+    erwartetes_verhalten: "NO_QUERY: Die Datenbank enthält keine Wetterdaten."
