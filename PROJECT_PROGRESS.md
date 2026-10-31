@@ -179,7 +179,7 @@ Mental model: a new analyst on their first day. Smart, but has never seen this d
 | 3 | Example bank (about 30 question/SQL pairs, retrieved by similarity) | Not started |
 | 4 | Query writer (the AI call) | Built as the naive version |
 | 5 | Validator (sqlglot AST check plus `EXPLAIN` dry run) | Not started |
-| 6 | Retry loop (feed errors back, max 3 attempts, LangGraph) | Not started |
+| 6 | Retry loop | Next: plain Python loop with switches for error retry, empty-result retry and decline review, then LangGraph (section 13) |
 | 7 | Safe runner (read-only role, statement timeout, row cap) | Grader side done (`grader_ro`, SELECT only, 30 s timeout, TEMP revoked; the grader runs through it). Live agent runner not started |
 | 8 | Presenter (chart from result shape, written answer, SQL always visible) | Not started |
 | 9 | Evaluation harness | Done and working |
@@ -485,7 +485,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ## 10. Decisions made
 
-**All decisions now live in `DECISIONS.md` (D1 to D32), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) and the two example rows ex-a and ex-b (D31, D32).
+**All decisions now live in `DECISIONS.md` (D1 to D33), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) the two example rows ex-a and ex-b (D31, D32) and the narrower decline rule df (D33).
 
 **Principles that came out of the work** (also at the end of `DECISIONS.md`):
 - The grader must exist and be validated before any agent code.
@@ -532,11 +532,15 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ## 13. What to do next (in order)
 
-1. **Decline review:** when the model declines, check a date claim against the database and, if rows exist, send the question back once. Main prompt stays v2b.
-2. **Re-run ex-a and ex-b unchanged on top of the decline fix** (two more rows). The question: do the examples keep their gain on shape failures (40 down to 16 and 13) once the false declines are gone?
-3. **Validator and retry loop** (sqlglot AST check plus `EXPLAIN`, max 3 attempts, LangGraph). Check the Step E prediction: it should fix the crashes (t3_12, t3_04, t4_01) but not t4_02 and t4_04. Include the date-decline check from the notes in section 8: when the model declines because of a date, test the claim against the database. Track retry rate and p95 latency.
-4. **Then:** the agent's safe runner, Streamlit UI with charts and visible SQL, Langfuse tracing, benchmark in CI.
-5. **Final held-out run, README and Medium article.** Run the final configuration once on `heldout_smard.yaml` (3 runs, only per-tier totals), put both tables in the README next to the 19.33 / 30 starting point.
+1. **Execute-check-refine loop** (the main prompt stays v2b; no more prompt-wording rows). Built once as a plain Python loop with an on/off switch per check, then moved into LangGraph. Each check is measured as its own row (3 runs, temperature 0, prediction written before the run):
+   - **R1: error retry.** If the SQL fails to run, send the error message back and let the model try again (at most 3 attempts in total). Step E predicts it fixes crashes (t3_12, t3_04, t4_01) but not wrong logic (t4_02, t4_04); expected gain about +2 to +4.
+   - **R2: R1 + empty-result retry.** If the SQL returns 0 rows or only NULLs, tell the model and let it try again. Before building it, count how many gold queries legitimately return 0 rows or NULL, so a correct empty answer is not "corrected". Watch u_08 (July 2026): an empty result may lead to a correct decline.
+   - **R3: R2 + decline review (O14).** If the model declines with a date claim, check the database for rows in that period; if rows exist, send the question back once with that fact. u_01 to u_07 must stay declined.
+   - For every loop row, record: retry rate, attempts per question, p95 latency, tokens and cost per question.
+2. **Re-run ex-a and ex-b unchanged on top of the best loop row**, to see whether the examples keep their shape gain (40 down to 16 and 13) once false declines are caught.
+3. **Production pieces:** the agent's safe runner (sqlglot check that it is a single SELECT, EXPLAIN dry run, row cap, timeout, read-only role), Streamlit UI with charts and visible SQL, Langfuse tracing, benchmark in CI.
+4. **Optional, only if time allows after step 3:** self-consistency voting (5 candidates at temperature above 0, run all, pick the most common result), as its own row with its accuracy vs cost trade-off.
+5. **Final held-out run, README and Medium article.** Run the final configuration on heldout_smard.yaml (3 runs, per-tier totals only) and put it next to the 19.33 / 30 starting point.
 
 **Also worth deciding later:** whether to relax the column-count rule (D19), adding German-language questions that avoid the schema words (O8), and an "ask back" behaviour for ambiguous questions (O10: t1_22, t2_25).
 
@@ -556,9 +560,11 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | *tested and dropped:* ex-a static 8-example block (on top of v2b) | 59.33 / 84 (70.6%): u_08 and 3 more fixed, but 35 wrong declines over 3 runs (0 for v2b); t2_12, t3_05 lost; t2_16 copies ex_20 |
 | *tested and dropped:* ex-b 3 retrieved examples (on top of v2b) | 56.33 / 84 (67.1%): shape failures fell (40 to 13) but 51 wrong declines; t2_22 and t2_23 lost |
 | *tested and dropped:* df narrower decline rule (D33, on top of v2b) | 52.00 / 84 (61.9%): u_08 declined, but 30 false declines (21 claim a year or month is missing); t1_12, t1_19, t1_22, t1_31, t1_34, t1_35, t2_09, t2_24 lost |
-| + decline fix (O14), own row on top of v2b | to do |
-| + ex-a and ex-b re-run on top of the decline fix | to do |
-| + validation and self-correction | to do |
+| + R1 error retry (loop, on top of v2b) | to do |
+| + R2 empty-result retry | to do |
+| + R3 decline review (O14) | to do |
+| + ex-a and ex-b re-run on top of the best loop row | to do |
+| + self-consistency voting (optional) | to do |
 
 **Held-out set (30 items, never used for tuning)**
 
@@ -639,4 +645,4 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 Paste this as your first message in the new chat, and attach this file (and `DECISIONS.md`):
 
-> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D32). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0 the naive baseline averages 46.0/84, schema-linked 46.7/84, schema-linked plus the decline option 55.3/84, and the current base, catalog v2b, 60.7/84 (wording rows v2c and v2b2 were tested and dropped). I have also built a held-out set of 30 questions (v2b starting point: 19.33/30, to be used again only for the final run, per-tier totals only) and an example bank of 30 question/SQL pairs with a structure check showing no same-question overlap with the exam or the held-out set. Two example rows were tested and dropped: ex-a (8 fixed examples, 59.33/84) and ex-b (3 retrieved examples, 56.33/84). Both cut shape failures (column count, row count, SQL errors: 40 down to 16 and 13) but caused many false declines (35 and 51, none for v2b; open item O14), and the declines do not depend on how similar the examples are. Noise is about 2 to 4 points per run, so differences of about 1 point mean nothing. Next: (1) fix the false declines (O14) as its own row on top of v2b, (2) re-run ex-a and ex-b unchanged on top of that fix, (3) the validator and retry loop, (4) safe runner, Streamlit UI, tracing, CI, (5) the final held-out run, README and Medium article. Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
+> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D33). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0: naive baseline 46.0/84, schema-linked 46.7, plus decline option 55.3, current base catalog v2b 60.7. Rows tested and dropped: v2c, v2b2 (wording), ex-a and ex-b (examples: fewer shape failures but 35 and 51 false declines), and df (narrower decline rule: 52.0, 30 false declines, D33). Three attempts to change decline behaviour through the prompt all backfired, so prompt-wording work has stopped; the prompt stays v2b. A held-out set of 30 questions exists (v2b starting point 19.33/30), used again only for the final run, per-tier totals only. Noise is about 2 to 4 points per run. Next: an execute-check-refine loop on top of v2b, built as a plain Python loop with switches, measured as rows R1 (error retry), R2 (+ empty-result retry), R3 (+ decline review against the database), then ex-a and ex-b re-run on top, then safe runner, Streamlit, tracing, CI, optional voting, and the final held-out run and README. Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
