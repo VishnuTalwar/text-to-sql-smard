@@ -5,7 +5,7 @@
 
 **Owner:** Vishnu (M.Sc. Data and Knowledge Engineering, OVGU Magdeburg)
 **Project folder on laptop:** `/Users/deepaktalwar/Desktop/text-to-SQL`
-**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D32), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
+**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D33), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
 
 ---
 
@@ -449,6 +449,22 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 - **Prediction check:** shape failures drop (confirmed), declines drop sharply if resemblance was the cause (not confirmed), ex_20 copying (confirmed), tier 0 unchanged (confirmed), tier 1 unchanged (not confirmed, -2.33).
 - Report: `results/analysis_exb_2026-10-31.md`. Commits 276b509 (code and prediction), 9c6a939 (results). ex_02 was never retrieved; per-example counts are in the report.
 
+### Step R: Narrower decline rule (row df, D33) - tested and dropped
+
+**What changed:** only the decline paragraph of the v2b prompt: decline only if the information is not in the tables at all or a note above says those values are missing; anything that can be worked out from the tables counts as available (incl. year, month, day, weekday, hour of zeitpunkt, grouping, comparing, combining tables); an open detail such as the time period gets the most natural reading. Code: `grader/prompt_template_df.py`, `grader/run_df.py`; all 84 prompts differ from v2b only in that paragraph (+86 tokens). A prediction was written before the run (`results/df_prediction_2026-10-31.md`).
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| df run 1 | 8/8 | 26/35 | 15/25 | 3/12 | 0/4 | 52 |
+| df run 2 | 8/8 | 27/35 | 14/25 | 3/12 | 0/4 | 52 |
+| df run 3 | 8/8 | 26/35 | 15/25 | 3/12 | 0/4 | 52 |
+| **df mean** | 8.00 | 26.33 | 14.67 | 3.00 | 0.00 | **52.00** (v2b 60.67) |
+
+- **The fix created false declines instead of removing them:** 10 per run on tiers 1-4 (v2b: 0). 21 of the 30 say a year or month is missing (2024, 2025, Feb 2026, Dec 2025) although the data exists; v2b answered these 3/3. One reason cites the Kernenergie note on a Photovoltaik question, so the "a note says those values are missing" clause seems to have spread to dates in general (interpretation).
+- **Side effect on SQL:** t2_09 and t2_24 lost 3/3 each by switching from `DATE_TRUNC` to `EXTRACT`, likely nudged by the listed parts of zeitpunkt (not tested). u_08 went to 3/3 (tier 0 8.00 vs 7.00), but through the same false date claim, so it is not a real gain. Shape failures 43 vs 40.
+- **Prediction check:** point 1 partly, points 2 to 4 not confirmed. Run 3 was repeated on its own after the API credits ran out mid-run (same code and settings).
+- **Decision (D33): not carried forward.** Next: leave the main prompt unchanged and check a decline's reason against the database only after the model declines. Report: `results/analysis_df_vs_v2b_2026-10-31.md`. Commits e81ee09 (code and prediction), afa9a1b (results).
+
 ---
 
 ## 9. Specific cases still open from the runs so far
@@ -497,7 +513,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | O11 | Read-only DB role | **Grader side done, live agent runner open.** `grader_ro` exists and the grader uses it (section 4). Still to build: the agent's own safe runner |
 | O12 | Duplicate DST timestamps and primary key | **Resolved.** Surrogate `id` key; the 12 duplicates are stored. Still be careful in gaps-and-islands queries on changeover days |
 | O13 | No held-out set | **Built.** `heldout_smard.yaml`, 30 items, leak-checked and re-frozen (D29). Starting point for v2b: 19.33 / 30. Still open: the one final held-out run, after the last row, for the README numbers. Do not look at per-question results before then |
-| O14 | Invented declines | Open. With the decline option the model sometimes declines with a false reason ("no data for 2025", "no information about the day of the week"). Seen in v2a, v2c, v2b2, ex-a (35 wrong declines over 3 runs) and ex-b (51). Not explained by how similar the examples are to the question (Step Q). Planned fix at the validator stage: check whether a decline's reason is true and, if not, send the question back. Before that, to be tried as its own row on top of v2b (section 13). |
+| O14 | Invented declines | Open. With the decline option the model sometimes declines with a false reason ("no data for 2025", "no information about the day of the week"). Seen in v2a, v2c, v2b2, ex-a (35 wrong declines over 3 runs) and ex-b (51). Not explained by how similar the examples are to the question (Step Q). Planned fix at the validator stage: check whether a decline's reason is true and, if not, send the question back. df (prompt rewording, D33): 30 false declines, -8.67; next: check the decline reason against the database after a decline. |
 
 **Note on old logs:** logs from before 24 Oct store the agent's SQL only for failed questions (see Step F). Nothing can be recovered about the SQL of questions that passed in those runs.
 
@@ -516,7 +532,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ## 13. What to do next (in order)
 
-1. **Decline fix (O14) as its own row on top of v2b.** One change, 3 runs, temperature 0, measured on the exam first (watch tier 0: u_01, u_07 and u_08 must still be declined). The examples (ex-a, ex-b) are not part of this row.
+1. **Decline review:** when the model declines, check a date claim against the database and, if rows exist, send the question back once. Main prompt stays v2b.
 2. **Re-run ex-a and ex-b unchanged on top of the decline fix** (two more rows). The question: do the examples keep their gain on shape failures (40 down to 16 and 13) once the false declines are gone?
 3. **Validator and retry loop** (sqlglot AST check plus `EXPLAIN`, max 3 attempts, LangGraph). Check the Step E prediction: it should fix the crashes (t3_12, t3_04, t4_01) but not t4_02 and t4_04. Include the date-decline check from the notes in section 8: when the model declines because of a date, test the claim against the database. Track retry rate and p95 latency.
 4. **Then:** the agent's safe runner, Streamlit UI with charts and visible SQL, Langfuse tracing, benchmark in CI.
@@ -539,6 +555,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | *tested and dropped:* v2b2 "countries" wording (D27) | 58.67 / 84 (69.8%): target unchanged, no gain |
 | *tested and dropped:* ex-a static 8-example block (on top of v2b) | 59.33 / 84 (70.6%): u_08 and 3 more fixed, but 35 wrong declines over 3 runs (0 for v2b); t2_12, t3_05 lost; t2_16 copies ex_20 |
 | *tested and dropped:* ex-b 3 retrieved examples (on top of v2b) | 56.33 / 84 (67.1%): shape failures fell (40 to 13) but 51 wrong declines; t2_22 and t2_23 lost |
+| *tested and dropped:* df narrower decline rule (D33, on top of v2b) | 52.00 / 84 (61.9%): u_08 declined, but 30 false declines (21 claim a year or month is missing); t1_12, t1_19, t1_22, t1_31, t1_34, t1_35, t2_09, t2_24 lost |
 | + decline fix (O14), own row on top of v2b | to do |
 | + ex-a and ex-b re-run on top of the decline fix | to do |
 | + validation and self-correction | to do |
@@ -595,6 +612,7 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - `example_bank_checks_2026-10-30.md` (first bank), `example_bank_checks_v2_2026-10-30.md` (final bank, D30)
 - `exa_run{1,2,3}_2026-10-31.log` and `.jsonl`, `analysis_exa_vs_v2b_2026-10-31.md` (Step P)
 - `exb_run{1,2,3}_2026-10-31.log` and `.jsonl`, `exb_retrieval_2026-10-31.csv`, `exb_prediction_2026-10-31.md`, `analysis_exb_2026-10-31.md` (Step Q)
+- `false_declines_inventory_2026-10-31.md` (the 86 false declines of ex-a and ex-b, grouped), `df_run{1,2,3}_2026-10-31.log` and `.jsonl`, `df_prediction_2026-10-31.md`, `analysis_df_vs_v2b_2026-10-31.md` (Step R); `_stdout_df_run3.txt` and `_stdout_df_runs12_crashed_run3.txt` (console output; the second one ends with the credit error of the aborted run 3)
 - `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt`, `_stdout_exa.txt`, `_stdout_exb.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
 
 **What to commit:** loader scripts, grader, benchmark YAML, one small sample CSV, README with attribution. **Never commit:** `data/raw/`, `.env`, credentials. The repository exists and is on GitHub (private); see section 12, item 6.
