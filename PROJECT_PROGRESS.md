@@ -1,11 +1,11 @@
 # Text-to-SQL Agent (SMARD): Full Progress Handoff
 
-**Last updated:** 29 October 2026
+**Last updated:** 31 October 2026
 **Purpose of this file:** a complete record of where the project stands, so a brand-new chat session (or a new laptop, or you after a long break) can pick up without any other context. It is written in plain language on purpose. Read it top to bottom once, then use the section headings to jump around.
 
 **Owner:** Vishnu (M.Sc. Data and Knowledge Engineering, OVGU Magdeburg)
 **Project folder on laptop:** `/Users/deepaktalwar/Desktop/text-to-SQL`
-**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D27), `gold_set_smard.yaml`
+**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D32), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
 
 ---
 
@@ -400,6 +400,55 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 - **An emerging pattern: invented "no data for <date>" declines.** With the decline option the model sometimes gives a false reason about the data's dates: t1_22 ("no data for the year 2025", decline and v2a), t1_12 and t1_26 (v2c), t1_27 and t1_35 (v2b2 run 3). An idea for later, at the validator stage: when the model declines because of a date, check that claim against the database (does any row exist in that period?) and, if rows exist, send the question back to the model or answer it.
 - **Why the series stops at v2b:** further wording tweaks have effects smaller than the noise, and every extra tweak risks tuning the prompt to these 84 questions (open item O13).
 
+### Step M: House-style inventory (D28)
+
+Before writing any new questions or examples, the conventions hidden in the 84 gold queries were written down: `results/house_style_inventory_2026-10-29.md` (plus the structure listing `results/gold_yaml_structure_2026-10-29.md`). Eight conventions: percent as 0 to 100 with `ROUND(...,2)`; label column first, then the value; calendar buckets as dates and cyclic ones (hour, weekday, month of year) as integers; an undirected "rank" or "top" means highest first; time-ordered lists ascending; raw units; half-open date ranges. Known inconsistencies in the exam (extra columns in t3_09, t3_12, t4_03; mixed `NULLS LAST`) were noted and left. The conventions were given to the writer of the held-out set and to the example bank, so both teach a written rule and not the exam.
+
+### Step N: Held-out set (D29, O13)
+
+**What:** `heldout_smard.yaml`, 30 questions that are never used for tuning. Drafted in a separate chat that saw only the schema, the data facts and the D28 conventions; reviewed and verified by Vishnu (validator pass, tie and method checks: `results/heldout_checks_2026-10-29.md`). Tool added: `grader/validate_gold_file.py` (structure and SQL check of a gold YAML) and `grader/leak_check.py` (text and SQL similarity against the exam).
+**Leak check:** the score flagged h2_01 and hu_03 (0.64 and 0.74). After rewording they scored below 0.6, but the side-by-side "cover up dates, sources and zones" test still showed the same questions with different filters. Both were replaced and the file re-frozen (commit 627ee4f, SHA-256 `26ffe76d...80713`, details in D29). Reports: `results/leak_check_heldout_vs_exam_2026-10-29.md` and `..._2026-10-30.md`, `results/heldout_rewrite_summary_2026-10-30.md`.
+**Starting point (v2b on the re-frozen file, 3 runs, temperature 0): 19.33 / 30 (64.4%)**, tier 0: 2.00, tier 1: 10.00, tier 2: 6.00, tier 3: 1.33, tier 4: 0.00. The first run on the first freeze (mean 18.67) is superseded; its files are kept (`results/README_heldout_runs.md`). Only per-tier totals are looked at, never per-question results, and no held-out question text or SQL appears in this file.
+
+### Step O: Example bank (D30)
+
+**What:** `example_bank.yaml`, 30 question/SQL pairs (tier 0: 2, tier 1: 3, tier 2: 19, tier 3: 4, tier 4: 2), each with a `muster` (pattern). New tools: `grader/structure_check.py` (compares the structure of two gold files with dates, sources and zones masked and says "same question" or "same type only"; prints only ids, feature names and verdicts, so it is safe against the held-out file) and `validate_gold_file.py --examples`.
+**Result:** the first bank had 13 of 30 examples that were the same question as an exam item (low text scores did not show it). After 15 replacements and one rewording, the final bank has **0 same-question pairs** against the exam and the held-out set (16 and 9 pairs differ in exactly one feature), validator `--examples` PASS. Reports: `results/example_bank_checks_2026-10-30.md` (first bank) and `results/example_bank_checks_v2_2026-10-30.md` (final, commit 56b2225).
+**Caveats:** "each pattern at least twice" is not met (28 distinct patterns); the structure tool cannot see time-of-day conditions, label strings, source lists or tier-0 items.
+
+### Step P: Static example block (row ex-a, D31) - tested and dropped
+
+**What changed:** on top of v2b, 8 fixed examples (ex_06, 07, 11, 13, 16, 20, 24, 26) after the schema section and before the question. Code: `grader/prompt_template_exa.py`, `grader/run_exa.py`. The only difference from v2b is the block (checked on all 84 prompts); mean prompt 1624 tokens (v2b 629).
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| ex-a run 1 | 8/8 | 32/35 | 16/25 | 3/12 | 0/4 | 59 |
+| ex-a run 2 | 8/8 | 33/35 | 15/25 | 3/12 | 0/4 | 59 |
+| ex-a run 3 | 8/8 | 33/35 | 16/25 | 3/12 | 0/4 | 60 |
+| **ex-a mean** | 8.00 | 32.67 | 15.67 | 3.00 | 0.00 | **59.33** (v2b: 60.67) |
+
+- **Shape failures fell:** wrong column count + wrong row count + SQL errors, 3 runs summed: 40 (v2b) to 16. u_08 was declined correctly in 3/3 runs.
+- **But 35 wrong declines on tiers 1 to 4** (0 for v2b), with invented reasons ("the table does not contain information about the day of the week"). t2_12 and t3_05, 3/3 in v2b, were declined in all 3 runs.
+- **Copying:** t2_16 reproduces ex_20 (month as an integer) at 0.979 similarity in all 3 runs and fails.
+- Report: `results/analysis_exa_vs_v2b_2026-10-31.md`. Commits f3e5289 (code), 01acc69 (results).
+
+### Step Q: Retrieved examples (row ex-b, D32) - tested and dropped
+
+**What changed:** same position as ex-a, but the 3 most similar bank examples per question (text-embedding-3-small, cosine similarity, most similar last) instead of the fixed 8. Code: `grader/example_retriever.py`, `grader/prompt_template_exb.py`, `grader/run_exb.py`; embeddings cached in `grader/cache/embeddings_text-embedding-3-small.json`; per-question retrieval in `results/exb_retrieval_2026-10-31.csv`. A prediction was written before the run (`results/exb_prediction_2026-10-31.md`). Mean prompt 978 tokens.
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| ex-b run 1 | 7/8 | 31/35 | 15/25 | 2/12 | 0/4 | 55 |
+| ex-b run 2 | 7/8 | 32/35 | 16/25 | 2/12 | 0/4 | 57 |
+| ex-b run 3 | 7/8 | 32/35 | 16/25 | 2/12 | 0/4 | 57 |
+| **ex-b mean** | 7.00 | 31.67 | 15.67 | 2.00 | 0.00 | **56.33** (v2b 60.67, ex-a 59.33) |
+
+- **Shape failures fell further** (13 summed over 3 runs), **but wrong declines rose to 51** (18, 16, 17 per run).
+- **Declines do not depend on resemblance:** top-1 similarity of declined vs non-declined tier 1-4 questions is 0.578 vs 0.585 (p = 0.95); for ex-a 0.482 vs 0.511 (p = 0.41). So "the examples did not look like the question" does not explain them; the block itself seems to trigger declining (not isolated).
+- **New failures:** t2_22 (no `NULLS LAST`; none of its three retrieved examples shows it) and t2_23 (year returned as a date). t2_16 copied ex_20 again.
+- **Prediction check:** shape failures drop (confirmed), declines drop sharply if resemblance was the cause (not confirmed), ex_20 copying (confirmed), tier 0 unchanged (confirmed), tier 1 unchanged (not confirmed, -2.33).
+- Report: `results/analysis_exb_2026-10-31.md`. Commits 276b509 (code and prediction), 9c6a939 (results). ex_02 was never retrieved; per-example counts are in the report.
+
 ---
 
 ## 9. Specific cases still open from the runs so far
@@ -420,7 +469,7 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 
 ## 10. Decisions made
 
-**All decisions now live in `DECISIONS.md` (D1 to D27), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27) and the t2_25 gold fix (D24).
+**All decisions now live in `DECISIONS.md` (D1 to D32), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) and the two example rows ex-a and ex-b (D31, D32).
 
 **Principles that came out of the work** (also at the end of `DECISIONS.md`):
 - The grader must exist and be validated before any agent code.
@@ -447,8 +496,8 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 | O10 | No "ambiguous, ask back" category | Open, optional. Natural examples: t1_22 ("midday") and t2_25 ("rank" without a direction) (section 9) |
 | O11 | Read-only DB role | **Grader side done, live agent runner open.** `grader_ro` exists and the grader uses it (section 4). Still to build: the agent's own safe runner |
 | O12 | Duplicate DST timestamps and primary key | **Resolved.** Surrogate `id` key; the 12 duplicates are stored. Still be careful in gaps-and-islands queries on changeover days |
-| O13 | No held-out set | Open. Every ablation row is tuned and measured on the same 84 questions, so repeated rewording risks fitting the prompt to the exam. Build a small held-out set (questions not used for tuning) before the final README numbers |
-| O14 | Invented declines | Open. With the decline option the model sometimes declines with a false reason ("no data for 2025", "no information about the day of the week"). Seen in v2a, v2c, v2b2 and ex-a (35 wrong declines). Planned fix at the validator stage: check whether a decline's reason is true and, if not, send the question back. |
+| O13 | No held-out set | **Built.** `heldout_smard.yaml`, 30 items, leak-checked and re-frozen (D29). Starting point for v2b: 19.33 / 30. Still open: the one final held-out run, after the last row, for the README numbers. Do not look at per-question results before then |
+| O14 | Invented declines | Open. With the decline option the model sometimes declines with a false reason ("no data for 2025", "no information about the day of the week"). Seen in v2a, v2c, v2b2, ex-a (35 wrong declines over 3 runs) and ex-b (51). Not explained by how similar the examples are to the question (Step Q). Planned fix at the validator stage: check whether a decline's reason is true and, if not, send the question back. Before that, to be tried as its own row on top of v2b (section 13). |
 
 **Note on old logs:** logs from before 24 Oct store the agent's SQL only for failed questions (see Step F). Nothing can be recovered about the SQL of questions that passed in those runs.
 
@@ -467,11 +516,11 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 
 ## 13. What to do next (in order)
 
-1. **Example bank on top of v2b** (about 30 question/SQL pairs, retrieved by similarity), as the next ablation row (3 runs, temperature 0). Aimed at the shape failures: percentage style, date style, column shape, the ascending/descending ambiguity of "rank". Make sure the examples are NOT copies of exam questions.
-2. **Held-out set (O13), before the final README numbers.** A small set of new questions that were never used for tuning, so the final numbers are not fitted to the 84 exam questions. Decide how many and how to write them so they do not copy the exam.
-3. **Validator and retry loop** (sqlglot AST check plus `EXPLAIN`, max 3 attempts, LangGraph). Check the Step E prediction: it should fix the crashes (t3_12, t3_04, t4_01) but not t4_02 and t4_04. **Include the date-decline check** from the notes in section 8: when the model declines because of a date, test the claim against the database. Track retry rate and p95 latency.
-4. **Optional: the decline option on the naive setup**, to test whether the catalog notes are what made u_01 and u_07 declinable.
-5. **Then:** the agent's safe runner, Streamlit UI with charts and visible SQL, Langfuse tracing, benchmark in CI, final README with the ablation table.
+1. **Decline fix (O14) as its own row on top of v2b.** One change, 3 runs, temperature 0, measured on the exam first (watch tier 0: u_01, u_07 and u_08 must still be declined). The examples (ex-a, ex-b) are not part of this row.
+2. **Re-run ex-a and ex-b unchanged on top of the decline fix** (two more rows). The question: do the examples keep their gain on shape failures (40 down to 16 and 13) once the false declines are gone?
+3. **Validator and retry loop** (sqlglot AST check plus `EXPLAIN`, max 3 attempts, LangGraph). Check the Step E prediction: it should fix the crashes (t3_12, t3_04, t4_01) but not t4_02 and t4_04. Include the date-decline check from the notes in section 8: when the model declines because of a date, test the claim against the database. Track retry rate and p95 latency.
+4. **Then:** the agent's safe runner, Streamlit UI with charts and visible SQL, Langfuse tracing, benchmark in CI.
+5. **Final held-out run, README and Medium article.** Run the final configuration once on `heldout_smard.yaml` (3 runs, only per-tier totals), put both tables in the README next to the 19.33 / 30 starting point.
 
 **Also worth deciding later:** whether to relax the column-count rule (D19), adding German-language questions that avoid the schema words (O8), and an "ask back" behaviour for ambiguous questions (O10: t1_22, t2_25).
 
@@ -489,7 +538,9 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 | *tested and dropped:* v2c data date range (D26) | 57.00 / 84 (67.9%): u_08 declined, but false declines on t1_12 and t1_26 |
 | *tested and dropped:* v2b2 "countries" wording (D27) | 58.67 / 84 (69.8%): target unchanged, no gain |
 | *tested and dropped:* ex-a static 8-example block (on top of v2b) | 59.33 / 84 (70.6%): u_08 and 3 more fixed, but 35 wrong declines over 3 runs (0 for v2b); t2_12, t3_05 lost; t2_16 copies ex_20 |
-| + retrieved few-shot examples (on top of v2b) | to do |
+| *tested and dropped:* ex-b 3 retrieved examples (on top of v2b) | 56.33 / 84 (67.1%): shape failures fell (40 to 13) but 51 wrong declines; t2_22 and t2_23 lost |
+| + decline fix (O14), own row on top of v2b | to do |
+| + ex-a and ex-b re-run on top of the decline fix | to do |
 | + validation and self-correction | to do |
 
 **Held-out set (30 items, never used for tuning)**
@@ -498,15 +549,15 @@ While checking what `∅ Anrainer DE/LU` means against the data, we found that t
 |---|---|---|
 | v2b (starting point) | 19.33 / 30 (64.4%) | tier 0: 2.00, tier 1: 10.00, tier 2: 6.00, tier 3: 1.33, tier 4: 0.00 |
 
-Measured only at the start and at the end; per-question results are not looked at.
+The first starting-point run on the first freeze (18.67 / 30) is superseded. Measured only at the start and at the end; per-question results are not looked at. The final run is still to do.
 
-Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL rate: 80 to 81 out of 84 for schema-linked, 74 to 75 for the decline runs (not comparable, because declines count as no SQL). Latency and tokens are only recorded from 24 Oct on: the decline runs average 1.08 s, 521 prompt and 56 completion tokens per question; v2b averages 1.48 s and 629 prompt tokens. Still to fill in: retry rate, p95 latency, cost per query. Remember the noise level (section 8, notes): differences of about 1 point between rows are not meaningful.
+Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL rate: 80 to 81 out of 84 for schema-linked, 74 to 75 for the decline runs (not comparable, because declines count as no SQL). Latency and tokens are only recorded from 24 Oct on: the decline runs average 1.08 s, 521 prompt and 56 completion tokens per question; v2b averages 1.48 s and 629 prompt tokens; ex-a 1.09 s and 1624 prompt tokens; ex-b 1.16 s and 978 prompt tokens. Still to fill in: retry rate, p95 latency, cost per query. Remember the noise level (section 8, notes): differences of about 1 point between rows are not meaningful.
 
 ---
 
 ## 15. Files and logs map
 
-**Project folder:** `README.md` (empty template), `PROJECT.md`, `DECISIONS.md`, `PROJECT_PROGRESS.md` (this file), `gold_set_smard.yaml`, `docker-compose.yml`, `.env` (not committed), `.gitignore`, `requirements.txt`, `package.json`.
+**Project folder:** `README.md` (empty template), `PROJECT.md`, `DECISIONS.md`, `PROJECT_PROGRESS.md` (this file), `gold_set_smard.yaml` (exam), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 examples), `docker-compose.yml`, `.env` (not committed), `.gitignore`, `requirements.txt`, `package.json`.
 **Folders:** `data/raw/` (not committed), `data/new/` (samples), `scripts/` (loaders and sanity checks), `grader/`, `sql/`, `results/`.
 **Grader and agent files, all in `grader/`:** `loader.py`, `executor.py`, `comparator.py`, `run_grader.py`; `naive_agent.py` (the one function that calls the API, shared by all setups), `prompt_template.py`, `run_baseline.py`; `schema_catalog.py`, `catalog_retriever.py`, `prompt_template_schema_linked.py`, `run_schema_linked.py`; `prompt_template_decline.py`, `run_schema_linked_decline.py`, `result_logging.py`.
 **The v2 series, in `grader/` (all new files, nothing earlier was edited):**
@@ -514,6 +565,17 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - v2b (current base): `schema_catalog_v2b.py`, `prompt_template_v2b.py`, `run_v2b.py`
 - v2c (dropped): `prompt_template_v2c.py`, `run_v2c.py`
 - v2b2 (dropped): `schema_catalog_v2b2.py`, `run_v2b2.py`
+
+**Gold-file tools, in `grader/` (new since the v2 series):**
+- `validate_gold_file.py` (structure and SQL check of a gold YAML; `--examples` for the example bank)
+- `leak_check.py` (text and SQL similarity of two gold files)
+- `structure_check.py` (structural "same question" comparison; ids, feature names and verdicts only)
+
+**The example rows, in `grader/` (dropped):**
+- ex-a: `prompt_template_exa.py`, `run_exa.py`
+- ex-b: `example_retriever.py`, `prompt_template_exb.py`, `run_exb.py`
+- `cache/embeddings_text-embedding-3-small.json` (cached embeddings of the bank and the exam questions; keeps ex-b reproducible)
+- `requirements.txt` now also pins scikit-learn, sqlglot and tiktoken
 
 **`sql/`:** `create_grader_role.sql` (the read-only role; fixed and tested on 26 Oct, safe to re-run).
 **Result logs in `results/`:**
@@ -527,7 +589,13 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - `v2b_t0_run{1,2,3}_2026-10-27.log` and `.jsonl` (Step J, current base)
 - `v2c_t0_run{1,2,3}_2026-10-27.log` and `.jsonl` (Step K, dropped)
 - `v2b2_t0_run{1,2,3}_2026-10-29.log` and `.jsonl` (Step L, dropped)
-- `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
+- `house_style_inventory_2026-10-29.md`, `gold_yaml_structure_2026-10-29.md` (D28)
+- `heldout_checks_2026-10-29.md`, `leak_check_heldout_vs_exam_2026-10-29.md` and `..._2026-10-30.md`, `heldout_rewrite_summary_2026-10-30.md` (held-out set, D29)
+- `v2b_heldout_smard_heldout_v2_run{1,2,3}_2026-10-30.log` and `.jsonl` (held-out starting point, 19.33 / 30); the files without `_v2` are the superseded first run (`README_heldout_runs.md`)
+- `example_bank_checks_2026-10-30.md` (first bank), `example_bank_checks_v2_2026-10-30.md` (final bank, D30)
+- `exa_run{1,2,3}_2026-10-31.log` and `.jsonl`, `analysis_exa_vs_v2b_2026-10-31.md` (Step P)
+- `exb_run{1,2,3}_2026-10-31.log` and `.jsonl`, `exb_retrieval_2026-10-31.csv`, `exb_prediction_2026-10-31.md`, `analysis_exb_2026-10-31.md` (Step Q)
+- `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt`, `_stdout_exa.txt`, `_stdout_exb.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
 
 **What to commit:** loader scripts, grader, benchmark YAML, one small sample CSV, README with attribution. **Never commit:** `data/raw/`, `.env`, credentials. The repository exists and is on GitHub (private); see section 12, item 6.
 
@@ -542,6 +610,10 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - **Checking catalog facts against the data found a bug in the exam.** To write the description of `∅ Anrainer DE/LU`, we verified it against the data. That showed the gold of t2_25 counted three zones that do not border Germany. We fixed the gold (D24) and re-graded all 15 earlier runs to show that no earlier score changed.
 - **A measured negative result was kept and not carried forward.** The date-range line (v2c) fixed its target (u_08) but caused false declines on questions inside the range, net -3.67. It stays in the table, marked as tested and dropped (D26).
 - **Wording tweaks were stopped once their effects fell below the noise level.** The last one (v2b2) moved the score by less than the run-to-run swing, so the series ended at v2b rather than tuning the prompt to the exam (O13).
+- **The manual leak check caught what the score missed.** Two held-out items scored below 0.6 on text similarity after rewording and were still the same question as exam items with different filters; the first example bank had 13 of 30 examples that were the same question as an exam item. Only the side-by-side "cover up dates, sources and zones" test, later turned into `structure_check.py`, showed it (D29, D30).
+- **Examples fix the shape of the answer but trigger declines.** Shape failures (column count, row count, SQL errors) fell from 40 to 16 (ex-a) and 13 (ex-b), while wrong declines went from 0 to 35 and 51. Retrieval by similarity did not help, and the declines do not depend on how similar the examples are (p = 0.95). The net effect was negative (59.33 and 56.33 against 60.67), so both rows were dropped (D31, D32).
+- **Examples can override the notes.** In ex-b, t2_22 lost the `NULLS LAST` the catalog note asks for when its three retrieved examples did not show it (3/3 in v2b, 0/3 in ex-b), and t2_16 copied the month-of-year example (ex_20) although the exam wants a calendar month. Examples teach habits as well as style, so they need the same checks as notes.
+- **A prediction written before the run made the result honest to read.** For ex-b the prediction file was committed first and checked point by point afterwards: three points confirmed, two not.
 
 ---
 
@@ -549,4 +621,4 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 Paste this as your first message in the new chat, and attach this file (and `DECISIONS.md`):
 
-> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D27). Short version: the grader works (self-test 84/84, runs through a read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0 the naive baseline averages 46.0/84, schema-linked 46.7/84 (no measurable gain), schema-linked plus the decline option 55.3/84, and the current base, catalog v2b (decline option, reworded Kernenergie note, plain descriptions of the metrik and preiszone values), 60.7/84. Two more wording rows (v2c, v2b2) were tested and dropped, and the catalog series ends at v2b. Noise is about 2 to 4 points per run, so differences of about 1 point mean nothing. Next I want to build the example bank (about 30 question/SQL pairs, not copies of exam questions) on top of v2b as the next ablation row, then a held-out set (O13) before the final numbers. Please explain things in plain language and small chunks, and write commands I can paste into Claude Code.
+> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D32). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0 the naive baseline averages 46.0/84, schema-linked 46.7/84, schema-linked plus the decline option 55.3/84, and the current base, catalog v2b, 60.7/84 (wording rows v2c and v2b2 were tested and dropped). I have also built a held-out set of 30 questions (v2b starting point: 19.33/30, to be used again only for the final run, per-tier totals only) and an example bank of 30 question/SQL pairs with a structure check showing no same-question overlap with the exam or the held-out set. Two example rows were tested and dropped: ex-a (8 fixed examples, 59.33/84) and ex-b (3 retrieved examples, 56.33/84). Both cut shape failures (column count, row count, SQL errors: 40 down to 16 and 13) but caused many false declines (35 and 51, none for v2b; open item O14), and the declines do not depend on how similar the examples are. Noise is about 2 to 4 points per run, so differences of about 1 point mean nothing. Next: (1) fix the false declines (O14) as its own row on top of v2b, (2) re-run ex-a and ex-b unchanged on top of that fix, (3) the validator and retry loop, (4) safe runner, Streamlit UI, tracing, CI, (5) the final held-out run, README and Medium article. Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
