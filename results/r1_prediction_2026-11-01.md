@@ -11,3 +11,9 @@
 - The 5 crashes are t4_02 (runs 1 and 3) and t4_04 (runs 1, 2 and 3), per run 2, 1 and 2. All five are `column "..." does not exist` (invented column names such as zero_stretch, consecutive_count, consecutive_intervals). There are no GROUP BY errors and no timeouts.
 - Tier 4 scored 0/4 in all three v2b runs.
 - So bullets 3 and 4 refer to the same questions: if "fixed" means the SQL runs on a later attempt, bullet 3 can hold while bullet 4 (no change in the score) also holds; if "fixed" means pass after retry (the definition printed by `run_r1.py`), the two cannot both hold. The run report prints both numbers ("SQL runs without error at the end" and "pass after retry"), and the analysis will say which one each bullet was judged on.
+
+## Amendment, written before the run (after the crash list was known, no results seen)
+- All 5 v2b crashes are invented column names in t4_02 and t4_04 (both 0/3 in v2b). The earlier list "t3_12, t3_04, t4_01" came from an older row and does not crash in v2b.
+- Corrected expectation: the retry makes the SQL run in most of these cases ("SQL runs at the end": at least 3 of 5), but the logic stays wrong, so "pass after retry" is expected 0 of 5.
+- Corrected total: within noise of v2b, expected change about 0 (roughly 59 to 63).
+- The bullet "at least half of the crashes fixed" is replaced by the two numbers above. The bullet "t4_02, t4_04 do not change" refers to passing.
