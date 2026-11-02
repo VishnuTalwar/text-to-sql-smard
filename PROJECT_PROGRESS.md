@@ -580,7 +580,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | *tested and dropped:* df narrower decline rule (D33, on top of v2b) | 52.00 / 84 (61.9%): u_08 declined, but 30 false declines (21 claim a year or month is missing); t1_12, t1_19, t1_22, t1_31, t1_34, t1_35, t2_09, t2_24 lost |
 | + R1 error retry (loop, on top of v2b) | 59.33 / 84 (no gain; kept as loop base, D34) |
 | + R2 empty-result retry | 59.67 / 84 (71.0%): no gain against v2b_fresh 60.00; fires only on u_08 and t4_03, fixes neither (u_08 never declined, t4_03 still 0 rows) |
-| + R3 decline review (O14) | to do |
+| + R3 decline review and empty fact (O14) | 59.67 / 84 (71.0%): same as R2, no gain; the review never fired (no false declines on this base); the empty fact fired on u_08 but the model answered `SELECT 0` instead of declining |
 | + ex-a and ex-b re-run on top of the best loop row | to do |
 | + self-consistency voting (optional) | to do |
 
