@@ -17,7 +17,17 @@ Checks, each with an on/off switch in `switches`:
                   EMPTY_NULL_TEXT. Error retry and empty retry share the same limit of
                   max_attempts attempts in total. If the last attempt is still empty,
                   that result is the answer.
-  decline_review  not implemented yet (row R3); True raises NotImplementedError.
+  decline_review implemented (row R3), uses date_facts.py. (a) When an attempt replies
+                  NO_QUERY, no review has happened yet for this question, fewer than
+                  max_attempts attempts have been used, and decline_review_decision(reason)
+                  fires (the reason claims a period is missing but the tables have rows for
+                  it), the same conversation continues with REVIEW_TEXT: the model's own
+                  reason plus one "Fact:" line per period. At most one review per question;
+                  a NO_QUERY after the review stands. (b) When the empty-result retry fires
+                  and empty_fact_decision(sql) fires too (the SQL asks for a period in which
+                  every table has no rows), one "Fact:" line per period goes between the
+                  two lines of the empty-result message. Dates are YYYY-MM-DD, the end is
+                  the last day inside the period.
 
 SQL is run through executor.run_query(): role grader_ro (SELECT only, no TEMP, role
 statement_timeout 30 s, the same as the grader), a fresh connection per call, so a
@@ -29,6 +39,7 @@ replaced (llm=, execute=) so the loop can be tested without the API.
 
 import os
 import time
+from datetime import timedelta
 
 from naive_agent import MODEL, SEED, _strip_fences
 from executor import QueryError, run_query
@@ -53,6 +64,13 @@ EMPTY_NULL_TEXT = (
     "Write a corrected query. Return only the SQL."
 )
 RETRY_TEXTS = {"empty_rows": EMPTY_ROWS_TEXT, "empty_null": EMPTY_NULL_TEXT}
+REVIEW_TEXT = (
+    'Your reason was: "{reason}"\n'
+    "{facts}\n"
+    "Reply again following the original instructions."
+)
+REVIEW_FACT_LINE = "Fact: the tables have rows for the period {start} to {end}."
+EMPTY_FACT_LINE = "Fact: the tables have no rows for the period {start} to {end}."
 
 
 def is_decline(reply: str) -> bool:
@@ -90,6 +108,21 @@ def empty_kind(rows) -> str | None:
     return None
 
 
+def decline_reason(reply: str) -> str:
+    """The text after "NO_QUERY:" (the reply has been stripped of fences and spaces)."""
+    rest = reply.strip()[len(DECLINE_MARKER):]
+    if rest.startswith(":"):
+        rest = rest[1:]
+    return rest.strip()
+
+
+def _period_json(p: dict) -> dict:
+    """date_facts period -> {"start", "end" (last day inside, inclusive), "rows"}."""
+    end = p["end"]
+    last = end.date() if end.year >= 9999 else (end - timedelta(microseconds=1)).date()
+    return {"start": p["start"].date().isoformat(), "end": last.isoformat(), "rows": p["rows"]}
+
+
 def call_openai(messages: list[dict], client=None) -> dict:
     """One chat completion with the fixed settings (naive_agent.MODEL, temperature 0, seed 0)."""
     if client is None:
@@ -121,8 +154,6 @@ def _check_switches(switches: dict | None) -> dict:
     unknown = set(merged) - set(SWITCH_NAMES)
     if unknown:
         raise ValueError(f"unknown switches: {sorted(unknown)}")
-    if merged["decline_review"]:
-        raise NotImplementedError("switch 'decline_review' is not implemented yet")
     return merged
 
 
@@ -138,6 +169,9 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
     attempts: list[dict] = []
     cap_hit = False
     check_seconds = 0.0
+    review_done = False
+    if switches["decline_review"]:
+        import date_facts  # needs sqlglot and the database; only when the review is on
 
     for n in range(1, max_attempts + 1):
         call = llm(messages)
@@ -146,8 +180,10 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         declined = is_decline(reply)
         sql = None if declined else reply
         error = None
-        fired = None     # which check asks for another attempt: "error", "empty_rows", "empty_null"
+        fired = None     # which check asks for another attempt: "error", "empty_rows", "empty_null", "review"
         n_rows = None
+        fact = None      # the database fact sent back with the retry message, if any
+        reason = None
 
         if sql is not None and (switches["error_retry"] or switches["empty_retry"]):
             start = time.perf_counter()
@@ -163,6 +199,23 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
                     fired = empty_kind(rows)
             check_seconds += time.perf_counter() - start
 
+        if declined and switches["decline_review"] and not review_done and n < max_attempts:
+            start = time.perf_counter()
+            reason = decline_reason(reply)
+            decision = date_facts.decline_review_decision(reason)
+            check_seconds += time.perf_counter() - start
+            if decision["fire"]:
+                fired = "review"
+                review_done = True
+                fact = {"kind": "review", "reason": reason,
+                        "periods": [_period_json(p) for p in decision["periods"]]}
+        elif fired in ("empty_rows", "empty_null") and switches["decline_review"]:
+            start = time.perf_counter()
+            decision = date_facts.empty_fact_decision(sql)
+            check_seconds += time.perf_counter() - start
+            if decision["fire"]:
+                fact = {"kind": "empty", "periods": [_period_json(p) for p in decision["periods"]]}
+
         attempts.append({
             "attempt": n,
             "raw_model_output": raw,
@@ -171,6 +224,7 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
             "error": error,
             "check_fired": fired,    # "error", "empty_rows", "empty_null" or None
             "n_rows": n_rows,
+            "fact": fact,            # None, or {"kind": "review" | "empty", "periods": [...]}
             "prompt_tokens": call.get("prompt_tokens"),
             "completion_tokens": call.get("completion_tokens"),
             "latency_seconds": call.get("latency_seconds"),
@@ -183,7 +237,17 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         if n == max_attempts:
             cap_hit = True  # used every attempt and the last SQL still fails or is empty
             break
-        retry_text = ERROR_RETRY_TEXT.format(error=error) if fired == "error" else RETRY_TEXTS[fired]
+        if fired == "error":
+            retry_text = ERROR_RETRY_TEXT.format(error=error)
+        elif fired == "review":
+            facts = "\n".join(REVIEW_FACT_LINE.format(start=p["start"], end=p["end"]) for p in fact["periods"])
+            retry_text = REVIEW_TEXT.format(reason=fact["reason"], facts=facts)
+        elif fact is not None:  # empty result with a database fact between the two lines
+            first, second = RETRY_TEXTS[fired].split("\n", 1)
+            facts = "\n".join(EMPTY_FACT_LINE.format(start=p["start"], end=p["end"]) for p in fact["periods"])
+            retry_text = f"{first}\n{facts}\n{second}"
+        else:
+            retry_text = RETRY_TEXTS[fired]
         messages = messages + [
             {"role": "assistant", "content": raw},
             {"role": "user", "content": retry_text},
@@ -192,6 +256,8 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
     final = attempts[-1]
     before = attempts[-2]["check_fired"] if len(attempts) > 1 else None  # check before the final attempt
     kinds = [a["check_fired"] for a in attempts]
+    review_fact = next((a["fact"] for a in attempts if a["fact"] and a["fact"]["kind"] == "review"), None)
+    empty_fact = [p for a in attempts if a["fact"] and a["fact"]["kind"] == "empty" for p in a["fact"]["periods"]]
     model_seconds = sum(a["latency_seconds"] or 0 for a in attempts)
     return {
         "final_sql": final["extracted_sql"],
@@ -209,6 +275,12 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         "retried_after_error": "error" in kinds[:-1] if len(kinds) > 1 else False,
         "retried_after_empty": any(k in ("empty_rows", "empty_null") for k in kinds[:-1]),
         "ended_empty": final["check_fired"] in ("empty_rows", "empty_null"),
+        "review_fired": review_fact is not None,
+        "review_periods": review_fact["periods"] if review_fact else [],
+        "declined_after_review": final["declined"] and before == "review",
+        "answered_after_review": review_fact is not None and not final["declined"],
+        "empty_fact_fired": bool(empty_fact),
+        "empty_fact_period": empty_fact,
         "cap_hit": cap_hit,
         "prompt_tokens": sum(a["prompt_tokens"] or 0 for a in attempts),
         "completion_tokens": sum(a["completion_tokens"] or 0 for a in attempts),

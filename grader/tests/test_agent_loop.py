@@ -97,9 +97,11 @@ class TestPromptAndSettings(unittest.TestCase):
 
 
 class TestSwitches(unittest.TestCase):
-    def test_decline_review_switch_raises(self):
-        with self.assertRaises(NotImplementedError):
-            agent_loop.run_question("q", {"decline_review": True}, llm=FakeModel(["SELECT 1"]))
+    def test_decline_review_switch_is_implemented(self):
+        rec = agent_loop.run_question("q", {"decline_review": True}, llm=FakeModel(["SELECT 1"]),
+                                      prompt_builder=lambda q: "p")
+        self.assertEqual(rec["n_attempts"], 1)
+        self.assertFalse(rec["review_fired"])
 
     def test_empty_retry_switch_is_implemented(self):
         rec = agent_loop.run_question("q", {"empty_retry": True}, llm=FakeModel(["SELECT 1"]),
@@ -419,6 +421,182 @@ class TestEmptyRetry(unittest.TestCase):
             report = logs[0].read_text()
             for needle in ("Empty on attempt 1", "u_08 (July 2026)", "declined after", "Share with an empty-result retry"):
                 self.assertIn(needle.lower(), report.lower())
+
+
+class TestDeclineReview(unittest.TestCase):
+    """Row R3: decline review and empty fact (date_facts.py). Real read-only database, fake model."""
+    R3 = {"error_retry": True, "empty_retry": True, "decline_review": True}
+    R2 = {"error_retry": True, "empty_retry": True, "decline_review": False}
+    WITH_ROWS = "SELECT mwh FROM erzeugung LIMIT 2"
+    JULY_2026 = ("SELECT SUM(mwh) FROM erzeugung "
+                 "WHERE zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01'")
+    EMPTY_NO_DATE = ("SELECT e.zeitpunkt FROM erzeugung e JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt "
+                     "WHERE e.mwh < -1000000")
+    FALSE_CLAIM = "NO_QUERY: The table does not contain data for February 2026."
+
+    def run_q(self, replies, switches=None):
+        model = FakeModel(replies)
+        rec = agent_loop.run_question("q", self.R3 if switches is None else switches, llm=model,
+                                      prompt_builder=lambda q: "PROMPT")
+        return model, rec
+
+    def test_a_false_date_claim_is_reviewed_once(self):
+        model, rec = self.run_q([self.FALSE_CLAIM, self.WITH_ROWS])
+        want = ('Your reason was: "The table does not contain data for February 2026."\n'
+                "Fact: the tables have rows for the period 2026-02-01 to 2026-02-28.\n"
+                "Reply again following the original instructions.")
+        self.assertEqual(model.calls[1], [
+            {"role": "user", "content": "PROMPT"},
+            {"role": "assistant", "content": self.FALSE_CLAIM},
+            {"role": "user", "content": want},
+        ])
+        print("\nREVIEW MESSAGE (test a):\n" + want)
+        self.assertEqual(rec["n_attempts"], 2)
+        self.assertEqual(rec["final_sql"], self.WITH_ROWS)
+        self.assertEqual([a["check_fired"] for a in rec["attempts"]], ["review", None])
+        self.assertTrue(rec["review_fired"])
+        self.assertTrue(rec["answered_after_review"])
+        self.assertFalse(rec["declined_after_review"])
+        self.assertEqual((rec["review_periods"][0]["start"], rec["review_periods"][0]["end"]), ("2026-02-01", "2026-02-28"))
+        self.assertGreater(sum(rec["review_periods"][0]["rows"].values()), 0)
+
+    def test_b_true_claim_is_not_reviewed(self):
+        model, rec = self.run_q(["NO_QUERY: Data for July 2026 is missing.", self.WITH_ROWS])
+        self.assertEqual(len(model.calls), 1)
+        self.assertTrue(rec["declined"])
+        self.assertFalse(rec["review_fired"])
+
+    def test_c_open_ended_claim_is_not_reviewed(self):
+        model, rec = self.run_q(["NO_QUERY: There is no data for nuclear power after 2024-01-30.", self.WITH_ROWS])
+        self.assertEqual(len(model.calls), 1)
+        self.assertTrue(rec["declined"])
+        self.assertFalse(rec["review_fired"])
+
+    def test_d_second_decline_stands_after_one_review(self):
+        claim = "NO_QUERY: Data for 2025 is missing."
+        model, rec = self.run_q([claim, claim, self.WITH_ROWS])
+        self.assertEqual(len(model.calls), 2)  # exactly one review, no second one
+        self.assertEqual(model.calls[1][2]["content"],
+                         'Your reason was: "Data for 2025 is missing."\n'
+                         "Fact: the tables have rows for the period 2025-01-01 to 2025-12-31.\n"
+                         "Reply again following the original instructions.")
+        self.assertTrue(rec["declined"])
+        self.assertTrue(rec["review_fired"])
+        self.assertTrue(rec["declined_after_review"])
+        self.assertFalse(rec["answered_after_review"])
+        self.assertIsNone(rec["final_sql"])
+
+    def test_e_no_review_when_the_cap_is_reached(self):
+        model, rec = self.run_q([BROKEN_HINT, BROKEN_NO_HINT, self.FALSE_CLAIM, self.WITH_ROWS])
+        self.assertEqual(len(model.calls), 3)
+        self.assertEqual(rec["n_attempts"], 3)
+        self.assertTrue(rec["declined"])
+        self.assertFalse(rec["review_fired"])
+        self.assertEqual([a["check_fired"] for a in rec["attempts"]], ["error", "error", None])
+
+    def test_review_is_possible_on_attempt_2_and_leaves_room_for_attempt_3(self):
+        model, rec = self.run_q([BROKEN_HINT, self.FALSE_CLAIM, BROKEN_NO_HINT, self.WITH_ROWS])
+        self.assertEqual([a["check_fired"] for a in rec["attempts"]], ["error", "review", "error"])
+        self.assertEqual(len(model.calls), 3)
+        self.assertTrue(rec["cap_hit"])
+
+    def test_f_empty_fact_for_a_period_without_rows(self):
+        model, rec = self.run_q([self.JULY_2026, "NO_QUERY: Data for July 2026 is missing."])
+        want = ("This query ran but returned only NULL values.\n"
+                "Fact: the tables have no rows for the period 2026-07-01 to 2026-07-31.\n"
+                "Write a corrected query. Return only the SQL.")
+        self.assertEqual(model.calls[1], [
+            {"role": "user", "content": "PROMPT"},
+            {"role": "assistant", "content": self.JULY_2026},
+            {"role": "user", "content": want},
+        ])
+        print("\nEMPTY-FACT MESSAGE (test f):\n" + want)
+        self.assertTrue(rec["empty_fact_fired"])
+        self.assertEqual((rec["empty_fact_period"][0]["start"], rec["empty_fact_period"][0]["end"]), ("2026-07-01", "2026-07-31"))
+        self.assertTrue(rec["declined"])
+        self.assertTrue(rec["declined_after_empty"])
+        self.assertFalse(rec["review_fired"])  # a decline after the empty fact is not reviewed (claim is true)
+
+    def test_g_no_fact_without_a_date_in_the_sql(self):
+        model, rec = self.run_q([self.EMPTY_NO_DATE, self.WITH_ROWS])
+        self.assertEqual(model.calls[1][2]["content"],
+                         "This query ran but returned no rows.\nWrite a corrected query. Return only the SQL.")
+        self.assertNotIn("Fact", model.calls[1][2]["content"])
+        self.assertFalse(rec["empty_fact_fired"])
+        self.assertEqual(rec["empty_fact_period"], [])
+
+    def test_h_decline_review_off_behaves_like_r2(self):
+        for replies in ([self.FALSE_CLAIM, self.WITH_ROWS], [self.JULY_2026, "NO_QUERY: x", self.WITH_ROWS],
+                        [self.EMPTY_NO_DATE, self.WITH_ROWS], [BROKEN_HINT, self.WITH_ROWS]):
+            m_off, r_off = self.run_q(replies, dict(self.R2))
+            m_default, r_default = self.run_q(replies, {"error_retry": True, "empty_retry": True})
+            self.assertEqual(m_off.calls, m_default.calls)
+            for key in ("final_sql", "n_attempts", "declined", "retried", "review_fired", "empty_fact_fired"):
+                self.assertEqual(r_off[key], r_default[key], key)
+        # no review and no fact line with the switch off
+        m, r = self.run_q([self.FALSE_CLAIM, self.WITH_ROWS], dict(self.R2))
+        self.assertEqual(len(m.calls), 1)
+        self.assertFalse(r["review_fired"])
+        m, r = self.run_q([self.JULY_2026, "NO_QUERY: x"], dict(self.R2))
+        self.assertEqual(m.calls[1][2]["content"],
+                         "This query ran but returned only NULL values.\nWrite a corrected query. Return only the SQL.")
+        self.assertFalse(r["empty_fact_fired"])
+
+    def test_i_attempt_1_prompt_identical_to_v2b_for_all_84_with_r3_switches(self):
+        questions = load_questions()
+        identical = 0
+        for q in questions:
+            model = FakeModel(["NO_QUERY: test"])
+            agent_loop.run_question(q.frage, self.R3, llm=model)
+            sent = model.calls[0]
+            if (len(sent) == 1 and sent[0]["role"] == "user"
+                    and sent[0]["content"] == prompt_template_v2b.build_prompt(q.frage)):
+                identical += 1
+        print(f"\nR3 switches: {identical}/{len(questions)} attempt-1 prompts identical to v2b")
+        self.assertEqual(identical, len(questions))
+
+    def test_run_r3_pipeline_with_fake_model(self):
+        """run_r3.run() end to end. t1_12 is first declined with a false date claim and then
+        answered; u_01 declines with open-ended wording (no review); u_08 gets the empty fact
+        and then declines."""
+        import json
+        import run_r3
+
+        gold = {q.frage: q for q in load_questions()}
+
+        def fake_llm(messages):
+            frage = messages[0]["content"].split("Question: ", 1)[1].split("\n\n", 1)[0]
+            q = gold[frage]
+            if q.id == "t1_12":
+                reply = "NO_QUERY: Data for February 2026 is not available." if len(messages) == 1 else q.gold_sql
+            elif q.id == "u_08":
+                reply = self.JULY_2026 if len(messages) == 1 else "NO_QUERY: Data for July 2026 is missing."
+            elif q.id == "u_01":
+                reply = "NO_QUERY: Nuclear power data is missing after January 2024."
+            elif q.is_tier0:
+                reply = "NO_QUERY: not in the data"
+            else:
+                reply = q.gold_sql
+            return {"raw_model_output": reply, "prompt_tokens": 1000, "completion_tokens": 50,
+                    "latency_seconds": 0.1, "model": "gpt-4o-2024-08-06", "system_fingerprint": "fp_test"}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            code = run_r3.run(tag="smoke", llm=fake_llm, results_dir=Path(tmp))
+            self.assertEqual(code, 0)  # 84/84
+            logs = list(Path(tmp).glob("r3_smoke_*.log")); jsonls = list(Path(tmp).glob("r3_smoke_*.jsonl"))
+            self.assertEqual((len(logs), len(jsonls)), (1, 1))
+            recs = {r["id"]: r for r in map(json.loads, open(jsonls[0]))}
+            self.assertTrue(recs["t1_12"]["review_fired"])
+            self.assertTrue(recs["t1_12"]["answered_after_review"])
+            self.assertFalse(recs["u_01"]["review_fired"])
+            self.assertEqual(recs["u_01"]["n_attempts"], 1)
+            self.assertTrue(recs["u_08"]["empty_fact_fired"])
+            self.assertTrue(recs["u_08"]["declined_after_empty"])
+            self.assertEqual(sum(r["review_fired"] for r in recs.values()), 1)
+            report = logs[0].read_text().lower()
+            for needle in ("decline reviews fired", "empty facts fired", "u_01 (nuclear", "u_08 after which message",
+                           "declined after the empty_null message with the database fact"):
+                self.assertIn(needle, report)
 
 
 class TestModelVersionLogging(unittest.TestCase):
