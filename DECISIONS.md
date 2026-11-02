@@ -165,6 +165,12 @@ Drafted by Claude in an incognito chat outside the Project that saw only the sch
 **Finding:** Temperature 0 is not deterministic: attempt-1 replies match v2b's for the same prompt in 61% of cases, and two runs of the same row match in about 70 to 77%. The lower cross-row figure might come from a change of the model behind the "gpt-4o" name between 27 October and 2 November (not tested; see the model version check).
 **Lesson:** A check only helps where the failures are. v2b almost never crashes, so error retry has nothing to fix on this exam.
 
+## D35. Fewer-columns review: comparator stays strict, cost measured
+**Decision:** The comparator stays strict on column count (D19 unchanged). No relaxed score for now.
+**Why:** Of the 8 questions where the agent returned fewer columns than gold, only t2_06, t3_04 and t4_04 (and possibly t4_02) hold correct values in every agent column while gold adds columns the question does not ask for. In t3_07 and t3_09 the number is wrong anyway (consumption counted 6 times; the 96 windiest quarter-hours instead of the windiest day), t3_11 fails on the group labels and t3_12 on the measure (absolute vs percent). A simple subset rule would also accept half answers (e.g. only the date for t3_12), and a proper rule would need required columns marked on all 76 items.
+**Evidence:** `results/fewer_columns_review_2026-11-02.md`, `results/failure_inventory_r1_v2b_2026-11-02.md`.
+**Known cost:** the strict score under-counts by about 3 to 4 questions per run. R1's retry on t4_04 produced the right value (144 quarter-hours) but failed on shape. The gold answers follow the D28 house style (label + value), which the v2b prompt never states; this is the likely reason for the shape gap and why the examples cut shape failures (40 to 16 and 13).
+
 ## Principles
 - The grader must exist and be validated before any agent code.
 - Never change the model between stages.
