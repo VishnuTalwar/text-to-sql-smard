@@ -5,7 +5,7 @@
 
 **Owner:** Vishnu (M.Sc. Data and Knowledge Engineering, OVGU Magdeburg)
 **Project folder on laptop:** `/Users/deepaktalwar/Desktop/text-to-SQL`
-**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D34), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
+**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D35), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
 
 ---
 
@@ -502,7 +502,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ## 10. Decisions made
 
-**All decisions now live in `DECISIONS.md` (D1 to D34), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) the two example rows ex-a and ex-b (D31, D32) and the narrower decline rule df (D33).
+**All decisions now live in `DECISIONS.md` (D1 to D35), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) the two example rows ex-a and ex-b (D31, D32) and the narrower decline rule df (D33).
 
 **Principles that came out of the work** (also at the end of `DECISIONS.md`):
 - The grader must exist and be validated before any agent code.
@@ -572,6 +572,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | + decline option (D22) | 55.33 / 84 (65.9%): tier 0 +7.0 (clean); tiers 1-4 +1.67, too small to separate from noise |
 | + Kernenergie note reworded (v2a, D23) | 59.67 / 84 (71.0%): t2_05 and t2_22 fixed (+2.00, clean) |
 | + metrik and preiszone descriptions (v2b, D25) | **60.67 / 84 (72.2%): current base.** t2_12, t1_32, t1_22 fixed (+3.00), side effects -1.67 |
+| v2b re-run with model logging (2 Nov, fresh base) | 60.00 / 84 (71.4%): same prompt, within noise of 60.67; every call `gpt-4o-2024-08-06` (4 fingerprints); use as the base for loop rows run after 2 Nov |
 | *tested and dropped:* v2c data date range (D26) | 57.00 / 84 (67.9%): u_08 declined, but false declines on t1_12 and t1_26 |
 | *tested and dropped:* v2b2 "countries" wording (D27) | 58.67 / 84 (69.8%): target unchanged, no gain |
 | *tested and dropped:* ex-a static 8-example block (on top of v2b) | 59.33 / 84 (70.6%): u_08 and 3 more fixed, but 35 wrong declines over 3 runs (0 for v2b); t2_12, t3_05 lost; t2_16 copies ex_20 |
@@ -667,4 +668,4 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 Paste this as your first message in the new chat, and attach this file (and `DECISIONS.md`):
 
-> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D34). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0: naive baseline 46.0/84, schema-linked 46.7, plus decline option 55.3, current base catalog v2b 60.7. Rows tested and dropped: v2c, v2b2 (wording), ex-a and ex-b (examples: fewer shape failures but 35 and 51 false declines), and df (narrower decline rule: 52.0, 30 false declines, D33). Three attempts to change decline behaviour through the prompt all backfired, so prompt-wording work has stopped; the prompt stays v2b. A held-out set of 30 questions exists (v2b starting point 19.33/30), used again only for the final run, per-tier totals only. Noise is about 2 to 4 points per run. Next: an execute-check-refine loop on top of v2b, built as a plain Python loop with switches, measured as rows R1 (error retry), R2 (+ empty-result retry), R3 (+ decline review against the database), then ex-a and ex-b re-run on top, then safe runner, Streamlit, tracing, CI, optional voting, and the final held-out run and README. Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
+> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D35). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0: naive baseline 46.0/84, schema-linked 46.7, plus decline option 55.3, current base catalog v2b 60.7. Rows tested and dropped: v2c, v2b2 (wording), ex-a and ex-b (examples: fewer shape failures but 35 and 51 false declines), and df (narrower decline rule: 52.0, 30 false declines, D33). Three attempts to change decline behaviour through the prompt all backfired, so prompt-wording work has stopped; the prompt stays v2b. A held-out set of 30 questions exists (v2b starting point 19.33/30), used again only for the final run, per-tier totals only. Noise is about 2 to 4 points per run. Next: an execute-check-refine loop on top of v2b, built as a plain Python loop with switches, measured as rows R1 (error retry), R2 (+ empty-result retry), R3 (+ decline review against the database), then ex-a and ex-b re-run on top, then safe runner, Streamlit, tracing, CI, optional voting, and the final held-out run and README. Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
