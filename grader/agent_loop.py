@@ -78,6 +78,9 @@ def call_openai(messages: list[dict], client=None) -> dict:
     latency = time.perf_counter() - start
     usage = response.usage
     return {
+        # Which model snapshot answered; None if the response has no such field.
+        "model": getattr(response, "model", None),
+        "system_fingerprint": getattr(response, "system_fingerprint", None),
         "raw_model_output": response.choices[0].message.content,
         "prompt_tokens": getattr(usage, "prompt_tokens", None),
         "completion_tokens": getattr(usage, "completion_tokens", None),
@@ -135,6 +138,8 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
             "prompt_tokens": call.get("prompt_tokens"),
             "completion_tokens": call.get("completion_tokens"),
             "latency_seconds": call.get("latency_seconds"),
+            "model": call.get("model"),
+            "system_fingerprint": call.get("system_fingerprint"),
         })
 
         if error is None:
@@ -153,6 +158,8 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         "final_sql": final["extracted_sql"],
         "final_reply": final["raw_model_output"],
         "declined": final["declined"],
+        "model": final["model"],                        # of the final attempt
+        "system_fingerprint": final["system_fingerprint"],
         "attempts": attempts,
         "n_attempts": len(attempts),
         "retried": len(attempts) > 1,

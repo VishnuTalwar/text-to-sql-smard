@@ -260,5 +260,95 @@ class TestRunnerSmoke(unittest.TestCase):
             self.assertIn("Retry rate", logs[0].read_text())
 
 
+class TestModelVersionLogging(unittest.TestCase):
+    """response.model and response.system_fingerprint are saved per call and end up
+    in every .jsonl record (null if the response has no such field)."""
+
+    @staticmethod
+    def _response(**extra):
+        return SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content="SELECT 1"))],
+            usage=SimpleNamespace(prompt_tokens=5, completion_tokens=2), **extra)
+
+    def _recorded_record(self, response):
+        import result_logging
+        client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(
+            create=lambda **kw: response)))
+        agent_module = SimpleNamespace(OpenAI=lambda *a, **k: client)
+        recorder = result_logging.install_recorder(agent_module)
+        recorder.begin()
+        agent_module.OpenAI().chat.completions.create(model="gpt-4o", messages=[])
+        question = SimpleNamespace(id="x_01", tier=1, frage="q")
+        result = SimpleNamespace(passed=True, reason="ok")
+        return result_logging.make_record(question, result, "SELECT 1", recorder.take())
+
+    def test_result_logging_writes_both_fields(self):
+        rec = self._recorded_record(self._response(model="gpt-4o-2024-08-06", system_fingerprint="fp_test"))
+        self.assertEqual(rec["model"], "gpt-4o-2024-08-06")
+        self.assertEqual(rec["system_fingerprint"], "fp_test")
+        self.assertEqual(rec["prompt_tokens"], 5)  # the existing fields are unchanged
+
+    def test_result_logging_null_if_missing(self):
+        rec = self._recorded_record(self._response())  # no model, no fingerprint
+        self.assertIn("model", rec)
+        self.assertIn("system_fingerprint", rec)
+        self.assertIsNone(rec["model"])
+        self.assertIsNone(rec["system_fingerprint"])
+
+    def test_call_openai_returns_both_fields(self):
+        client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(
+            create=lambda **kw: self._response(model="gpt-4o-2024-08-06", system_fingerprint="fp_test"))))
+        out = agent_loop.call_openai([{"role": "user", "content": "x"}], client=client)
+        self.assertEqual((out["model"], out["system_fingerprint"]), ("gpt-4o-2024-08-06", "fp_test"))
+        out = agent_loop.call_openai([{"role": "user", "content": "x"}], client=SimpleNamespace(
+            chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **kw: self._response()))))
+        self.assertEqual((out["model"], out["system_fingerprint"]), (None, None))
+
+    def test_sent_settings_are_unchanged(self):
+        seen = {}
+        def create(**kw):
+            seen.update(kw)
+            return self._response(model="gpt-4o-2024-08-06", system_fingerprint="fp_test")
+        client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+        agent_loop.call_openai([{"role": "user", "content": "x"}], client=client)
+        self.assertEqual((seen["model"], seen["temperature"], seen["seed"]), ("gpt-4o", 0, 0))
+
+    def test_attempts_and_jsonl_record_carry_both_fields(self):
+        import json
+        import run_r1
+
+        gold = {q.frage: q for q in load_questions()}
+        calls = {"n": 0}
+
+        def fake_llm(messages):
+            frage = messages[0]["content"].split("Question: ", 1)[1].split("\n\n", 1)[0]
+            q = gold[frage]
+            calls["n"] += 1
+            if q.id == "t1_01" and len(messages) == 1:
+                reply = BROKEN_HINT
+            elif q.is_tier0:
+                reply = "NO_QUERY: x"
+            else:
+                reply = q.gold_sql
+            return {"raw_model_output": reply, "prompt_tokens": 1, "completion_tokens": 1,
+                    "latency_seconds": 0.0, "model": "gpt-4o-2024-08-06",
+                    "system_fingerprint": f"fp_test_{calls['n']}"}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            run_r1.run(tag="mv", llm=fake_llm, results_dir=Path(tmp))
+            recs = [json.loads(l) for l in open(next(Path(tmp).glob("r1_mv_*.jsonl")))]
+        self.assertEqual(len(recs), 84)
+        for r in recs:
+            self.assertEqual(r["model"], "gpt-4o-2024-08-06")
+            self.assertTrue(r["system_fingerprint"].startswith("fp_test_"))
+            for a in r["attempts"]:  # per attempt
+                self.assertEqual(a["model"], "gpt-4o-2024-08-06")
+                self.assertTrue(a["system_fingerprint"].startswith("fp_test_"))
+        retried = next(r for r in recs if r["id"] == "t1_01")
+        self.assertEqual(len(retried["attempts"]), 2)
+        self.assertEqual(retried["system_fingerprint"], retried["attempts"][-1]["system_fingerprint"])
+        self.assertNotEqual(retried["attempts"][0]["system_fingerprint"], retried["attempts"][1]["system_fingerprint"])
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

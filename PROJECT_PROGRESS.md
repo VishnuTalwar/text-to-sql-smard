@@ -176,10 +176,10 @@ Mental model: a new analyst on their first day. Smart, but has never seen this d
 |---|---|---|
 | 1 | PostgreSQL in Docker | Done |
 | 2 | Schema catalog (table/column notes) | Built; catalog v2b is the current base (section 8, Steps H to L) |
-| 3 | Example bank (about 30 question/SQL pairs, retrieved by similarity) | Not started |
+| 3 | Example bank (about 30 question/SQL pairs, retrieved by similarity) | Built (30 pairs, D30). The two example rows ex-a and ex-b were tested and dropped (D31, D32); they get re-run on top of the loop (section 13) |
 | 4 | Query writer (the AI call) | Built as the naive version |
 | 5 | Validator (sqlglot AST check plus `EXPLAIN` dry run) | Not started |
-| 6 | Retry loop | Next: plain Python loop with switches for error retry, empty-result retry and decline review, then LangGraph (section 13) |
+| 6 | Retry loop | R1 error retry built (D34: `grader/agent_loop.py`, `grader/run_r1.py`; kept as the loop base, no score gain). Next: R2 empty-result retry and R3 decline review as switches in the same loop, then LangGraph (section 13) |
 | 7 | Safe runner (read-only role, statement timeout, row cap) | Grader side done (`grader_ro`, SELECT only, 30 s timeout, TEMP revoked; the grader runs through it). Live agent runner not started |
 | 8 | Presenter (chart from result shape, written answer, SQL always visible) | Not started |
 | 9 | Evaluation harness | Done and working |
@@ -465,6 +465,23 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 - **Prediction check:** point 1 partly, points 2 to 4 not confirmed. Run 3 was repeated on its own after the API credits ran out mid-run (same code and settings).
 - **Decision (D33): not carried forward.** Next: leave the main prompt unchanged and check a decline's reason against the database only after the model declines. Report: `results/analysis_df_vs_v2b_2026-10-31.md`. Commits e81ee09 (code and prediction), afa9a1b (results).
 
+### Step S: Error retry loop (row R1, D34) - built, no score gain
+
+**What changed:** a plain Python loop around the unchanged v2b prompt (`grader/agent_loop.py`, `grader/run_r1.py`). If the SQL fails to run, the model's reply and the PostgreSQL error (plus HINT if given) go back in the same conversation, at most 3 attempts in total; queries run as `grader_ro` with the 30 s timeout. Switches for empty-result retry (R2) and decline review (R3) exist but are not built. 22 offline tests (`grader/tests/test_agent_loop.py`, run with `python -m unittest discover -s tests -v`) pass, including 84/84 identical attempt-1 prompts and refusal of write statements. A prediction was written before the run and amended once the crash list was known (`results/r1_prediction_2026-11-01.md`).
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| R1 run 1 | 7/8 | 33/35 | 15/25 | 3/12 | 0/4 | 58 |
+| R1 run 2 | 7/8 | 34/35 | 16/25 | 2/12 | 0/4 | 59 |
+| R1 run 3 | 7/8 | 34/35 | 17/25 | 3/12 | 0/4 | 61 |
+| **R1 mean** | 7.00 | 33.67 | 16.00 | 2.67 | 0.00 | **59.33** (v2b 60.67) |
+
+- **The retry hardly ran:** 4 of 252 questions (1.6%), all t4_02 or t4_04. All 4 ended with SQL that runs, 0 of 4 passed (1 column where the gold has 4). Cost per question +2%, SQL checks add 0.058 s.
+- **The score difference is noise, and temperature 0 is not deterministic:** the 5 questions whose pass count changed were never retried. Attempt-1 replies match v2b's for the same prompt in 61% of cases; two runs of the same row match in about 70 to 77%.
+- **Where the failures are:** 74 failed question-runs in R1 and 70 in v2b; 27 and 20 are wrong column count, 30 and 27 wrong values, none still crash (`results/failure_inventory_r1_v2b_2026-11-02.md`). Most column-count failures are the agent returning fewer columns than the gold; of the 8 such questions, 3 are plain "gold adds columns the question does not ask for", 2 more have the wrong number as well, 1 would fail on text labels, 2 are unclear (`results/fewer_columns_review_2026-11-02.md`). The comparator was not changed.
+- **Model version logging added after the run:** from now on every `.jsonl` record and every loop attempt stores `model` and `system_fingerprint` (null if missing). Rows run before 2 November did not record them, so whether the model behind "gpt-4o" changed between 27 October and 2 November cannot be checked.
+- **Decision (D34): kept as the base for R2 and R3, no score gain.** Report: `results/analysis_r1_vs_v2b_2026-11-02.md`. Commits 07c1a2c (code, tests, prediction), 97ce2e0 (amendment), e5f6c29 (results), 400e8f8 (D34 and inventory).
+
 ---
 
 ## 9. Specific cases still open from the runs so far
@@ -589,6 +606,10 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - v2c (dropped): `prompt_template_v2c.py`, `run_v2c.py`
 - v2b2 (dropped): `schema_catalog_v2b2.py`, `run_v2b2.py`
 
+**The execute-check-refine loop, in `grader/` (new files; Step S):**
+- `agent_loop.py` (`run_question(question, switches, max_attempts)`; R1 error retry built, R2 and R3 raise `NotImplementedError`), `run_r1.py` (the R1 runner), `tests/test_agent_loop.py` (22 offline tests, no API)
+- `result_logging.py` was edited once, on 2 Nov: records now also carry `model` and `system_fingerprint`
+
 **Gold-file tools, in `grader/` (new since the v2 series):**
 - `validate_gold_file.py` (structure and SQL check of a gold YAML; `--examples` for the example bank)
 - `leak_check.py` (text and SQL similarity of two gold files)
@@ -619,7 +640,8 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - `exa_run{1,2,3}_2026-10-31.log` and `.jsonl`, `analysis_exa_vs_v2b_2026-10-31.md` (Step P)
 - `exb_run{1,2,3}_2026-10-31.log` and `.jsonl`, `exb_retrieval_2026-10-31.csv`, `exb_prediction_2026-10-31.md`, `analysis_exb_2026-10-31.md` (Step Q)
 - `false_declines_inventory_2026-10-31.md` (the 86 false declines of ex-a and ex-b, grouped), `df_run{1,2,3}_2026-10-31.log` and `.jsonl`, `df_prediction_2026-10-31.md`, `analysis_df_vs_v2b_2026-10-31.md` (Step R); `_stdout_df_run3.txt` and `_stdout_df_runs12_crashed_run3.txt` (console output; the second one ends with the credit error of the aborted run 3)
-- `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt`, `_stdout_exa.txt`, `_stdout_exb.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
+- `r1_run{1,2,3}_2026-11-02.log` and `.jsonl` (the `.jsonl` also has the full attempt list per question), `r1_prediction_2026-11-01.md` (with the amendment), `analysis_r1_vs_v2b_2026-11-02.md`, `failure_inventory_r1_v2b_2026-11-02.md` (failure groups for R1 and v2b, the gold queries that return nothing, and the model-version check), `fewer_columns_review_2026-11-02.md` (Step S)
+- `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt`, `_stdout_exa.txt`, `_stdout_exb.txt`, `_stdout_df_run3.txt`, `_stdout_df_runs12_crashed_run3.txt`, `_stdout_r1.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
 
 **What to commit:** loader scripts, grader, benchmark YAML, one small sample CSV, README with attribution. **Never commit:** `data/raw/`, `.env`, credentials. The repository exists and is on GitHub (private); see section 12, item 6.
 

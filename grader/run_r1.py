@@ -154,6 +154,8 @@ def run(tag: str = "", gold_file: Path | None = None, llm=None,
             "latency_seconds": loop["latency_seconds"],
             "prompt_tokens": loop["prompt_tokens"],
             "completion_tokens": loop["completion_tokens"],
+            "model": loop["model"],
+            "system_fingerprint": loop["system_fingerprint"],
         }
         record = make_record(question, result, None if declined else agent_sql, call,
                              retrieved_tables=tables)
