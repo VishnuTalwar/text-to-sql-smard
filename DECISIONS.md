@@ -171,6 +171,12 @@ Drafted by Claude in an incognito chat outside the Project that saw only the sch
 **Evidence:** `results/fewer_columns_review_2026-11-02.md`, `results/failure_inventory_r1_v2b_2026-11-02.md`.
 **Known cost:** the strict score under-counts by about 3 to 4 questions per run. R1's retry on t4_04 produced the right value (144 quarter-hours) but failed on shape. The gold answers follow the D28 house style (label + value), which the v2b prompt never states; this is the likely reason for the shape gap and why the examples cut shape failures (40 to 16 and 13).
 
+## D36. Model pinned to the dated snapshot gpt-4o-2024-08-06
+**Decision:** All runs from now on send "gpt-4o-2024-08-06" instead of the alias "gpt-4o". response.model and system_fingerprint are logged on every call (since commit 4530f43).
+**Why:** The alias can be moved by OpenAI to a newer snapshot without notice, which would break D14 silently. The fresh v2b re-run showed the alias currently answers with gpt-4o-2024-08-06 on every call, so pinning it does not change the model.
+**Evidence:** `results/analysis_v2b_fresh_2026-11-02.md`. v2b_fresh mean 60.00 vs 60.67 (27 Oct), inside the noise. Reply agreement: about 74% between runs minutes apart, about 69% hours apart, 61 to 63% six days apart (suggestive of drift over time, not proven; the old runs logged no model). Fingerprints vary per call and do not explain the non-determinism.
+**Rule:** New rows are compared against v2b_fresh (60.00). The final comparison re-runs the base on the same day as the final configuration.
+
 ## Principles
 - The grader must exist and be validated before any agent code.
 - Never change the model between stages.

@@ -2,7 +2,7 @@
 Execute-check-refine loop on top of the v2b prompt (section 13 of PROJECT_PROGRESS.md).
 
 run_question() answers one question. Attempt 1 is exactly the v2b setup: the v2b
-prompt as one user message, gpt-4o, temperature 0, seed 0, fences stripped the way
+prompt as one user message, gpt-4o-2024-08-06 (naive_agent.MODEL), temperature 0, seed 0, fences stripped the way
 naive_agent.answer() strips them. If attempt 1 is a NO_QUERY decline, or its SQL
 runs without error, the loop stops and nothing differs from v2b.
 
@@ -11,7 +11,12 @@ Checks, each with an on/off switch in `switches`:
                   continues: the model's reply is appended as an assistant message and
                   a user message gives the PostgreSQL error (ERROR_RETRY_TEXT). At most
                   max_attempts attempts in total; the last attempt is the answer.
-  empty_retry     not implemented yet (row R2); True raises NotImplementedError.
+  empty_retry     implemented (row R2). If the SQL runs but the result is empty (0 rows,
+                  or every value in every row is NULL; a 0 or any other non-NULL value is
+                  not empty), the same conversation continues with EMPTY_ROWS_TEXT or
+                  EMPTY_NULL_TEXT. Error retry and empty retry share the same limit of
+                  max_attempts attempts in total. If the last attempt is still empty,
+                  that result is the answer.
   decline_review  not implemented yet (row R3); True raises NotImplementedError.
 
 SQL is run through executor.run_query(): role grader_ro (SELECT only, no TEMP, role
@@ -39,6 +44,15 @@ ERROR_RETRY_TEXT = (
     "{error}\n"
     "Write a corrected query. Return only the SQL."
 )
+EMPTY_ROWS_TEXT = (
+    "This query ran but returned no rows.\n"
+    "Write a corrected query. Return only the SQL."
+)
+EMPTY_NULL_TEXT = (
+    "This query ran but returned only NULL values.\n"
+    "Write a corrected query. Return only the SQL."
+)
+RETRY_TEXTS = {"empty_rows": EMPTY_ROWS_TEXT, "empty_null": EMPTY_NULL_TEXT}
 
 
 def is_decline(reply: str) -> bool:
@@ -63,8 +77,21 @@ def format_pg_error(exc: QueryError) -> str:
     return text
 
 
+def empty_kind(rows) -> str | None:
+    """"empty_rows" for 0 rows, "empty_null" if every value in every row is NULL,
+    otherwise None. A 0 (or any other non-NULL value) is a result, not empty.
+    rows=None (an execute function that returns nothing) is never empty."""
+    if rows is None:
+        return None
+    if len(rows) == 0:
+        return "empty_rows"
+    if all(v is None for row in rows for v in row):
+        return "empty_null"
+    return None
+
+
 def call_openai(messages: list[dict], client=None) -> dict:
-    """One chat completion with the fixed settings (gpt-4o, temperature 0, seed 0)."""
+    """One chat completion with the fixed settings (naive_agent.MODEL, temperature 0, seed 0)."""
     if client is None:
         from openai import OpenAI
         client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
@@ -94,9 +121,8 @@ def _check_switches(switches: dict | None) -> dict:
     unknown = set(merged) - set(SWITCH_NAMES)
     if unknown:
         raise ValueError(f"unknown switches: {sorted(unknown)}")
-    for name in ("empty_retry", "decline_review"):
-        if merged[name]:
-            raise NotImplementedError(f"switch {name!r} is not implemented yet")
+    if merged["decline_review"]:
+        raise NotImplementedError("switch 'decline_review' is not implemented yet")
     return merged
 
 
@@ -120,13 +146,21 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         declined = is_decline(reply)
         sql = None if declined else reply
         error = None
+        fired = None     # which check asks for another attempt: "error", "empty_rows", "empty_null"
+        n_rows = None
 
-        if sql is not None and switches["error_retry"]:
+        if sql is not None and (switches["error_retry"] or switches["empty_retry"]):
             start = time.perf_counter()
             try:
-                execute(sql)
+                rows = execute(sql)
             except QueryError as exc:
                 error = format_pg_error(exc)
+                if switches["error_retry"]:
+                    fired = "error"
+            else:
+                n_rows = None if rows is None else len(rows)
+                if switches["empty_retry"]:
+                    fired = empty_kind(rows)
             check_seconds += time.perf_counter() - start
 
         attempts.append({
@@ -135,6 +169,8 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
             "extracted_sql": sql,
             "declined": declined,
             "error": error,
+            "check_fired": fired,    # "error", "empty_rows", "empty_null" or None
+            "n_rows": n_rows,
             "prompt_tokens": call.get("prompt_tokens"),
             "completion_tokens": call.get("completion_tokens"),
             "latency_seconds": call.get("latency_seconds"),
@@ -142,17 +178,20 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
             "system_fingerprint": call.get("system_fingerprint"),
         })
 
-        if error is None:
-            break  # declined, or the SQL ran (or error_retry is off): this is the answer
+        if fired is None:
+            break  # declined, or nothing to fix (or the check is off): this is the answer
         if n == max_attempts:
-            cap_hit = True  # used every attempt and the last SQL still fails
+            cap_hit = True  # used every attempt and the last SQL still fails or is empty
             break
+        retry_text = ERROR_RETRY_TEXT.format(error=error) if fired == "error" else RETRY_TEXTS[fired]
         messages = messages + [
             {"role": "assistant", "content": raw},
-            {"role": "user", "content": ERROR_RETRY_TEXT.format(error=error)},
+            {"role": "user", "content": retry_text},
         ]
 
     final = attempts[-1]
+    before = attempts[-2]["check_fired"] if len(attempts) > 1 else None  # check before the final attempt
+    kinds = [a["check_fired"] for a in attempts]
     model_seconds = sum(a["latency_seconds"] or 0 for a in attempts)
     return {
         "final_sql": final["extracted_sql"],
@@ -164,7 +203,12 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         "n_attempts": len(attempts),
         "retried": len(attempts) > 1,
         "crashed_on_attempt_1": attempts[0]["error"] is not None,
-        "declined_after_error": final["declined"] and len(attempts) > 1,
+        "declined_after_error": final["declined"] and before == "error",
+        "declined_after_empty": final["declined"] and before in ("empty_rows", "empty_null"),
+        "empty_on_attempt1": attempts[0]["check_fired"] in ("empty_rows", "empty_null"),
+        "retried_after_error": "error" in kinds[:-1] if len(kinds) > 1 else False,
+        "retried_after_empty": any(k in ("empty_rows", "empty_null") for k in kinds[:-1]),
+        "ended_empty": final["check_fired"] in ("empty_rows", "empty_null"),
         "cap_hit": cap_hit,
         "prompt_tokens": sum(a["prompt_tokens"] or 0 for a in attempts),
         "completion_tokens": sum(a["completion_tokens"] or 0 for a in attempts),

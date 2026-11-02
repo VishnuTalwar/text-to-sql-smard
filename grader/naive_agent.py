@@ -17,7 +17,7 @@ from prompt_template import build_prompt
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(PROJECT_ROOT / ".env")
 
-MODEL = "gpt-4o"
+MODEL = "gpt-4o-2024-08-06"  # dated snapshot, pinned in D36 (the alias "gpt-4o" can move)
 SEED = 0  # best-effort determinism; OpenAI treats seed as non-guaranteed
 
 
