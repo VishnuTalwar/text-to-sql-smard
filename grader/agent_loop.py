@@ -28,6 +28,13 @@ Checks, each with an on/off switch in `switches`:
                   every table has no rows), one "Fact:" line per period goes between the
                   two lines of the empty-result message. Dates are YYYY-MM-DD, the end is
                   the last day inside the period.
+  empty_fact_decline  implemented (row R3b). When an attempt's SQL runs and is empty and
+                  empty_fact_decision(sql) fires (the period it asks for has no rows in any
+                  table), the loop stops WITHOUT another model call and returns a decline
+                  with the reason "No data: the tables have no rows for the period <start>
+                  to <end>." This replaces the "Fact:" line of the R3 empty message, which
+                  is then never sent. If the result is empty but the period has rows (or
+                  no period is found), the R2 retry message is used unchanged.
 
 SQL is run through executor.run_query(): role grader_ro (SELECT only, no TEMP, role
 statement_timeout 30 s, the same as the grader), a fresh connection per call, so a
@@ -47,8 +54,9 @@ from prompt_template_v2b import build_prompt as build_v2b_prompt
 
 DECLINE_MARKER = "NO_QUERY"
 
-SWITCH_NAMES = ("error_retry", "empty_retry", "decline_review")
-DEFAULT_SWITCHES = {"error_retry": True, "empty_retry": False, "decline_review": False}
+SWITCH_NAMES = ("error_retry", "empty_retry", "decline_review", "empty_fact_decline")
+DEFAULT_SWITCHES = {"error_retry": True, "empty_retry": False, "decline_review": False,
+                    "empty_fact_decline": False}
 
 ERROR_RETRY_TEXT = (
     "This query failed with the following error from PostgreSQL:\n"
@@ -69,6 +77,7 @@ REVIEW_TEXT = (
     "{facts}\n"
     "Reply again following the original instructions."
 )
+SYSTEM_DECLINE_REASON = "No data: the tables have no rows for the period {start} to {end}."
 REVIEW_FACT_LINE = "Fact: the tables have rows for the period {start} to {end}."
 EMPTY_FACT_LINE = "Fact: the tables have no rows for the period {start} to {end}."
 
@@ -170,8 +179,9 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
     cap_hit = False
     check_seconds = 0.0
     review_done = False
-    if switches["decline_review"]:
-        import date_facts  # needs sqlglot and the database; only when the review is on
+    system_decline = None  # set when empty_fact_decline stops the loop: {"periods": [...], "reason": ...}
+    if switches["decline_review"] or switches["empty_fact_decline"]:
+        import date_facts  # needs sqlglot and the database; only when a date check is on
 
     for n in range(1, max_attempts + 1):
         call = llm(messages)
@@ -185,7 +195,8 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         fact = None      # the database fact sent back with the retry message, if any
         reason = None
 
-        if sql is not None and (switches["error_retry"] or switches["empty_retry"]):
+        if sql is not None and (switches["error_retry"] or switches["empty_retry"]
+                                or switches["empty_fact_decline"]):
             start = time.perf_counter()
             try:
                 rows = execute(sql)
@@ -195,8 +206,19 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
                     fired = "error"
             else:
                 n_rows = None if rows is None else len(rows)
-                if switches["empty_retry"]:
-                    fired = empty_kind(rows)
+                kind = empty_kind(rows) if (switches["empty_retry"] or switches["empty_fact_decline"]) else None
+                if kind and switches["empty_fact_decline"]:
+                    decision = date_facts.empty_fact_decision(sql)
+                    if decision["fire"]:
+                        periods = [_period_json(p) for p in decision["periods"]]
+                        system_decline = {"periods": periods, "reason": " ".join(
+                            SYSTEM_DECLINE_REASON.format(start=p["start"], end=p["end"]) for p in periods)}
+                        fact = {"kind": "system_decline", "periods": periods}
+                        fired = kind
+                    elif switches["empty_retry"]:
+                        fired = kind  # empty, but the period has rows (or none found): R2 message
+                elif kind and switches["empty_retry"]:
+                    fired = kind
             check_seconds += time.perf_counter() - start
 
         if declined and switches["decline_review"] and not review_done and n < max_attempts:
@@ -209,7 +231,8 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
                 review_done = True
                 fact = {"kind": "review", "reason": reason,
                         "periods": [_period_json(p) for p in decision["periods"]]}
-        elif fired in ("empty_rows", "empty_null") and switches["decline_review"]:
+        elif (fired in ("empty_rows", "empty_null") and switches["decline_review"]
+              and not switches["empty_fact_decline"] and system_decline is None):
             start = time.perf_counter()
             decision = date_facts.empty_fact_decision(sql)
             check_seconds += time.perf_counter() - start
@@ -232,6 +255,8 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
             "system_fingerprint": call.get("system_fingerprint"),
         })
 
+        if system_decline is not None:
+            break  # the period is proven empty: decline without asking the model again
         if fired is None:
             break  # declined, or nothing to fix (or the check is off): this is the answer
         if n == max_attempts:
@@ -254,31 +279,35 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         ]
 
     final = attempts[-1]
-    before = attempts[-2]["check_fired"] if len(attempts) > 1 else None  # check before the final attempt
+    system = system_decline is not None
+    declined_final = final["declined"] or system
+    before = None if system else (attempts[-2]["check_fired"] if len(attempts) > 1 else None)  # check before the final attempt
     kinds = [a["check_fired"] for a in attempts]
     review_fact = next((a["fact"] for a in attempts if a["fact"] and a["fact"]["kind"] == "review"), None)
     empty_fact = [p for a in attempts if a["fact"] and a["fact"]["kind"] == "empty" for p in a["fact"]["periods"]]
     model_seconds = sum(a["latency_seconds"] or 0 for a in attempts)
     return {
-        "final_sql": final["extracted_sql"],
-        "final_reply": final["raw_model_output"],
-        "declined": final["declined"],
+        "final_sql": None if system else final["extracted_sql"],
+        "final_reply": ("NO_QUERY: " + system_decline["reason"]) if system else final["raw_model_output"],
+        "declined": declined_final,
+        "system_declined": system,
+        "system_decline_period": system_decline["periods"] if system else [],
         "model": final["model"],                        # of the final attempt
         "system_fingerprint": final["system_fingerprint"],
         "attempts": attempts,
         "n_attempts": len(attempts),
         "retried": len(attempts) > 1,
         "crashed_on_attempt_1": attempts[0]["error"] is not None,
-        "declined_after_error": final["declined"] and before == "error",
-        "declined_after_empty": final["declined"] and before in ("empty_rows", "empty_null"),
+        "declined_after_error": declined_final and before == "error",
+        "declined_after_empty": declined_final and before in ("empty_rows", "empty_null"),
         "empty_on_attempt1": attempts[0]["check_fired"] in ("empty_rows", "empty_null"),
         "retried_after_error": "error" in kinds[:-1] if len(kinds) > 1 else False,
         "retried_after_empty": any(k in ("empty_rows", "empty_null") for k in kinds[:-1]),
-        "ended_empty": final["check_fired"] in ("empty_rows", "empty_null"),
+        "ended_empty": final["check_fired"] in ("empty_rows", "empty_null") and not system,
         "review_fired": review_fact is not None,
         "review_periods": review_fact["periods"] if review_fact else [],
-        "declined_after_review": final["declined"] and before == "review",
-        "answered_after_review": review_fact is not None and not final["declined"],
+        "declined_after_review": declined_final and before == "review",
+        "answered_after_review": review_fact is not None and not declined_final,
         "empty_fact_fired": bool(empty_fact),
         "empty_fact_period": empty_fact,
         "cap_hit": cap_hit,

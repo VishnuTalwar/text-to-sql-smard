@@ -599,6 +599,131 @@ class TestDeclineReview(unittest.TestCase):
                 self.assertIn(needle, report)
 
 
+class TestEmptyFactDecline(unittest.TestCase):
+    """Row R3b: empty_fact_decline. Real read-only database, fake model."""
+    R3B = {"error_retry": True, "empty_retry": True, "decline_review": True, "empty_fact_decline": True}
+    R3 = {"error_retry": True, "empty_retry": True, "decline_review": True}
+    JULY_2026 = TestDeclineReview.JULY_2026
+    WITH_ROWS = "SELECT mwh FROM erzeugung LIMIT 2"
+    EMPTY_FEB = ("SELECT mwh FROM erzeugung WHERE zeitpunkt >= '2026-02-01' AND zeitpunkt < '2026-03-01' "
+                 "AND mwh < -1000000")
+    EMPTY_NO_DATE = TestDeclineReview.EMPTY_NO_DATE
+    REASON = "No data: the tables have no rows for the period 2026-07-01 to 2026-07-31."
+
+    def run_q(self, replies, switches=None):
+        model = FakeModel(replies)
+        rec = agent_loop.run_question("q", self.R3B if switches is None else switches, llm=model,
+                                      prompt_builder=lambda q: "PROMPT")
+        return model, rec
+
+    def test_a_proven_empty_period_stops_with_a_system_decline(self):
+        model, rec = self.run_q([self.JULY_2026, self.WITH_ROWS])
+        self.assertEqual(len(model.calls), 1)  # no second model call
+        self.assertTrue(rec["declined"])
+        self.assertTrue(rec["system_declined"])
+        self.assertIsNone(rec["final_sql"])
+        self.assertEqual(rec["final_reply"], "NO_QUERY: " + self.REASON)
+        print("\nSYSTEM DECLINE REASON (test a):\n" + self.REASON)
+        self.assertEqual((rec["system_decline_period"][0]["start"], rec["system_decline_period"][0]["end"]),
+                         ("2026-07-01", "2026-07-31"))
+        self.assertEqual(rec["n_attempts"], 1)
+        self.assertFalse(rec["retried"])
+        self.assertFalse(rec["ended_empty"])
+        self.assertFalse(rec["empty_fact_fired"])  # the R3 Fact line is never sent
+        self.assertFalse(rec["declined_after_empty"])
+        self.assertFalse(rec["cap_hit"])
+
+    def test_graded_like_a_no_query(self):
+        # the reply starts with NO_QUERY, so the existing decline detection treats it as one
+        self.assertTrue(agent_loop.is_decline(agent_loop.run_question(
+            "q", self.R3B, llm=FakeModel([self.JULY_2026]), prompt_builder=lambda q: "p")["final_reply"]))
+
+    def test_b_empty_result_over_a_period_with_rows_uses_the_r2_message(self):
+        model, rec = self.run_q([self.EMPTY_FEB, self.WITH_ROWS])
+        self.assertEqual(len(model.calls), 2)
+        self.assertEqual(model.calls[1][2]["content"],
+                         "This query ran but returned no rows.\nWrite a corrected query. Return only the SQL.")
+        self.assertFalse(rec["system_declined"])
+        self.assertFalse(rec["empty_fact_fired"])
+        self.assertEqual(rec["final_sql"], self.WITH_ROWS)
+
+    def test_c_empty_result_without_a_date_uses_the_r2_message(self):
+        model, rec = self.run_q([self.EMPTY_NO_DATE, self.WITH_ROWS])
+        self.assertEqual(model.calls[1][2]["content"],
+                         "This query ran but returned no rows.\nWrite a corrected query. Return only the SQL.")
+        self.assertFalse(rec["system_declined"])
+        self.assertEqual(rec["system_decline_period"], [])
+
+    def test_system_decline_after_an_earlier_error_retry(self):
+        model, rec = self.run_q([BROKEN_HINT, self.JULY_2026, self.WITH_ROWS])
+        self.assertEqual(len(model.calls), 2)
+        self.assertTrue(rec["system_declined"])
+        self.assertEqual(rec["n_attempts"], 2)
+        self.assertTrue(rec["retried_after_error"])
+
+    def test_d_switch_off_behaves_like_r3(self):
+        for replies in ([self.JULY_2026, "NO_QUERY: x"], [self.EMPTY_FEB, self.WITH_ROWS],
+                        [self.EMPTY_NO_DATE, self.WITH_ROWS], [BROKEN_HINT, self.WITH_ROWS],
+                        ["NO_QUERY: Data for 2025 is missing.", self.WITH_ROWS]):
+            m_off, r_off = self.run_q(replies, dict(self.R3, empty_fact_decline=False))
+            m_default, r_default = self.run_q(replies, dict(self.R3))
+            self.assertEqual(m_off.calls, m_default.calls)
+            for key in ("final_sql", "final_reply", "n_attempts", "declined", "system_declined",
+                        "empty_fact_fired", "review_fired"):
+                self.assertEqual(r_off[key], r_default[key], key)
+        # with the switch off the R3 Fact line is still sent
+        m, r = self.run_q([self.JULY_2026, "NO_QUERY: x"], dict(self.R3))
+        self.assertIn("Fact: the tables have no rows for the period 2026-07-01 to 2026-07-31.", m.calls[1][2]["content"])
+        self.assertFalse(r["system_declined"])
+
+    def test_e_attempt_1_prompt_identical_to_v2b_for_all_84_with_r3b_switches(self):
+        questions = load_questions()
+        identical = 0
+        for q in questions:
+            model = FakeModel(["NO_QUERY: test"])
+            agent_loop.run_question(q.frage, self.R3B, llm=model)
+            sent = model.calls[0]
+            if (len(sent) == 1 and sent[0]["role"] == "user"
+                    and sent[0]["content"] == prompt_template_v2b.build_prompt(q.frage)):
+                identical += 1
+        print(f"\nR3b switches: {identical}/{len(questions)} attempt-1 prompts identical to v2b")
+        self.assertEqual(identical, len(questions))
+
+    def test_run_r3b_pipeline_with_fake_model(self):
+        import json
+        import run_r3b
+
+        gold = {q.frage: q for q in load_questions()}
+
+        def fake_llm(messages):
+            frage = messages[0]["content"].split("Question: ", 1)[1].split("\n\n", 1)[0]
+            q = gold[frage]
+            if q.id == "u_08":
+                reply = self.JULY_2026
+            elif q.is_tier0:
+                reply = "NO_QUERY: not in the data"
+            else:
+                reply = q.gold_sql
+            return {"raw_model_output": reply, "prompt_tokens": 1000, "completion_tokens": 50,
+                    "latency_seconds": 0.1, "model": "gpt-4o-2024-08-06", "system_fingerprint": "fp_test"}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            code = run_r3b.run(tag="smoke", llm=fake_llm, results_dir=Path(tmp))
+            self.assertEqual(code, 0)  # 84/84: u_08 passes through the system decline
+            logs = list(Path(tmp).glob("r3b_smoke_*.log")); jsonls = list(Path(tmp).glob("r3b_smoke_*.jsonl"))
+            self.assertEqual((len(logs), len(jsonls)), (1, 1))
+            recs = {r["id"]: r for r in map(json.loads, open(jsonls[0]))}
+            self.assertTrue(recs["u_08"]["system_declined"])
+            self.assertTrue(recs["u_08"]["passed"])
+            self.assertEqual(recs["u_08"]["n_attempts"], 1)
+            self.assertEqual(recs["u_08"]["raw_model_output"], "NO_QUERY: " + self.REASON)
+            self.assertIsNone(recs["u_08"]["extracted_sql"])
+            self.assertEqual(sum(r["system_declined"] for r in recs.values()), 1)
+            report = logs[0].read_text().lower()
+            for needle in ("system declines", "u_08", "declined by the system after the empty result"):
+                self.assertIn(needle, report)
+
+
 class TestModelVersionLogging(unittest.TestCase):
     """response.model and response.system_fingerprint are saved per call and end up
     in every .jsonl record (null if the response has no such field)."""
