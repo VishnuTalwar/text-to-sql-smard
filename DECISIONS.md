@@ -177,6 +177,12 @@ Drafted by Claude in an incognito chat outside the Project that saw only the sch
 **Evidence:** `results/analysis_v2b_fresh_2026-11-02.md`. v2b_fresh mean 60.00 vs 60.67 (27 Oct), inside the noise. Reply agreement: about 74% between runs minutes apart, about 69% hours apart, 61 to 63% six days apart (suggestive of drift over time, not proven; the old runs logged no model). Fingerprints vary per call and do not explain the non-determinism.
 **Rule:** New rows are compared against v2b_fresh (60.00). The final comparison re-runs the base on the same day as the final configuration.
 
+## D37. Empty-result retry (row R2): kept as infrastructure, no score gain
+**Decision:** The loop (D34) also retries when the SQL runs but returns 0 rows or only NULLs, with the fixed text "This query ran but returned no rows." / "This query ran but returned only NULL values." followed by "Write a corrected query. Return only the SQL."; error and empty retries share the limit of 3 attempts. Model pinned (D36). **Status:** Kept in the loop; no score change.
+**Why:** No gold query is empty, so the check cannot break a correct answer on this exam; its targets were t4_03 and u_08.
+**Evidence:** `results/analysis_r2_vs_v2b_fresh_2026-11-02.md`. Mean 59.67 vs 60.00 for v2b_fresh (60, 59, 60). Empty retries fired only on u_08 and t4_03, in every run, and fixed neither: u_08 kept writing a SUM over July 2026 (NULL) and never declined; t4_03 returned 0 rows on all 9 attempts (likely because the join repeats each consumption value once per energy source, the same mistake as t3_07; interpretation). All 6 questions whose pass count changed were never retried. Cost +9%. The fingerprints changed within the same day although the model name stayed gpt-4o-2024-08-06.
+**Lesson:** A generic "something went wrong" message cannot fix a logic mistake, and it does not give the model the fact it is missing (for u_08: that the data has no rows for July 2026). R1 and R2 together show that v2b's remaining failures are about meaning and shape, not crashes or empty results.
+
 ## Principles
 - The grader must exist and be validated before any agent code.
 - Never change the model between stages.
