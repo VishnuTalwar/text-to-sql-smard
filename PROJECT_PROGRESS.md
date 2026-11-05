@@ -581,7 +581,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | + R1 error retry (loop, on top of v2b) | 59.33 / 84 (no gain; kept as loop base, D34) |
 | + R2 empty-result retry | 59.67 / 84 (71.0%): no gain against v2b_fresh 60.00; fires only on u_08 and t4_03, fixes neither (u_08 never declined, t4_03 still 0 rows) |
 | + R3 decline review and empty fact (O14) | 59.67 / 84 (71.0%): same as R2, no gain; the review never fired (no false declines on this base); the empty fact fired on u_08 but the model answered `SELECT 0` instead of declining |
-| + R3b system decline for proven-empty periods (replaces the empty fact) | to do |
+| + R3b system decline for proven-empty periods (replaces the empty fact) | 61.67 / 84 (73.4%): +2.00 over R3, +1.67 over v2b_fresh; u_08 now passes 3/3 (+1.00, caused by the loop, no second model call, no `SELECT 0`); no system decline on tiers 1-4; tier 0 is 8/8 in all runs; the other +1.00 is run-to-run variation (u_05, t2_09, t2_12, t1_18); the decline review fired once (t1_12, fixed a false decline). Report: `results/analysis_r3b_vs_r3_2026-11-05.md` |
 | + ex-a and ex-b re-run on top of the best loop row | to do |
 | + self-consistency voting (optional) | to do |
 
