@@ -189,6 +189,16 @@ Drafted by Claude in an incognito chat outside the Project that saw only the sch
 **Known gap:** a correct decline naming a source and a period without "after/before" would be reviewed; it has not occurred (watched via u_01).
 **Lesson:** When a check has already established a fact that settles the answer, the system should act on it instead of asking the model again; a request to "write a corrected query" gets a query even when none is right.
 
+## D39. System decline for proven-empty periods (row R3b): kept
+**Decision:** When the SQL runs and returns 0 rows or only NULLs, and the date finder shows its period has no rows in any table, the loop stops without another model call and returns "NO_QUERY: No data: the tables have no rows for the period X to Y." This replaces the empty-fact retry message of R3. Error retry, empty retry and decline review stay on. **Status:** Kept. This is the current best configuration.
+**Why:** In R3 the model answered the empty-fact message with a made-up `SELECT 0`. Once a check has established that no data exists, the system should act on that fact itself (D38 lesson).
+**Evidence:** `results/analysis_r3b_vs_r3_2026-11-05.md`. Mean 61.67 (62, 61, 62) vs 59.67 for R3 and 60.00 for v2b_fresh. Caused by the loop: u_08 0/3 to 3/3 via the system decline (+1.00); no system decline on tiers 1-4. The decline review fired for the first time (t1_12 run 2, "Data for February 2026 is not available"; the tables hold rows for that month) and the retry passed. The other +1.00 over R3 is run-to-run variation on u_05, t2_09, t2_12, t1_18 (no loop activity). Tier 0 8/8 in all runs. Failure groups a, b, c are all 0; 65 of the 67 remaining failures are wrong shape or wrong values. Cost $0.00234 per question (+8% vs v2b_fresh). New fingerprints again (fp_7c2c459cd0, fp_e665f1271d), model gpt-4o-2024-08-06.
+**Honest summary for the README:** the loop (R1 to R3b) adds +1 point on the exam, from declining a question about a period with no data, plus rescued false declines that would otherwise cost points.
+
+## D40. Plan change after an external review
+**Decision:** No new prompt or loop variants for now. Order from here: (1) fix the date finder so unsupported SQL gives "cannot determine" instead of a fact; (2) one shared runner with a config per row instead of copied runner files; (3) safe runner (single SELECT, must read a table, row cap, timeout, read-only role) before any UI; (4) an answer-correctness score next to the strict score (required answer columns per gold item), applied to all saved rows; (5) ex-a re-run on top of the loop as the last experiment; (6) one complete question -> SQL -> result -> explanation flow in Streamlit; (7) final held-out run and README with per-tier results.
+**Why:** The review found that the strict score can hide real fixes (R1 produced the correct value for t4_04 but failed on shape), that the execution path has no statement validation or result limit yet, that the date finder misreads NOT (zeitpunkt >= '2026-07-01') as "July 2026 onward", and that copied runners make fixes inconsistent. It also noted the uneven capability (tiers 3 and 4 weak), which the README must show per tier.
+
 ## Principles
 - The grader must exist and be validated before any agent code.
 - Never change the model between stages.

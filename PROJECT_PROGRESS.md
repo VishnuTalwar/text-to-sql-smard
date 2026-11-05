@@ -5,7 +5,7 @@
 
 **Owner:** Vishnu (M.Sc. Data and Knowledge Engineering, OVGU Magdeburg)
 **Project folder on laptop:** `/Users/deepaktalwar/Desktop/text-to-SQL`
-**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D38), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
+**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D40), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
 
 ---
 
@@ -179,13 +179,13 @@ Mental model: a new analyst on their first day. Smart, but has never seen this d
 | 3 | Example bank (about 30 question/SQL pairs, retrieved by similarity) | Built (30 pairs, D30). The two example rows ex-a and ex-b were tested and dropped (D31, D32); they get re-run on top of the loop (section 13) |
 | 4 | Query writer (the AI call) | Built as the naive version |
 | 5 | Validator (sqlglot AST check plus `EXPLAIN` dry run) | Not started |
-| 6 | Retry loop | R1 error retry built (D34: `grader/agent_loop.py`, `grader/run_r1.py`; kept as the loop base, no score gain). Next: R2 empty-result retry and R3 decline review as switches in the same loop, then LangGraph (section 13) |
+| 6 | Retry loop | Built and measured as rows R1 to R3b (D34, D37, D38, D39): error retry, empty-result retry, decline review, system decline for proven-empty periods. Best configuration: R3b, 61.67 / 84 (`grader/agent_loop.py`, `grader/date_facts.py`, `grader/run_r3b.py`). The next step is one shared runner instead of copied runner files (D40) |
 | 7 | Safe runner (read-only role, statement timeout, row cap) | Grader side done (`grader_ro`, SELECT only, 30 s timeout, TEMP revoked; the grader runs through it). Live agent runner not started |
 | 8 | Presenter (chart from result shape, written answer, SQL always visible) | Not started |
 | 9 | Evaluation harness | Done and working |
 | 10 | Tracing (Langfuse) | Not started |
 
-Build order: grader, naive agent, schema catalog, example bank (built; the example rows ex-a and ex-b were tested and dropped), execute-check-refine loop (R1 error retry done, then R2 empty-result retry and R3 decline review, then ex-a and ex-b re-run on the best loop row), safe runner, Streamlit UI, tracing and CI, optional self-consistency voting, final held-out run, README with the ablation table (section 13).
+Build order: grader, naive agent, schema catalog, example bank (built; the example rows ex-a and ex-b were tested and dropped), execute-check-refine loop (R1 to R3b done), then the order of D40: conservative date finder (done), one shared runner, safe runner, answer-correctness score, ex-a re-run on the loop, Streamlit flow, final held-out run and README with the ablation table (section 13).
 
 **Tech stack:** PostgreSQL 16 in Docker, Python and pandas for loading, sqlglot for validation, LangGraph for orchestration, Streamlit for UI, Langfuse for tracing, YAML plus a Python grader for the benchmark, GitHub Actions for CI.
 
@@ -482,6 +482,30 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 - **Model version logging added after the run:** from now on every `.jsonl` record and every loop attempt stores `model` and `system_fingerprint` (null if missing). Rows run before 2 November did not record them, so whether the model behind "gpt-4o" changed between 27 October and 2 November cannot be checked.
 - **Decision (D34): kept as the base for R2 and R3, no score gain.** Report: `results/analysis_r1_vs_v2b_2026-11-02.md`. Commits 07c1a2c (code, tests, prediction), 97ce2e0 (amendment), e5f6c29 (results), 400e8f8 (D34 and inventory).
 
+### Step T: Date fact check and system decline (rows R3 and R3b, D38, D39) - R3b is the current best
+
+**R2** (empty-result retry, D37) is recorded in section 14 and in `DECISIONS.md`: 59.67 / 84, no gain; it fired only on u_08 and t4_03.
+
+**R3 (D38): decline review and empty fact** (`grader/date_facts.py`, `grader/run_r3.py`). If the model declines with a claim that a period is missing, the period is not open-ended, and the tables hold rows for it, the question goes back once with that fact. If the SQL returns nothing and its period has no rows, a fact line is added to the R2 retry message. Result: **59.67 / 84** (60, 60, 59; tier 0 6.33). The review never fired. The empty fact fired on u_08 in 3 of 3 runs and the model answered with a made-up `SELECT 0` every time. u_05 was answered with SQL in 2 runs on attempt 1 (variation). Report: `results/analysis_r3_vs_r2_2026-11-02.md`.
+
+**R3b (D39): system decline for proven-empty periods** (`grader/run_r3b.py`). When the SQL returns 0 rows or only NULLs and the date finder shows its period has no rows in any table, the loop stops without another model call and returns "NO_QUERY: No data: the tables have no rows for the period X to Y." The prediction was written before the run (`results/r3b_prediction_2026-11-02.md`, with a dry run on saved results).
+
+| Run | Tier 0 | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Total |
+|---|---|---|---|---|---|---|
+| R3b run 1 | 8/8 | 34/35 | 17/25 | 3/12 | 0/4 | 62 |
+| R3b run 2 | 8/8 | 34/35 | 17/25 | 2/12 | 0/4 | 61 |
+| R3b run 3 | 8/8 | 34/35 | 17/25 | 3/12 | 0/4 | 62 |
+| **R3b mean** | 8.00 | 34.00 | 17.00 | 2.67 | 0.00 | **61.67** (R3 59.67, v2b_fresh 60.00) |
+
+- **Caused by the loop (+1.00):** u_08 went from 0/3 to 3/3: the system decline fired in 3 of 3 runs, with one attempt and no second model call. It fired on no question in tiers 1 to 4.
+- **Run-to-run variation (+1.00):** u_05 (+2), t2_09 (+1), t2_12 (+1), t1_18 (-1), no loop activity. Attempt-1 replies differ between R3 and R3b in 111 of 252 question-runs even at temperature 0; the serving fingerprints changed again (`fp_7c2c459cd0`, `fp_e665f1271d`).
+- **The decline review fired for the first time:** t1_12 run 2 (a false decline for February 2026, which has rows); the retry passed. The prediction expected 0 firings.
+- **Failures:** 67 over 3 runs (R3 73, v2b_fresh 72); groups a, b and c are 0; 65 of 67 are wrong shape or wrong values; t4_03 still returns 0 rows in 2 of 3 runs.
+- **Loop and cost:** retry rate 3.2%, mean attempts 1.052, cost $0.00234 per question (+8% vs v2b_fresh), p50 / p95 model latency 1.22 / 2.47 s.
+- **Report:** `results/analysis_r3b_vs_r3_2026-11-05.md`. Commit 2ed1646 (results).
+
+**Date finder made conservative (D40 step 1, 5 Nov).** An external review found that the old finder read `NOT (zeitpunkt >= '2026-07-01')` as "July 2026 onward", which could trigger a wrong system decline. `find_periods_in_sql` now returns a period only when it fully understands every condition on zeitpunkt: comparisons of the bare column (optionally table-qualified or cast to DATE) with date literals, BETWEEN, and EXTRACT(YEAR|MONTH FROM zeitpunkt) = n, as direct parts of a WHERE clause joined by AND. Anything else (NOT, OR, CASE, other functions such as DATE_TRUNC, HAVING, JOIN ON, subqueries inside expressions, set operations, differing periods in CTEs, unparseable SQL) returns `UNKNOWN`, and `empty_fact_decision` then does not fire. Because JOIN ON counts, a query that joins on zeitpunkt never fires the system decline. 42 date-finder tests (new ones for each unknown shape and for the three u_08 SQL variants of R3b) and all 94 offline tests pass. Dry run on the 30 saved empty results of R2, R3 and R3b: no decision changed (u_08 still fires, t4_03 does not): `results/date_finder_fix_check_2026-11-05.md`. The decline review (text reasons) is unchanged.
+
 ---
 
 ## 9. Specific cases still open from the runs so far
@@ -502,7 +526,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ## 10. Decisions made
 
-**All decisions now live in `DECISIONS.md` (D1 to D38), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) the two example rows ex-a and ex-b (D31, D32) and the narrower decline rule df (D33).
+**All decisions now live in `DECISIONS.md` (D1 to D40), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) the two example rows ex-a and ex-b (D31, D32) and the narrower decline rule df (D33).
 
 **Principles that came out of the work** (also at the end of `DECISIONS.md`):
 - The grader must exist and be validated before any agent code.
@@ -549,15 +573,17 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ## 13. What to do next (in order)
 
-1. **Execute-check-refine loop** (the main prompt stays v2b; no more prompt-wording rows). Built once as a plain Python loop with an on/off switch per check, then moved into LangGraph. Each check is measured as its own row (3 runs, temperature 0, prediction written before the run):
-   - **R1: error retry.** If the SQL fails to run, send the error message back and let the model try again (at most 3 attempts in total). Step E predicts it fixes crashes (t3_12, t3_04, t4_01) but not wrong logic (t4_02, t4_04); expected gain about +2 to +4.
-   - **R2: R1 + empty-result retry.** If the SQL returns 0 rows or only NULLs, tell the model and let it try again. Before building it, count how many gold queries legitimately return 0 rows or NULL, so a correct empty answer is not "corrected". Watch u_08 (July 2026): an empty result may lead to a correct decline.
-   - **R3: R2 + decline review (O14).** If the model declines with a date claim, check the database for rows in that period; if rows exist, send the question back once with that fact. u_01 to u_07 must stay declined.
-   - For every loop row, record: retry rate, attempts per question, p95 latency, tokens and cost per question.
-2. **Re-run ex-a and ex-b unchanged on top of the best loop row**, to see whether the examples keep their shape gain (40 down to 16 and 13) once false declines are caught.
-3. **Production pieces:** the agent's safe runner (sqlglot check that it is a single SELECT, EXPLAIN dry run, row cap, timeout, read-only role), Streamlit UI with charts and visible SQL, Langfuse tracing, benchmark in CI.
-4. **Optional, only if time allows after step 3:** self-consistency voting (5 candidates at temperature above 0, run all, pick the most common result), as its own row with its accuracy vs cost trade-off.
-5. **Final held-out run, README and Medium article.** Run the final configuration on heldout_smard.yaml (3 runs, per-tier totals only) and put it next to the 19.33 / 30 starting point.
+Order from D40 (no new prompt or loop variants for now):
+
+1. **Conservative date finder** (done 5 Nov, Step T): unsupported SQL gives "unknown" instead of a period, and the system decline never fires on it.
+2. **One shared runner with a config per row**, instead of the copied runner files (`run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py`, ...).
+3. **Safe runner** before any UI: single SELECT only, must read a table, row cap, timeout, read-only role.
+4. **Answer-correctness score** next to the strict score (required answer columns per gold item), applied to all saved rows.
+5. **ex-a re-run on top of the loop (R3b)** as the last experiment.
+6. **One complete flow in Streamlit:** question -> SQL -> result -> explanation.
+7. **Final held-out run and README** with per-tier results.
+
+Optional if time allows: Langfuse tracing, CI, self-consistency voting, ex-b re-run, second-opinion check for false declines.
 
 **Also worth deciding later:** whether to relax the column-count rule (D19), adding German-language questions that avoid the schema words (O8), and an "ask back" behaviour for ambiguous questions (O10: t1_22, t2_25).
 
@@ -582,7 +608,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | + R2 empty-result retry | 59.67 / 84 (71.0%): no gain against v2b_fresh 60.00; fires only on u_08 and t4_03, fixes neither (u_08 never declined, t4_03 still 0 rows) |
 | + R3 decline review and empty fact (O14) | 59.67 / 84 (71.0%): same as R2, no gain; the review never fired (no false declines on this base); the empty fact fired on u_08 but the model answered `SELECT 0` instead of declining |
 | + R3b system decline for proven-empty periods (replaces the empty fact) | 61.67 / 84 (73.4%): +2.00 over R3, +1.67 over v2b_fresh; u_08 now passes 3/3 (+1.00, caused by the loop, no second model call, no `SELECT 0`); no system decline on tiers 1-4; tier 0 is 8/8 in all runs; the other +1.00 is run-to-run variation (u_05, t2_09, t2_12, t1_18); the decline review fired once (t1_12, fixed a false decline). Report: `results/analysis_r3b_vs_r3_2026-11-05.md` |
-| + ex-a and ex-b re-run on top of the best loop row | to do |
+| + ex-a re-run on top of R3b (last experiment, D40; ex-b re-run optional) | to do |
 | + self-consistency voting (optional) | to do |
 
 **Held-out set (30 items, never used for tuning)**
@@ -609,7 +635,7 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - v2b2 (dropped): `schema_catalog_v2b2.py`, `run_v2b2.py`
 
 **The execute-check-refine loop, in `grader/` (new files; Step S):**
-- `agent_loop.py` (`run_question(question, switches, max_attempts)`; R1 error retry built, R2 and R3 raise `NotImplementedError`), `run_r1.py` (the R1 runner), `tests/test_agent_loop.py` (22 offline tests, no API)
+- `agent_loop.py` (`run_question(question, switches, max_attempts)`; switches for error retry, empty retry, decline review and system decline), `run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py` (the row runners; D40 will replace them with one shared runner), `date_facts.py` (date finder, conservative since D40), `tests/test_agent_loop.py` and `tests/test_date_facts.py` (94 offline tests in total, no API)
 - `result_logging.py` was edited once, on 2 Nov: records now also carry `model` and `system_fingerprint`
 
 **Gold-file tools, in `grader/` (new since the v2 series):**
@@ -643,6 +669,9 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - `exb_run{1,2,3}_2026-10-31.log` and `.jsonl`, `exb_retrieval_2026-10-31.csv`, `exb_prediction_2026-10-31.md`, `analysis_exb_2026-10-31.md` (Step Q)
 - `false_declines_inventory_2026-10-31.md` (the 86 false declines of ex-a and ex-b, grouped), `df_run{1,2,3}_2026-10-31.log` and `.jsonl`, `df_prediction_2026-10-31.md`, `analysis_df_vs_v2b_2026-10-31.md` (Step R); `_stdout_df_run3.txt` and `_stdout_df_runs12_crashed_run3.txt` (console output; the second one ends with the credit error of the aborted run 3)
 - `r1_run{1,2,3}_2026-11-02.log` and `.jsonl` (the `.jsonl` also has the full attempt list per question), `r1_prediction_2026-11-01.md` (with the amendment), `analysis_r1_vs_v2b_2026-11-02.md`, `failure_inventory_r1_v2b_2026-11-02.md` (failure groups for R1 and v2b, the gold queries that return nothing, and the model-version check), `fewer_columns_review_2026-11-02.md` (Step S)
+- `r2_run{1,2,3}_2026-11-02.log` and `.jsonl`, `r2_prediction_2026-11-02.md`, `analysis_r2_vs_v2b_fresh_2026-11-02.md` (R2); `v2b_fresh_run{1,2,3}_2026-11-02.log` and `.jsonl`, `analysis_v2b_fresh_2026-11-02.md` (the fresh v2b base with model logging)
+- `r3_run{1,2,3}_2026-11-02.log` and `.jsonl`, `r3_prediction_2026-11-02.md`, `date_facts_dryrun_2026-11-02.md`, `analysis_r3_vs_r2_2026-11-02.md` (R3, Step T)
+- `r3b_run{1,2,3}_2026-11-05.log` and `.jsonl` (the `.jsonl` has the full attempt list and `system_declined` per question), `r3b_prediction_2026-11-02.md`, `analysis_r3b_vs_r3_2026-11-05.md` (R3b, current best), `date_finder_fix_check_2026-11-05.md` (old vs conservative finder on all saved empty results)
 - `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt`, `_stdout_exa.txt`, `_stdout_exb.txt`, `_stdout_df_run3.txt`, `_stdout_df_runs12_crashed_run3.txt`, `_stdout_r1.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
 
 **What to commit:** loader scripts, grader, benchmark YAML, one small sample CSV, README with attribution. **Never commit:** `data/raw/`, `.env`, credentials. The repository exists and is on GitHub (private); see section 12, item 6.
@@ -669,4 +698,4 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 Paste this as your first message in the new chat, and attach this file (and `DECISIONS.md`):
 
-> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D38). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0: naive baseline 46.0/84, schema-linked 46.7, plus decline option 55.3, current base catalog v2b 60.7. Rows tested and dropped: v2c, v2b2 (wording), ex-a and ex-b (examples: fewer shape failures but 35 and 51 false declines), and df (narrower decline rule: 52.0, 30 false declines, D33). Three attempts to change decline behaviour through the prompt all backfired, so prompt-wording work has stopped; the prompt stays v2b. A held-out set of 30 questions exists (v2b starting point 19.33/30), used again only for the final run, per-tier totals only. Noise is about 2 to 4 points per run. Next: an execute-check-refine loop on top of v2b, built as a plain Python loop with switches, measured as rows R1 (error retry), R2 (+ empty-result retry), R3 (+ decline review against the database), then ex-a and ex-b re-run on top, then safe runner, Streamlit, tracing, CI, optional voting, and the final held-out run and README. Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
+> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D40). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Over 3 runs at temperature 0: naive baseline 46.0/84, schema-linked 46.7, plus decline option 55.3, catalog v2b 60.7 (fresh re-run 60.00). **The best configuration is now R3b: 61.67/84 (62, 61, 62), the v2b prompt with an execute-check-refine loop on top (error retry, empty-result retry, decline review, and a system decline when the SQL's period is proven to have no rows; D39).** The loop adds about +1 point on the exam, from u_08 (July 2026, no data), plus occasional rescued false declines; the rest of the gain over R3 is run-to-run noise. Rows tested and dropped: v2c, v2b2 (wording), ex-a and ex-b (examples: fewer shape failures but 35 and 51 false declines), df (narrower decline rule, D33). Prompt-wording work has stopped; the prompt stays v2b. A held-out set of 30 questions exists (v2b starting point 19.33/30), used again only for the final run, per-tier totals only. Noise is about 2 to 4 points per run. The date finder is now conservative (unsupported SQL gives UNKNOWN, no system decline). Next steps (D40, no new prompt or loop variants for now): (2) one shared runner with a config per row; (3) safe runner (single SELECT, must read a table, row cap, timeout, read-only role) before any UI; (4) an answer-correctness score next to the strict score, applied to all saved rows; (5) ex-a re-run on top of R3b as the last experiment; (6) one complete question -> SQL -> result -> explanation flow in Streamlit; (7) final held-out run and README with per-tier results. Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.

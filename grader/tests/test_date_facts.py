@@ -92,10 +92,106 @@ class TestSqlPeriods(unittest.TestCase):
         self.assertEqual(df.find_periods_in_sql("SELECT SUM(mwh) FROM erzeugung"), [])
         self.assertEqual(df.find_periods_in_sql("this is ((( not sql"), [])
 
-    def test_one_period_per_select(self):
+    def test_union_with_two_periods_is_unknown(self):
         sql = ("SELECT 1 FROM erzeugung WHERE zeitpunkt >= '2024-01-01' AND zeitpunkt < '2025-01-01' "
                "UNION ALL SELECT 2 FROM erzeugung WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01'")
-        self.assertEqual(df.find_periods_in_sql(sql), [(D(2024, 1, 1), D(2025, 1, 1)), (D(2025, 1, 1), D(2026, 1, 1))])
+        self.assertEqual(df.find_periods_in_sql(sql), df.UNKNOWN)
+
+    def test_cte_and_outer_select_with_the_same_period(self):
+        sql = ("WITH j AS (SELECT zeitpunkt, mwh FROM erzeugung WHERE zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01') "
+               "SELECT SUM(mwh) FROM j WHERE energietraeger IS NOT NULL")
+        self.assertEqual(df.find_periods_in_sql(sql), [(D(2026, 7, 1), D(2026, 8, 1))])
+
+    def test_cte_and_outer_select_with_different_periods_is_unknown(self):
+        sql = ("WITH j AS (SELECT zeitpunkt, mwh FROM erzeugung WHERE zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01') "
+               "SELECT SUM(mwh) FROM j WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2025-02-01'")
+        self.assertEqual(df.find_periods_in_sql(sql), df.UNKNOWN)
+
+    def test_zeitpunkt_outside_conditions_is_fine(self):
+        sql = ("SELECT zeitpunkt, DATE_TRUNC('month', zeitpunkt) AS m, SUM(mwh) FROM erzeugung "
+               "WHERE zeitpunkt >= '2025-01-01' AND zeitpunkt < '2026-01-01' GROUP BY zeitpunkt ORDER BY zeitpunkt")
+        self.assertEqual(df.find_periods_in_sql(sql), [(D(2025, 1, 1), D(2026, 1, 1))])
+        self.assertEqual(df.find_periods_in_sql("SELECT DATE_TRUNC('month', zeitpunkt), SUM(mwh) FROM erzeugung GROUP BY 1"), [])
+
+    def test_qualified_column_and_flipped_comparison(self):
+        sql = "SELECT 1 FROM erzeugung e WHERE '2026-07-01' <= e.zeitpunkt AND e.zeitpunkt < '2026-08-01'"
+        self.assertEqual(df.find_periods_in_sql(sql), [(D(2026, 7, 1), D(2026, 8, 1))])
+
+    def test_open_ended_bound_stays_supported(self):
+        p = df.find_periods_in_sql("SELECT 1 FROM erzeugung WHERE zeitpunkt >= '2026-07-01'")
+        self.assertEqual(p[0][0], D(2026, 7, 1))
+
+    # ---- shapes that must give UNKNOWN (D40)
+
+    def unknown(self, sql):
+        self.assertEqual(df.find_periods_in_sql(sql), df.UNKNOWN, sql)
+
+    def test_not_is_unknown(self):
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE NOT (zeitpunkt >= '2026-07-01')")
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE NOT (zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01')")
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE zeitpunkt NOT BETWEEN '2026-07-01' AND '2026-07-31'")
+
+    def test_or_is_unknown(self):
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE zeitpunkt < '2024-01-01' OR zeitpunkt >= '2026-01-01'")
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE energietraeger = 'Erdgas' "
+                     "AND (zeitpunkt >= '2026-07-01' OR zeitpunkt < '2024-01-01')")
+
+    def test_case_is_unknown(self):
+        self.unknown("SELECT SUM(CASE WHEN zeitpunkt >= '2026-07-01' THEN mwh END) FROM erzeugung")
+        self.unknown("SELECT SUM(CASE WHEN zeitpunkt >= '2026-07-01' THEN mwh END) FROM erzeugung "
+                     "WHERE zeitpunkt >= '2026-01-01' AND zeitpunkt < '2027-01-01'")
+
+    def test_function_other_than_extract_is_unknown(self):
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE DATE_TRUNC('month', zeitpunkt) = '2026-07-01'")
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE TO_CHAR(zeitpunkt, 'YYYY-MM') = '2026-07'")
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE zeitpunkt + INTERVAL '1 day' >= '2026-07-01'")
+
+    def test_having_only_is_unknown(self):
+        self.unknown("SELECT energietraeger, SUM(mwh) FROM erzeugung GROUP BY energietraeger "
+                     "HAVING MAX(zeitpunkt) >= '2026-07-01'")
+
+    def test_join_on_is_unknown(self):
+        self.unknown("SELECT 1 FROM erzeugung e JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt "
+                     "WHERE e.zeitpunkt >= '2026-07-01' AND e.zeitpunkt < '2026-08-01'")
+        self.unknown("SELECT 1 FROM erzeugung e JOIN verbrauch v ON e.zeitpunkt = v.zeitpunkt")
+
+    def test_expression_subquery_is_unknown(self):
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE mwh > "
+                     "(SELECT AVG(mwh) FROM erzeugung WHERE zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01')")
+        self.unknown("SELECT SUM(mwh) FROM erzeugung WHERE NOT EXISTS "
+                     "(SELECT 1 FROM verbrauch WHERE zeitpunkt >= '2026-07-01')")
+
+    def test_unsupported_comparison_is_unknown(self):
+        self.unknown("SELECT 1 FROM erzeugung WHERE zeitpunkt <> '2026-07-01'")
+        self.unknown("SELECT 1 FROM erzeugung WHERE zeitpunkt IN ('2026-07-01', '2026-07-02')")
+        self.unknown("SELECT 1 FROM erzeugung WHERE zeitpunkt >= '2026-07-01' AND zeitpunkt < NOW()")
+
+    def test_month_without_year_and_contradictions_are_unknown(self):
+        self.unknown("SELECT 1 FROM erzeugung WHERE EXTRACT(MONTH FROM zeitpunkt) = 7")
+        self.unknown("SELECT 1 FROM erzeugung WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025 AND EXTRACT(YEAR FROM zeitpunkt) = 2026")
+        self.unknown("SELECT 1 FROM erzeugung WHERE zeitpunkt >= '2026-08-01' AND zeitpunkt < '2026-07-01'")
+
+    def test_unparseable_sql_mentioning_zeitpunkt_is_unknown(self):
+        self.unknown("SELECT FROM WHERE zeitpunkt >= ((( '2026-07-01'")
+
+    def test_year_combined_with_a_bound(self):
+        sql = "SELECT 1 FROM erzeugung WHERE EXTRACT(YEAR FROM zeitpunkt) = 2025 AND zeitpunkt >= '2025-06-01'"
+        self.assertEqual(df.find_periods_in_sql(sql), [(D(2025, 6, 1), D(2026, 1, 1))])
+
+    # ---- the u_08 SQL of R3b (three variants, runs 1 to 3): July 2026
+
+    U08 = [
+        "SELECT SUM(mwh) AS total_wind_generation\nFROM erzeugung\nWHERE zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01'\n"
+        "AND energietraeger IN ('Wind Onshore', 'Wind Offshore');",
+        "SELECT SUM(mwh) AS total_wind_generation\nFROM erzeugung\nWHERE zeitpunkt >= '2026-07-01' AND zeitpunkt < '2026-08-01'\n"
+        "AND energietraeger IN ('Wind Onshore', 'Wind Offshore');",
+        "SELECT SUM(mwh) \nFROM erzeugung \nWHERE energietraeger IN ('Wind Onshore', 'Wind Offshore') \n"
+        "AND zeitpunkt >= '2026-07-01' \nAND zeitpunkt < '2026-08-01';",
+    ]
+
+    def test_u08_variants_give_july_2026(self):
+        for sql in self.U08:
+            self.assertEqual(df.find_periods_in_sql(sql), [(D(2026, 7, 1), D(2026, 8, 1))], sql)
 
 
 class TestDecisions(unittest.TestCase):
@@ -164,6 +260,25 @@ class TestDecisions(unittest.TestCase):
         r = df.empty_fact_decision("SELECT SUM(mwh) FROM erzeugung WHERE energietraeger = 'Erdgas'", self.conn)
         self.assertEqual(r["periods"], [])
         self.assertFalse(r["fire"])
+
+    def test_system_decline_still_fires_on_the_u08_sql(self):
+        for sql in TestSqlPeriods.U08:
+            r = df.empty_fact_decision(sql, self.conn)
+            self.assertTrue(r["fire"], sql)
+            self.assertFalse(r["unknown"])
+            self.assertEqual((r["periods"][0]["start"], r["periods"][0]["end"]), (D(2026, 7, 1), D(2026, 8, 1)))
+
+    def test_empty_fact_does_not_fire_when_the_period_is_unknown(self):
+        # Every one of these would be read as "July 2026 onward" or "July 2026" by a naive finder.
+        for sql in ["SELECT SUM(mwh) FROM erzeugung WHERE NOT (zeitpunkt >= '2026-07-01')",
+                    "SELECT SUM(mwh) FROM erzeugung WHERE zeitpunkt < '2024-01-01' OR zeitpunkt >= '2026-07-01'",
+                    "SELECT SUM(CASE WHEN zeitpunkt >= '2026-07-01' THEN mwh END) FROM erzeugung",
+                    "SELECT SUM(mwh) FROM erzeugung WHERE DATE_TRUNC('month', zeitpunkt) = '2026-07-01'",
+                    "SELECT energietraeger FROM erzeugung GROUP BY energietraeger HAVING MAX(zeitpunkt) >= '2026-07-01'"]:
+            r = df.empty_fact_decision(sql, self.conn)
+            self.assertFalse(r["fire"], sql)
+            self.assertTrue(r["unknown"], sql)
+            self.assertEqual(r["periods"], [])
 
 
 if __name__ == "__main__":
