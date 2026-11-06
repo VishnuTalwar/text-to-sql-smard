@@ -1,0 +1,15 @@
+# Row r3b. Reproduces the setup of run_r3b.py (kept only to reproduce earlier results).
+description: "r3 with the empty fact replaced by a system decline (D39); current best"
+prompt: v2b
+examples: none
+switches:
+  error_retry: true
+  empty_retry: true
+  decline_review: true
+  empty_fact_decline: true
+max_attempts: 3
+model: gpt-4o-2024-08-06
+temperature: 0
+seed: 0
+runs: 3
+tag: r3b

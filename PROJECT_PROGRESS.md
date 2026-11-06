@@ -1,6 +1,6 @@
 # Text-to-SQL Agent (SMARD): Full Progress Handoff
 
-**Last updated:** 31 October 2026
+**Last updated:** 6 November 2026
 **Purpose of this file:** a complete record of where the project stands, so a brand-new chat session (or a new laptop, or you after a long break) can pick up without any other context. It is written in plain language on purpose. Read it top to bottom once, then use the section headings to jump around.
 
 **Owner:** Vishnu (M.Sc. Data and Knowledge Engineering, OVGU Magdeburg)
@@ -576,7 +576,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 Order from D40 (no new prompt or loop variants for now):
 
 1. **Conservative date finder** (done 5 Nov, Step T): unsupported SQL gives "unknown" instead of a period, and the system decline never fires on it.
-2. **One shared runner with a config per row**, instead of the copied runner files (`run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py`, ...).
+2. **One shared runner with a config per row**, instead of the copied runner files (`run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py`, ...). **Done 6 Nov 2026:** `grader/run.py` and `grader/configs/*.yaml`; prompts and records identical to the old runners (`grader/tests/test_run_equivalence.py`); every run also writes a manifest.
 3. **Safe runner** before any UI: single SELECT only, must read a table, row cap, timeout, read-only role.
 4. **Answer-correctness score** next to the strict score (required answer columns per gold item), applied to all saved rows.
 5. **ex-a re-run on top of the loop (R3b)** as the last experiment.
@@ -635,7 +635,8 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - v2b2 (dropped): `schema_catalog_v2b2.py`, `run_v2b2.py`
 
 **The execute-check-refine loop, in `grader/` (new files; Step S):**
-- `agent_loop.py` (`run_question(question, switches, max_attempts)`; switches for error retry, empty retry, decline review and system decline), `run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py` (the row runners; D40 will replace them with one shared runner), `date_facts.py` (date finder, conservative since D40), `tests/test_agent_loop.py` and `tests/test_date_facts.py` (94 offline tests in total, no API)
+- **The shared runner (D40 step 2, 6 Nov 2026):** `run.py` (`python run.py --config configs/<row>.yaml [--runs N]`), `configs/*.yaml` (one per row: naive, schema_linked, decline, v2a, v2b, v2b2, v2c, ex-a, ex-b, df, r1, r2, r3, r3b), `README.md` (how to run), `tests/test_run_equivalence.py` (prompt and record equivalence with the old runners, fake model, no API; 104 offline tests in total). Every run also writes `results/<tag>_run{n}_<date>.manifest.json` (config, prompt hashes, gold hash, git commit, versions). `agent_loop.call_openai` got optional `model`, `temperature`, `seed` arguments (defaults unchanged). The old `run_*.py` files stay untouched, only to reproduce earlier results.
+- `agent_loop.py` (`run_question(question, switches, max_attempts)`; switches for error retry, empty retry, decline review and system decline), `run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py` (the row runners; D40 will replace them with one shared runner), `date_facts.py` (date finder, conservative since D40), `tests/test_agent_loop.py` and `tests/test_date_facts.py` (104 offline tests in total, no API)
 - `result_logging.py` was edited once, on 2 Nov: records now also carry `model` and `system_fingerprint`
 
 **Gold-file tools, in `grader/` (new since the v2 series):**

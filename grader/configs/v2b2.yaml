@@ -1,0 +1,18 @@
+# Row v2b2. Reproduces the setup of run_v2b2.py (kept only to reproduce earlier results).
+# Note: the original results of this row were produced before 2 Nov 2026 with the model alias
+# "gpt-4o" (D36). This config pins the dated snapshot, as every run since D36 does, so a new run
+# of it is comparable with R1 to R3b but not exactly the model of the old logs.
+description: "v2b with one word changed in the Anrainer description (D27), dropped"
+prompt: v2b2
+examples: none
+switches:
+  error_retry: false
+  empty_retry: false
+  decline_review: false
+  empty_fact_decline: false
+max_attempts: 1
+model: gpt-4o-2024-08-06
+temperature: 0
+seed: 0
+runs: 3
+tag: v2b2

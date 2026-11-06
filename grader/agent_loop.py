@@ -132,17 +132,19 @@ def _period_json(p: dict) -> dict:
     return {"start": p["start"].date().isoformat(), "end": last.isoformat(), "rows": p["rows"]}
 
 
-def call_openai(messages: list[dict], client=None) -> dict:
-    """One chat completion with the fixed settings (naive_agent.MODEL, temperature 0, seed 0)."""
+def call_openai(messages: list[dict], client=None, model: str = MODEL,
+                temperature: float = 0, seed: int = SEED) -> dict:
+    """One chat completion. The defaults are the fixed settings of every row so far
+    (naive_agent.MODEL, temperature 0, seed 0); run.py passes the values of a config."""
     if client is None:
         from openai import OpenAI
         client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
     start = time.perf_counter()
     response = client.chat.completions.create(
-        model=MODEL,
+        model=model,
         messages=messages,
-        temperature=0,
-        seed=SEED,
+        temperature=temperature,
+        seed=seed,
     )
     latency = time.perf_counter() - start
     usage = response.usage

@@ -1,0 +1,15 @@
+# Row r2. Reproduces the setup of run_r2.py (kept only to reproduce earlier results).
+description: "r1 + empty-result retry (D37)"
+prompt: v2b
+examples: none
+switches:
+  error_retry: true
+  empty_retry: true
+  decline_review: false
+  empty_fact_decline: false
+max_attempts: 3
+model: gpt-4o-2024-08-06
+temperature: 0
+seed: 0
+runs: 3
+tag: r2
