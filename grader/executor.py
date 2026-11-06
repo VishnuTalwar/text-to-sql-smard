@@ -36,3 +36,25 @@ def run_query(sql: str) -> list[tuple]:
         raise QueryError(str(exc)) from exc
     finally:
         conn.close()
+
+
+def run_query_with_columns(sql: str) -> tuple[list[str], list[tuple]]:
+    """Same execution path as run_query (role grader_ro, fresh connection, QueryError on any
+    failure), but also returns the result column names. Used by the answer comparator (D42);
+    run_query itself is unchanged."""
+    conn = psycopg2.connect(
+        host=os.environ.get("POSTGRES_HOST", "localhost"),
+        port=os.environ.get("POSTGRES_PORT", "5432"),
+        dbname=os.environ.get("POSTGRES_DB", "smard"),
+        user=os.environ["GRADER_DB_USER"],
+        password=os.environ["GRADER_DB_PASSWORD"],
+    )
+    try:
+        with conn.cursor() as cur:
+            cur.execute(sql)
+            cols = [d[0] for d in cur.description]
+            return cols, cur.fetchall()
+    except Exception as exc:
+        raise QueryError(str(exc)) from exc
+    finally:
+        conn.close()

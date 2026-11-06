@@ -6,7 +6,11 @@
 # required:     columns (by their gold column names) that an answer must contain.
 # alternatives: only where the question is honestly ambiguous between two measures (rule 6). An answer
 #               counts if it contains all of `required`, OR all columns of any one list in `alternatives`.
+# label_only:  (D42) gold columns whose values are string literals written in the gold SQL (CASE ... THEN 'viel Solar'),
+#               found from the gold SQL alone. They only have to group the rows the same way (a consistent one-to-one
+#               renaming), not carry the same text.
 # All other gold columns are optional: extra columns never hurt, they just are not required.
+# Review change (D42): t4_04 also accepts [beginn, ende] as an alternative, same as t4_02.
 items:
 - id: t1_01
   required: [mwh]
@@ -207,6 +211,7 @@ items:
 - id: t2_15
   required: [kategorie, mwh]
   alternatives: []
+  label_only: [kategorie]
   reason: 'rule 2: "Wie viel Ökostrom ... im Vergleich zum konventionellen Strom"; amounts of both categories'
 - id: t2_16
   required: [monat, eur_mwh]
@@ -280,6 +285,7 @@ items:
 - id: t3_08
   required: [typ, eur_mwh]
   alternatives: []
+  label_only: [typ]
   reason: 'rules 2 and 4: "Was power more expensive on weekends or on weekdays"; both prices are what is compared, order is the answer'
 - id: t3_09
   required: [eur_mwh]
@@ -292,6 +298,7 @@ items:
 - id: t3_11
   required: [gruppe, eur_mwh]
   alternatives: []
+  label_only: [gruppe]
   reason: 'rules 2 and 5: "was the price different in quarter-hours with a lot of solar ... compared to the rest?"; the count n is optional'
 - id: t3_12
   required: [tag, abweichung_prozent]
@@ -316,4 +323,5 @@ items:
   required: [viertelstunden]
   alternatives:
   - [stunden]
-  reason: 'rules 5 and 6: "What was the longest run of consecutive quarter-hours"; the length, in quarter-hours or hours; start and end optional'
+  - [beginn, ende]
+  reason: 'rules 5 and 6: "What was the longest run of consecutive quarter-hours"; read as the length (quarter-hours or hours) or, as in t4_02, as the period (beginn, ende) (review decision, D42)'

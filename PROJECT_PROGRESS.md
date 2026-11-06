@@ -179,7 +179,7 @@ Mental model: a new analyst on their first day. Smart, but has never seen this d
 | 3 | Example bank (about 30 question/SQL pairs, retrieved by similarity) | Built (30 pairs, D30). The two example rows ex-a and ex-b were tested and dropped (D31, D32); they get re-run on top of the loop (section 13) |
 | 4 | Query writer (the AI call) | Built as the naive version |
 | 5 | Validator (sqlglot AST check plus `EXPLAIN` dry run) | Not started |
-| 6 | Retry loop | Built and measured as rows R1 to R3b (D34, D37, D38, D39): error retry, empty-result retry, decline review, system decline for proven-empty periods. Best configuration: R3b, 61.67 / 84 (`grader/agent_loop.py`, `grader/date_facts.py`, `grader/run_r3b.py`). The next step is one shared runner instead of copied runner files (D40) |
+| 6 | Retry loop | Built and measured as rows R1 to R3b (D34, D37, D38, D39): error retry, empty-result retry, decline review, system decline for proven-empty periods. Best configuration: R3b, 61.67 / 84 (`grader/agent_loop.py`, `grader/date_facts.py`, `grader/run_r3b.py`). The shared runner, the safe runner and the answer score are done (D40 steps 2 to 4) |
 | 7 | Safe runner (read-only role, statement timeout, row cap) | Grader side done (`grader_ro`, SELECT only, 30 s timeout, TEMP revoked; the grader runs through it). Live agent runner not started |
 | 8 | Presenter (chart from result shape, written answer, SQL always visible) | Not started |
 | 9 | Evaluation harness | Done and working |
@@ -578,7 +578,7 @@ Order from D40 (no new prompt or loop variants for now):
 1. **Conservative date finder** (done 5 Nov, Step T): unsupported SQL gives "unknown" instead of a period, and the system decline never fires on it.
 2. **One shared runner with a config per row**, instead of the copied runner files (`run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py`, ...). **Done 6 Nov 2026:** `grader/run.py` and `grader/configs/*.yaml`; prompts and records identical to the old runners (`grader/tests/test_run_equivalence.py`); every run also writes a manifest.
 3. **Safe runner** before any UI: single SELECT only, must read a table, row cap, timeout, read-only role. **Done 6 Nov 2026 (D41):** `grader/safe_runner.py` (four walls), limits in `grader/limits.yaml`, loop switch `safe_runner` (off in every earlier config), attack tests, dry run on history (`results/safe_runner_dryrun_2026-11-06.md`). Measured as row r3b_safe (`results/analysis_r3b_safe_vs_r3b_2026-11-06.md`): 60.00 / 84 (60, 61, 59) against R3b 61.67; 0 of 241 queries blocked, so the difference is run-to-run variation; the walls cost +0.018 s per question.
-4. **Answer-correctness score** next to the strict score (required answer columns per gold item), applied to all saved rows.
+4. **Answer-correctness score** next to the strict score (required answer columns per gold item), applied to all saved rows. **Done 6 Nov 2026 (D42):** `grader/answer_columns.yaml` (drafted blind to agent results, reviewed), `grader/answer_comparator.py`, tests, and a re-grade of all 14 saved rows (`results/answer_score_regrade_2026-11-06.md`): the answer score is +0.67 to +8.00 above the strict one; R3b is best under both (strict 61.67, answer 68.00).
 5. **ex-a re-run on top of the loop (R3b)** as the last experiment.
 6. **One complete flow in Streamlit:** question -> SQL -> result -> explanation.
 7. **Final held-out run and README** with per-tier results.
@@ -591,26 +591,28 @@ Optional if time allows: Langfuse tracing, CI, self-consistency voting, ex-b re-
 
 ## 14. The ablation table so far (to go in the final README)
 
-| Configuration | Execution accuracy (mean of 3 runs, temp 0) |
-|---|---|
-| Naive prompt, tables and columns only | 46.0 / 84 (54.8%) |
-| + schema catalog with quirk notes (keyword retrieval) | 46.7 / 84 (55.6%), not distinguishable from baseline |
-| + decline option (D22) | 55.33 / 84 (65.9%): tier 0 +7.0 (clean); tiers 1-4 +1.67, too small to separate from noise |
-| + Kernenergie note reworded (v2a, D23) | 59.67 / 84 (71.0%): t2_05 and t2_22 fixed (+2.00, clean) |
-| + metrik and preiszone descriptions (v2b, D25) | **60.67 / 84 (72.2%): current base.** t2_12, t1_32, t1_22 fixed (+3.00), side effects -1.67 |
-| v2b re-run with model logging (2 Nov, fresh base) | 60.00 / 84 (71.4%): same prompt, within noise of 60.67; every call `gpt-4o-2024-08-06` (4 fingerprints); use as the base for loop rows run after 2 Nov |
-| *tested and dropped:* v2c data date range (D26) | 57.00 / 84 (67.9%): u_08 declined, but false declines on t1_12 and t1_26 |
-| *tested and dropped:* v2b2 "countries" wording (D27) | 58.67 / 84 (69.8%): target unchanged, no gain |
-| *tested and dropped:* ex-a static 8-example block (on top of v2b) | 59.33 / 84 (70.6%): u_08 and 3 more fixed, but 35 wrong declines over 3 runs (0 for v2b); t2_12, t3_05 lost; t2_16 copies ex_20 |
-| *tested and dropped:* ex-b 3 retrieved examples (on top of v2b) | 56.33 / 84 (67.1%): shape failures fell (40 to 13) but 51 wrong declines; t2_22 and t2_23 lost |
-| *tested and dropped:* df narrower decline rule (D33, on top of v2b) | 52.00 / 84 (61.9%): u_08 declined, but 30 false declines (21 claim a year or month is missing); t1_12, t1_19, t1_22, t1_31, t1_34, t1_35, t2_09, t2_24 lost |
-| + R1 error retry (loop, on top of v2b) | 59.33 / 84 (no gain; kept as loop base, D34) |
-| + R2 empty-result retry | 59.67 / 84 (71.0%): no gain against v2b_fresh 60.00; fires only on u_08 and t4_03, fixes neither (u_08 never declined, t4_03 still 0 rows) |
-| + R3 decline review and empty fact (O14) | 59.67 / 84 (71.0%): same as R2, no gain; the review never fired (no false declines on this base); the empty fact fired on u_08 but the model answered `SELECT 0` instead of declining |
-| + R3b system decline for proven-empty periods (replaces the empty fact) | 61.67 / 84 (73.4%): +2.00 over R3, +1.67 over v2b_fresh; u_08 now passes 3/3 (+1.00, caused by the loop, no second model call, no `SELECT 0`); no system decline on tiers 1-4; tier 0 is 8/8 in all runs; the other +1.00 is run-to-run variation (u_05, t2_09, t2_12, t1_18); the decline review fired once (t1_12, fixed a false decline). Report: `results/analysis_r3b_vs_r3_2026-11-05.md` |
-| + safe runner on top of R3b (r3b_safe, D41) | 60.00 / 84 (71.4%) (60, 61, 59): -1.67 against R3b, within run-to-run noise. 0 of 241 queries blocked in the 3 runs, so nothing was caused by the walls; the 4 questions that changed (t2_09, t2_12, t3_06, u_05) are model variation. Cost of the walls: +0.018 s per question |
-| + ex-a re-run on top of R3b (last experiment, D40; ex-b re-run optional) | to do |
-| + self-consistency voting (optional) | to do |
+| Configuration | Execution accuracy, strict (mean of 3 runs, temp 0) | Answer score (D42, same runs, in brackets: gain over strict) |
+|---|---|---|
+| Naive prompt, tables and columns only | 46.0 / 84 (54.8%) | - (no .jsonl, not re-graded) |
+| + schema catalog with quirk notes (keyword retrieval) | 46.7 / 84 (55.6%), not distinguishable from baseline | - (no .jsonl, not re-graded) |
+| + decline option (D22) | 55.33 / 84 (65.9%): tier 0 +7.0 (clean); tiers 1-4 +1.67, too small to separate from noise | 58.00 / 84 (+2.67) |
+| + Kernenergie note reworded (v2a, D23) | 59.67 / 84 (71.0%): t2_05 and t2_22 fixed (+2.00, clean) | 64.00 / 84 (+4.33) |
+| + metrik and preiszone descriptions (v2b, D25) | **60.67 / 84 (72.2%): current base.** t2_12, t1_32, t1_22 fixed (+3.00), side effects -1.67 | 65.67 / 84 (+5.00) |
+| v2b re-run with model logging (2 Nov, fresh base) | 60.00 / 84 (71.4%): same prompt, within noise of 60.67; every call `gpt-4o-2024-08-06` (4 fingerprints); use as the base for loop rows run after 2 Nov | 66.33 / 84 (+6.33) |
+| *tested and dropped:* v2c data date range (D26) | 57.00 / 84 (67.9%): u_08 declined, but false declines on t1_12 and t1_26 | 60.67 / 84 (+3.67) |
+| *tested and dropped:* v2b2 "countries" wording (D27) | 58.67 / 84 (69.8%): target unchanged, no gain | 64.67 / 84 (+6.00) |
+| *tested and dropped:* ex-a static 8-example block (on top of v2b) | 59.33 / 84 (70.6%): u_08 and 3 more fixed, but 35 wrong declines over 3 runs (0 for v2b); t2_12, t3_05 lost; t2_16 copies ex_20 | 61.33 / 84 (+2.00) |
+| *tested and dropped:* ex-b 3 retrieved examples (on top of v2b) | 56.33 / 84 (67.1%): shape failures fell (40 to 13) but 51 wrong declines; t2_22 and t2_23 lost | 57.00 / 84 (+0.67) |
+| *tested and dropped:* df narrower decline rule (D33, on top of v2b) | 52.00 / 84 (61.9%): u_08 declined, but 30 false declines (21 claim a year or month is missing); t1_12, t1_19, t1_22, t1_31, t1_34, t1_35, t2_09, t2_24 lost | 58.00 / 84 (+6.00) |
+| + R1 error retry (loop, on top of v2b) | 59.33 / 84 (no gain; kept as loop base, D34) | 67.00 / 84 (+7.67) |
+| + R2 empty-result retry | 59.67 / 84 (71.0%): no gain against v2b_fresh 60.00; fires only on u_08 and t4_03, fixes neither (u_08 never declined, t4_03 still 0 rows) | 67.67 / 84 (+8.00) |
+| + R3 decline review and empty fact (O14) | 59.67 / 84 (71.0%): same as R2, no gain; the review never fired (no false declines on this base); the empty fact fired on u_08 but the model answered `SELECT 0` instead of declining | 66.00 / 84 (+6.33) |
+| + R3b system decline for proven-empty periods (replaces the empty fact) | 61.67 / 84 (73.4%): +2.00 over R3, +1.67 over v2b_fresh; u_08 now passes 3/3 (+1.00, caused by the loop, no second model call, no `SELECT 0`); no system decline on tiers 1-4; tier 0 is 8/8 in all runs; the other +1.00 is run-to-run variation (u_05, t2_09, t2_12, t1_18); the decline review fired once (t1_12, fixed a false decline). Report: `results/analysis_r3b_vs_r3_2026-11-05.md` | **68.00 / 84 (+6.33)** |
+| + safe runner on top of R3b (r3b_safe, D41) | 60.00 / 84 (71.4%) (60, 61, 59): -1.67 against R3b, within run-to-run noise. 0 of 241 queries blocked in the 3 runs, so nothing was caused by the walls; the 4 questions that changed (t2_09, t2_12, t3_06, u_05) are model variation. Cost of the walls: +0.018 s per question | 67.67 / 84 (+7.67) |
+| + ex-a re-run on top of R3b (last experiment, D40; ex-b re-run optional) | to do | to do |
+| + self-consistency voting (optional) | to do | to do |
+
+The answer score (D42, `grader/answer_comparator.py`, required columns in `grader/answer_columns.yaml`) was computed by re-grading the saved runs of every row that has a `.jsonl` file (`results/answer_score_regrade_2026-11-06.md`); the strict score is the one recorded at the time (re-running it gave the same verdict in 3,528 of 3,528 question-runs). The answer score is higher in every row (+0.67 to +8.00) because it accepts extra or missing optional columns and English labels for made-up category names; R3b is best under both scores.
 
 **Held-out set (30 items, never used for tuning)**
 
@@ -636,9 +638,10 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - v2b2 (dropped): `schema_catalog_v2b2.py`, `run_v2b2.py`
 
 **The execute-check-refine loop, in `grader/` (new files; Step S):**
-- **The shared runner (D40 step 2, 6 Nov 2026):** `run.py` (`python run.py --config configs/<row>.yaml [--runs N]`), `configs/*.yaml` (one per row: naive, schema_linked, decline, v2a, v2b, v2b2, v2c, ex-a, ex-b, df, r1, r2, r3, r3b), `README.md` (how to run), `tests/test_run_equivalence.py` (prompt and record equivalence with the old runners, fake model, no API; 104 offline tests for the shared runner step; 148 in total after the safe runner). Every run also writes `results/<tag>_run{n}_<date>.manifest.json` (config, prompt hashes, gold hash, git commit, versions). `agent_loop.call_openai` got optional `model`, `temperature`, `seed` arguments (defaults unchanged). The old `run_*.py` files stay untouched, only to reproduce earlier results.
+- **The shared runner (D40 step 2, 6 Nov 2026):** `run.py` (`python run.py --config configs/<row>.yaml [--runs N]`), `configs/*.yaml` (one per row: naive, schema_linked, decline, v2a, v2b, v2b2, v2c, ex-a, ex-b, df, r1, r2, r3, r3b), `README.md` (how to run), `tests/test_run_equivalence.py` (prompt and record equivalence with the old runners, fake model, no API; 104 offline tests for the shared runner step; 148 after the safe runner, 175 in total after the answer comparator). Every run also writes `results/<tag>_run{n}_<date>.manifest.json` (config, prompt hashes, gold hash, git commit, versions). `agent_loop.call_openai` got optional `model`, `temperature`, `seed` arguments (defaults unchanged). The old `run_*.py` files stay untouched, only to reproduce earlier results.
 - **The safe runner (D40 step 3 / D41, 6 Nov 2026):** `safe_runner.py` (`safe_execute(sql, limits)`; `python safe_runner.py` checks the 76 gold queries, `--calibrate` prints the calibration numbers), `limits.yaml` (max_plan_cost, max_rows, timeout_ms, the one place for the limits), `configs/r3b_safe.yaml` (r3b + safe_runner; run on 6 Nov, results `results/r3b_safe_run{1,2,3}_2026-11-06.*`, analysis `results/analysis_r3b_safe_vs_r3b_2026-11-06.md`), `tests/test_safe_runner.py` (attack tests and loop-switch tests, no API), `safe_runner_dryrun.py` (walls 1 and 2 on every saved agent SQL, held-out files skipped by name; wrote `results/safe_runner_dryrun_2026-11-06.md`). `agent_loop.py` got the switch `safe_runner` (attempt records then also carry `blocked`, `wall`, `reason`); `run.py` grades a blocked final answer as a fail without running it and writes the limits into the manifest.
-- `agent_loop.py` (`run_question(question, switches, max_attempts)`; switches for error retry, empty retry, decline review and system decline), `run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py` (the row runners; D40 will replace them with one shared runner), `date_facts.py` (date finder, conservative since D40), `tests/test_agent_loop.py` and `tests/test_date_facts.py` (104 offline tests for the shared runner step; 148 in total after the safe runner, no API)
+- **The answer-correctness score (D40 step 4 / D42, 6 Nov 2026):** `grader/answer_columns.yaml` (required columns, alternatives and label_only columns for the 76 gold items; drafted blind, reviewed), `grader/answer_comparator.py` (`answer_match`, `answer_compare`; reuses the strict comparator's cell comparison), `grader/tests/test_answer_comparator.py` (27 tests, gold against itself 76/76), `grader/regrade_answer_score.py` (re-grades every saved `.jsonl` with both comparators, no API), `results/answer_score_regrade_2026-11-06.md` (the result), `results/answer_columns_rules_2026-11-06.md` and `results/answer_columns_review_2026-11-06.md` (rules and review). `executor.py` got `run_query_with_columns` (new function, `run_query` unchanged). The strict comparator and `gold_set_smard.yaml` are unchanged.
+- `agent_loop.py` (`run_question(question, switches, max_attempts)`; switches for error retry, empty retry, decline review and system decline), `run_r1.py`, `run_r2.py`, `run_r3.py`, `run_r3b.py` (the row runners; D40 will replace them with one shared runner), `date_facts.py` (date finder, conservative since D40), `tests/test_agent_loop.py` and `tests/test_date_facts.py` (104 offline tests for the shared runner step; 148 after the safe runner, 175 in total after the answer comparator, no API)
 - `result_logging.py` was edited once, on 2 Nov: records now also carry `model` and `system_fingerprint`
 
 **Gold-file tools, in `grader/` (new since the v2 series):**
