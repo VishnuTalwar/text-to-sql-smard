@@ -28,6 +28,13 @@ Checks, each with an on/off switch in `switches`:
                   every table has no rows), one "Fact:" line per period goes between the
                   two lines of the empty-result message. Dates are YYYY-MM-DD, the end is
                   the last day inside the period.
+  safe_runner     implemented (D41, step 3), default OFF. Every agent query goes through
+                  safe_runner.safe_execute (four walls: static sqlglot check, EXPLAIN cost
+                  limit, read-only run with timeout and row cap, structured result). A
+                  blocked query counts like an SQL error: with error_retry on, the same
+                  conversation continues with BLOCKED_RETRY_TEXT. Each attempt then also
+                  records blocked, wall and reason. With the switch off nothing here changes
+                  and the attempt records have no such keys.
   empty_fact_decline  implemented (row R3b). When an attempt's SQL runs and is empty and
                   empty_fact_decision(sql) fires (the period it asks for has no rows in any
                   table), the loop stops WITHOUT another model call and returns a decline
@@ -54,9 +61,10 @@ from prompt_template_v2b import build_prompt as build_v2b_prompt
 
 DECLINE_MARKER = "NO_QUERY"
 
-SWITCH_NAMES = ("error_retry", "empty_retry", "decline_review", "empty_fact_decline")
+SWITCH_NAMES = ("error_retry", "empty_retry", "decline_review", "empty_fact_decline",
+                "safe_runner")
 DEFAULT_SWITCHES = {"error_retry": True, "empty_retry": False, "decline_review": False,
-                    "empty_fact_decline": False}
+                    "empty_fact_decline": False, "safe_runner": False}
 
 ERROR_RETRY_TEXT = (
     "This query failed with the following error from PostgreSQL:\n"
@@ -69,6 +77,10 @@ EMPTY_ROWS_TEXT = (
 )
 EMPTY_NULL_TEXT = (
     "This query ran but returned only NULL values.\n"
+    "Write a corrected query. Return only the SQL."
+)
+BLOCKED_RETRY_TEXT = (
+    "This query was blocked: {reason}\n"
     "Write a corrected query. Return only the SQL."
 )
 RETRY_TEXTS = {"empty_rows": EMPTY_ROWS_TEXT, "empty_null": EMPTY_NULL_TEXT}
@@ -168,13 +180,26 @@ def _check_switches(switches: dict | None) -> dict:
     return merged
 
 
+class _Blocked(Exception):
+    """Raised inside the loop when safe_execute blocks a query (carries the SafeResult)."""
+
+    def __init__(self, result):
+        super().__init__(result.reason)
+        self.result = result
+
+
 def run_question(question: str, switches: dict | None = None, max_attempts: int = 3,
-                 llm=None, execute=None, prompt_builder=None) -> dict:
-    """Answer one question. Returns a record (see the keys at the bottom)."""
+                 llm=None, execute=None, prompt_builder=None, safe_execute=None) -> dict:
+    """Answer one question. Returns a record (see the keys at the bottom).
+    safe_execute= replaces safe_runner.safe_execute (tests); only used with the safe_runner switch."""
     switches = _check_switches(switches)
     llm = llm or call_openai
     execute = execute or run_query
     prompt_builder = prompt_builder or build_v2b_prompt
+    use_safe = switches["safe_runner"]
+    if use_safe and safe_execute is None:
+        import safe_runner  # needs sqlglot and the database; only when the switch is on
+        safe_execute = safe_runner.safe_execute
 
     messages = [{"role": "user", "content": prompt_builder(question)}]
     attempts: list[dict] = []
@@ -196,12 +221,24 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         n_rows = None
         fact = None      # the database fact sent back with the retry message, if any
         reason = None
+        block = None     # the SafeResult of a blocked query (safe_runner switch only)
 
-        if sql is not None and (switches["error_retry"] or switches["empty_retry"]
+        if sql is not None and (use_safe or switches["error_retry"] or switches["empty_retry"]
                                 or switches["empty_fact_decline"]):
             start = time.perf_counter()
             try:
-                rows = execute(sql)
+                if use_safe:
+                    safe = safe_execute(sql)
+                    if safe.blocked:
+                        raise _Blocked(safe)
+                    rows = safe.rows
+                else:
+                    rows = execute(sql)
+            except _Blocked as exc:
+                block = exc.result
+                error = f"blocked (wall {block.wall}): {block.reason}"  # counts like an SQL error
+                if switches["error_retry"]:
+                    fired = "error"
             except QueryError as exc:
                 error = format_pg_error(exc)
                 if switches["error_retry"]:
@@ -256,6 +293,10 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
             "model": call.get("model"),
             "system_fingerprint": call.get("system_fingerprint"),
         })
+        if use_safe:
+            attempts[-1].update({"blocked": block is not None,
+                                 "wall": block.wall if block else None,
+                                 "reason": block.reason if block else None})
 
         if system_decline is not None:
             break  # the period is proven empty: decline without asking the model again
@@ -264,7 +305,9 @@ def run_question(question: str, switches: dict | None = None, max_attempts: int 
         if n == max_attempts:
             cap_hit = True  # used every attempt and the last SQL still fails or is empty
             break
-        if fired == "error":
+        if fired == "error" and block is not None:
+            retry_text = BLOCKED_RETRY_TEXT.format(reason=block.reason)
+        elif fired == "error":
             retry_text = ERROR_RETRY_TEXT.format(error=error)
         elif fired == "review":
             facts = "\n".join(REVIEW_FACT_LINE.format(start=p["start"], end=p["end"]) for p in fact["periods"])

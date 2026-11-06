@@ -42,7 +42,7 @@ import yaml
 
 from agent_loop import SWITCH_NAMES, call_openai, run_question
 from catalog_retriever import get_relevant_tables
-from comparator import compare
+from comparator import ComparisonResult, compare
 from executor import QueryError, run_query
 from loader import GOLD_SET_PATH, load_questions
 from result_logging import make_record, write_jsonl
@@ -222,7 +222,19 @@ def build_manifest(cfg, cfg_path, cfg_text, gold_path, hashes, run_no, runs, sta
         "end_time": end.isoformat(timespec="seconds") if end else None,
         "packages": package_versions(),
         "python": platform.python_version(),
+        **_safe_runner_manifest(cfg),
     }
+
+
+def _safe_runner_manifest(cfg) -> dict:
+    """The limits of the safe runner (and the hash of their file), only when the switch is on."""
+    if not cfg["switches"].get("safe_runner"):
+        return {}
+    import safe_runner
+    lim = safe_runner.load_limits()
+    return {"safe_runner_limits": {"max_plan_cost": lim.max_plan_cost, "max_rows": lim.max_rows,
+                                   "timeout_ms": lim.timeout_ms},
+            "safe_runner_limits_file_sha256": _sha256_file(safe_runner.LIMITS_PATH)}
 
 
 # ---------------------------------------------------------------- one run
@@ -280,10 +292,18 @@ def run_once(cfg, questions, build, llm, pause, uses_retriever) -> dict | None:
         print(note, flush=True)
         time.sleep(pause)  # stay within OpenAI RPM limits across 84 questions
 
-        if _is_valid_sql(agent_sql):
+        # With the safe runner on, a final answer that was blocked is never run again here
+        # (not by the validity check, not by the comparator): it is simply a fail.
+        last = loop["attempts"][-1]
+        final_blocked = bool(switches.get("safe_runner") and not declined and last.get("blocked"))
+        if not final_blocked and _is_valid_sql(agent_sql):
             valid_count += 1
         try:
-            result = compare(question, agent_sql)
+            if final_blocked and not question.is_tier0:
+                result = ComparisonResult(question.id, question.tier, False,
+                                          f"agent SQL blocked (wall {last['wall']}): {last['reason']}")
+            else:
+                result = compare(question, agent_sql)
         except QueryError as exc:
             print(f"FATAL: gold_sql for {question.id} failed to execute: {exc}")
             return None
@@ -407,6 +427,15 @@ def build_report(cfg, questions, out) -> str:
     if sw["empty_fact_decline"]:
         lines.append("--- system decline ---")
         lines.append(w("System declines", lst([i for i in ids if loops[i]["system_declined"]])))
+    if sw["safe_runner"]:
+        blocked = [(i, a["attempt"], a["wall"], a["reason"]) for i in ids for a in loops[i]["attempts"]
+                   if a.get("blocked")]
+        lines.append("--- safe runner ---")
+        lines.append(w("Blocked attempts", f"{len(blocked)}"))
+        for i, att, wall, reason in blocked:
+            lines.append(f"  {i} attempt {att}: wall {wall}: {reason}")
+        lines.append(w("Questions whose final answer was blocked",
+                       lst([i for i in ids if loops[i]["attempts"][-1].get("blocked") and not loops[i]["declined"]])))
     lines.append("--- tier 0 questions ---")
     for r in results:
         if r.tier == 0:

@@ -1,0 +1,6 @@
+# Limits of the safe runner (D41), the one place they are set. Read by safe_runner.load_limits().
+# Calibrated on the 76 gold queries (python safe_runner.py --calibrate, 6 Nov 2026):
+#   largest plan cost 776680.67 (t4_03), most rows 8568 (t4_03), slowest run 0.298 s (t4_03).
+max_plan_cost: 15533613.4   # 20 x the largest gold plan cost
+max_rows: 20000             # above the largest gold row count (8568)
+timeout_ms: 30000           # same as the role's statement_timeout

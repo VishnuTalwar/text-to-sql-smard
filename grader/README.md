@@ -27,4 +27,8 @@ The older `run_*.py` files (`run_baseline.py`, `run_v2b.py`, `run_r3b.py`, ...) 
 
 Note on old rows: their original results (before 2 Nov 2026) were produced with the model alias `gpt-4o`; all configs pin `gpt-4o-2024-08-06` (D36), so a new run of an old row is comparable with R1 to R3b but not byte for byte with the old logs.
 
+### Safe runner (switch `safe_runner`, off by default)
+
+`safe_runner.py` puts four walls in front of every agent query: (1) a static sqlglot check (one SELECT, no write or admin node, only erzeugung/verbrauch/preise, at least one table read, no deny-listed function); (2) an `EXPLAIN` cost limit; (3) a read-only run as `grader_ro` with a timeout and a row cap (`fetchmany`, never `fetchall`); (4) a structured "blocked" result. The loop treats a block like an SQL error ("This query was blocked: <reason>"). The limits are in `limits.yaml`. Turn it on with `safe_runner: true` in a config (see `configs/r3b_safe.yaml`); gold queries always run through `executor.run_query`. `python safe_runner.py` checks that all 76 gold queries pass; `python safe_runner_dryrun.py` runs walls 1 and 2 over every saved agent SQL (no query is run).
+
 Run the offline tests (no API) from this folder: `python -m unittest discover -s tests -v`.

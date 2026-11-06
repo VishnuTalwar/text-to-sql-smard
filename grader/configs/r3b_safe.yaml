@@ -1,0 +1,17 @@
+# Row r3b_safe: r3b with the safe runner on (D41). Built, not run (D40 step 3).
+# Everything else is identical to r3b.yaml, so a difference is caused by the four walls only.
+description: "r3b with every agent query going through the safe runner (D41); not yet run"
+prompt: v2b
+examples: none
+switches:
+  error_retry: true
+  empty_retry: true
+  decline_review: true
+  empty_fact_decline: true
+  safe_runner: true
+max_attempts: 3
+model: gpt-4o-2024-08-06
+temperature: 0
+seed: 0
+runs: 3
+tag: r3b_safe
