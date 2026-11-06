@@ -1,0 +1,319 @@
+# Answer columns for the answer-correctness score (D40 step 4), DRAFT for review, 2026-11-06.
+# One entry per gold item that has SQL (76). Drafted from the question text and the gold SQL / gold result
+# columns only; written blind to every agent answer. gold_set_smard.yaml is not changed (so its hash is not).
+# Rules: results/answer_columns_rules_2026-11-06.md.
+#
+# required:     columns (by their gold column names) that an answer must contain.
+# alternatives: only where the question is honestly ambiguous between two measures (rule 6). An answer
+#               counts if it contains all of `required`, OR all columns of any one list in `alternatives`.
+# All other gold columns are optional: extra columns never hurt, they just are not required.
+items:
+- id: t1_01
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "How much ... in total"; the only gold column'
+- id: t1_02
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the highest"; the only gold column'
+- id: t1_03
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the total"; the only gold column'
+- id: t1_04
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "wieviel strom ... insgesamt"; the only gold column'
+- id: t1_05
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the average"; the only gold column'
+- id: t1_06
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'asks for one value: "What''s the lowest"; the only gold column'
+- id: t1_07
+  required: [n]
+  alternatives: []
+  reason: 'asks for one value: "How many"; the only gold column'
+- id: t1_08
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Wie viel"; the only gold column'
+- id: t1_09
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Show me the total"; the only gold column'
+- id: t1_10
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the peak"; the only gold column'
+- id: t1_11
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'asks for one value: "Durchschnittlicher Strompreis"; the only gold column'
+- id: t1_12
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Wie viel Strom"; the only gold column'
+- id: t1_13
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the maximum"; the only gold column'
+- id: t1_14
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "total hydro power"; the only gold column'
+- id: t1_15
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "How much"; the only gold column'
+- id: t1_16
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the average price"; the only gold column'
+- id: t1_17
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "How much solar"; the only gold column'
+- id: t1_18
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Highest grid load"; the only gold column'
+- id: t1_19
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Wie viel Strom"; the only gold column'
+- id: t1_20
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What''s the average"; the only gold column'
+- id: t1_21
+  required: [n]
+  alternatives: []
+  reason: 'asks for one value: "How many rows"; the only gold column'
+- id: t1_22
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the German power price"; the only gold column'
+- id: t1_23
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Sum up"; the only gold column'
+- id: t1_24
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What''s the smallest amount"; the only gold column'
+- id: t1_25
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "How much ... in total"; the only gold column'
+- id: t1_26
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Was war der höchste ... Wert"; the only gold column'
+- id: t1_27
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'asks for one value: "average Dutch price"; the only gold column'
+- id: t1_28
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "How much"; the only gold column'
+- id: t1_29
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the total"; the only gold column'
+- id: t1_30
+  required: [n]
+  alternatives: []
+  reason: 'asks for one value: "Give me the number"; the only gold column'
+- id: t1_31
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'asks for one value: "How high did ... get"; the only gold column'
+- id: t1_32
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "Wie hoch war"; the only gold column'
+- id: t1_33
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "How much energy"; the only gold column'
+- id: t1_34
+  required: [mwh]
+  alternatives: []
+  reason: 'asks for one value: "wie viel"; the only gold column'
+- id: t1_35
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'asks for one value: "What was the average price"; the only gold column'
+- id: t2_01
+  required: [energietraeger]
+  alternatives: []
+  reason: 'rule 1: "Which energy source produced the most overall?" names no amount; mwh optional'
+- id: t2_02
+  required: [energietraeger, mwh]
+  alternatives: []
+  reason: 'rule 4: "Rank all sources by total output"; ranked by mwh, order counts'
+- id: t2_03
+  required: [stunde, mwh]
+  alternatives: []
+  reason: 'rule 4: "for each hour of the day"; "average solar output"'
+- id: t2_04
+  required: [monat, mwh]
+  alternatives: []
+  reason: 'rule 4: "total generation per month"'
+- id: t2_05
+  required: [energietraeger, mwh]
+  alternatives: []
+  reason: 'rule 4: "top 3 sources" is a ranking (N > 1), ranked by mwh, order counts'
+- id: t2_06
+  required: [preiszone]
+  alternatives: []
+  reason: 'rule 1: "Which price zone had the highest average price"; the price is only the criterion'
+- id: t2_07
+  required: [energietraeger, mwh, anteil_prozent]
+  alternatives: []
+  reason: 'rules 2 and 4: "Break down 2025 generation by source and show each one''s share in percent"; amount and share both asked'
+- id: t2_08
+  required: [stunde, mwh]
+  alternatives: []
+  reason: 'rule 4: "Average grid load by hour of day"'
+- id: t2_09
+  required: [monat]
+  alternatives: []
+  reason: 'rule 1: "Which month had the highest total solar production?"; no amount asked'
+- id: t2_10
+  required: [stunde, eur_mwh]
+  alternatives: []
+  reason: 'rule 4: "Average German price by hour of day"'
+- id: t2_11
+  required: [energietraeger, mwh]
+  alternatives: []
+  reason: 'rule 3: "Welche Stromquelle ... wie viel geliefert? ... absteigend sortieren"; order counts'
+- id: t2_12
+  required: [wochentag]
+  alternatives: []
+  reason: 'rule 1: "Which day of the week has the highest average consumption?"; no amount asked'
+- id: t2_13
+  required: [jahr, mwh]
+  alternatives: []
+  reason: 'rule 4: "Total wind ... per year"'
+- id: t2_14
+  required: [zeitpunkt, eur_mwh]
+  alternatives: []
+  reason: 'rule 4: "Which 5 quarter-hours had the most expensive ... power" is a top-5 ranking; ranked by price, order counts'
+- id: t2_15
+  required: [kategorie, mwh]
+  alternatives: []
+  reason: 'rule 2: "Wie viel Ökostrom ... im Vergleich zum konventionellen Strom"; amounts of both categories'
+- id: t2_16
+  required: [monat, eur_mwh]
+  alternatives: []
+  reason: 'rule 4: "Average German price month by month"'
+- id: t2_17
+  required: [energietraeger, spitze_mwh]
+  alternatives: []
+  reason: 'rule 4: "For each source, what was its single biggest quarter-hour, sorted by that peak"; order counts'
+- id: t2_18
+  required: [jahr, n]
+  alternatives: []
+  reason: 'rules 2 and 4: "How many negative-price quarter-hours were there each year?"; the count is the asked value'
+- id: t2_19
+  required: [monat, mwh]
+  alternatives: []
+  reason: 'rule 4: "Average solar output by calendar month"'
+- id: t2_20
+  required: [quartal]
+  alternatives: []
+  reason: 'rule 1: "Which quarter of 2025 had the most onshore wind?"; no amount asked'
+- id: t2_21
+  required: [preiszone, min_eur_mwh]
+  alternatives: []
+  reason: 'rule 4: "List all the price zones sorted by how low their price ever got"; listed by the minimum'
+- id: t2_22
+  required: [energietraeger, mwh]
+  alternatives: []
+  reason: 'rules 2 and 4: "how much did each source produce? sorted highest first"; order counts'
+- id: t2_23
+  required: [jahr, n]
+  alternatives: []
+  reason: 'rules 2 and 4: "How many quarter-hours per year"'
+- id: t2_24
+  required: [monat, mwh]
+  alternatives: []
+  reason: 'rule 4: "Average residual load per month"'
+- id: t2_25
+  required: [preiszone, eur_mwh]
+  alternatives: []
+  reason: 'rule 4: "Rank the neighbouring countries by their average price"; order counts'
+- id: t3_01
+  required: [tag]
+  alternatives: []
+  reason: 'rule 1: "Which single day had the highest total solar production?"; no amount asked'
+- id: t3_02
+  required: [wind_anteil_prozent]
+  alternatives: []
+  reason: 'rule 2: "What share of all generation came from wind"; the only gold column'
+- id: t3_03
+  required: [monat, mwh]
+  alternatives: []
+  reason: 'rules 2 and 4: "Compare average solar output in June 2025 against July 2025"; the two averages are what is compared'
+- id: t3_04
+  required: [energietraeger, mwh]
+  alternatives: []
+  reason: 'rule 5: "what was the generation mix?" asks for the mix; the date (tag) only identifies the day and is not asked for'
+- id: t3_05
+  required: [tag]
+  alternatives: []
+  reason: 'rule 1: "Which day had the biggest swing"; no amount asked'
+- id: t3_06
+  required: [differenz_mwh, veraenderung_prozent]
+  alternatives:
+  - [mwh_2024, mwh_2025, veraenderung_prozent]
+  reason: 'rules 2 and 6: "in absolute terms and percent"; "absolute" read as the difference, or as the two yearly totals'
+- id: t3_07
+  required: [deckung_prozent]
+  alternatives: []
+  reason: 'rules 2 and 5: "What share of consumption was covered by renewables"; the two parts of the ratio are optional'
+- id: t3_08
+  required: [typ, eur_mwh]
+  alternatives: []
+  reason: 'rules 2 and 4: "Was power more expensive on weekends or on weekdays"; both prices are what is compared, order is the answer'
+- id: t3_09
+  required: [eur_mwh]
+  alternatives: []
+  reason: 'rules 2 and 5: "what was the average German price?"; the day is identified by description and not asked for'
+- id: t3_10
+  required: [monat, solaranteil_prozent]
+  alternatives: []
+  reason: 'rule 4: "Monat für Monat: wie hoch war der Sonnenstrom-Anteil"'
+- id: t3_11
+  required: [gruppe, eur_mwh]
+  alternatives: []
+  reason: 'rules 2 and 5: "was the price different in quarter-hours with a lot of solar ... compared to the rest?"; the count n is optional'
+- id: t3_12
+  required: [tag, abweichung_prozent]
+  alternatives:
+  - [tag, tages_mwh, durchschnitt_mwh]
+  reason: 'rules 3 and 6: "Which day had the lowest total generation, and how far below the daily average was it?"; "how far" as percent, or as the absolute gap from the day total and the average'
+- id: t4_01
+  required: [woche, energietraeger]
+  alternatives: []
+  reason: 'rules 1 and 4: "For each week, which source was the top producer?"; week and source, no amount asked'
+- id: t4_02
+  required: [viertelstunden]
+  alternatives:
+  - [stunden]
+  - [beginn, ende]
+  reason: 'rules 5 and 6: "What was the longest unbroken stretch"; read as the length (quarter-hours or hours) or as the period (beginn, ende)'
+- id: t4_03
+  required: [stunde]
+  alternatives: []
+  reason: 'rule 1: "Which hours had more generation than consumption?"; no amount asked'
+- id: t4_04
+  required: [viertelstunden]
+  alternatives:
+  - [stunden]
+  reason: 'rules 5 and 6: "What was the longest run of consecutive quarter-hours"; the length, in quarter-hours or hours; start and end optional'
