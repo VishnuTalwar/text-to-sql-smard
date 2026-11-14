@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from answer_comparator import (answer_compare, answer_match, literal_label_columns,
-                               load_answer_columns)
+                               load_answer_columns, match_label)
 from executor import run_query_with_columns
 from loader import load_questions
 
@@ -134,33 +134,122 @@ class TestAnswerMatch(unittest.TestCase):
         swapped[0], swapped[1] = swapped[1], swapped[0]
         self.assertTrue(match("t2_04", cols, swapped).passed)
 
-    def test_label_only_consistent_renaming_passes_t3_11(self):
+    # ---- label_only: the label must MEAN the gold label (D43)
+
+    def test_reviewers_case_swapped_weekday_weekend_fails(self):
+        # gold: weekday = 100, weekend = 200; agent: weekend = 100, weekday = 200  -> swapped meaning
+        entry = ENTRIES["t3_08"]
+        gold_cols, gold_rows = ["typ", "eur_mwh"], [("Werktag", Decimal("100")), ("Wochenende", Decimal("200"))]
+        swapped = answer_match(["day_type", "price"], [("Weekend", Decimal("100")), ("Weekday", Decimal("200"))],
+                               gold_cols, gold_rows, entry, True, 0.005)
+        right = answer_match(["day_type", "price"], [("Weekday", Decimal("100")), ("Weekend", Decimal("200"))],
+                             gold_cols, gold_rows, entry, True, 0.005)
+        self.assertFalse(swapped.passed)
+        self.assertTrue(right.passed, right.reason)
+        # also with the order not relevant
+        swapped_unordered = answer_match(["day_type", "price"], [("Weekend", Decimal("100")), ("Weekday", Decimal("200"))],
+                                         gold_cols, gold_rows, entry, False, 0.005)
+        self.assertFalse(swapped_unordered.passed)
+
+    def test_english_labels_with_the_right_numbers_pass(self):
+        # t3_08 on the real gold numbers
+        cols, rows = project("t3_08", ["typ", "eur_mwh"])
+        english = [("Weekday" if r[0] == "Werktag" else "Weekend", r[1]) for r in rows]
+        self.assertTrue(match("t3_08", ["kind", "price"], english).passed)
+        # t3_11
         cols, rows = project("t3_11", ["gruppe", "eur_mwh"])
-        renamed = [("high solar" if r[0] == "viel Solar" else "low solar", r[1]) for r in rows]
-        res = match("t3_11", ["group", "price"], renamed)
+        english = [("Above 5000 MWh" if r[0] == "viel Solar" else "5000 MWh or below", r[1]) for r in rows]
+        res = match("t3_11", ["group", "price"], english)
+        self.assertTrue(res.passed, res.reason)
+        # t2_15
+        cols, rows = project("t2_15", ["kategorie", "mwh"])
+        english = [("Renewable" if r[0] == "Erneuerbar" else "Conventional", r[1]) for r in rows]
+        res = match("t2_15", ["category", "total"], english)
         self.assertTrue(res.passed, res.reason)
 
-    def test_label_only_inconsistent_labels_fail_t3_11(self):
+    def test_swapped_labels_fail_on_the_real_gold_numbers(self):
+        for qid, col, val, a, b in (("t3_08", "typ", "eur_mwh", "Weekday", "Weekend"),
+                                    ("t3_11", "gruppe", "eur_mwh", "Above 5000 MWh", "5000 MWh or below"),
+                                    ("t2_15", "kategorie", "mwh", "Renewable", "Conventional")):
+            cols, rows = project(qid, [col, val])
+            first_label = rows[0][0]
+            swapped = [(b if r[0] == first_label else a, r[1]) for r in rows]
+            self.assertFalse(match(qid, ["x", "y"], swapped).passed, qid)
+
+    def test_german_labels_and_symbols_pass(self):
         cols, rows = project("t3_11", ["gruppe", "eur_mwh"])
-        same_label = [("solar", r[1]) for r in rows]  # two gold groups mapped to one agent label
-        res = match("t3_11", ["group", "price"], same_label)
-        self.assertFalse(res.passed)
-        self.assertIn("one-to-one", res.reason)
+        for hi, lo in (("viel Solar", "wenig Solar"), ("> 5000", "<= 5000"), ("über 5000 MWh", "höchstens 5000 MWh"),
+                       ("High solar", "Low solar"), ("more than 5000", "not above 5000")):
+            labelled = [(hi if r[0] == "viel Solar" else lo, r[1]) for r in rows]
+            res = match("t3_11", ["g", "p"], labelled)
+            self.assertTrue(res.passed, (hi, lo, res.reason))
 
-    def test_label_only_ordered_t3_08_follows_the_order(self):
-        self.assertTrue(QUESTIONS["t3_08"].reihenfolge_relevant)
+    def test_a_label_matching_neither_gold_label_fails(self):
         cols, rows = project("t3_08", ["typ", "eur_mwh"])
-        english = [("weekday" if r[0] == "Werktag" else "weekend", r[1]) for r in rows]
-        self.assertTrue(match("t3_08", ["kind", "price"], english).passed)
-        self.assertFalse(match("t3_08", ["kind", "price"], list(reversed(english))).passed)
+        odd = [("Tuesday" if r[0] == "Werktag" else "Holiday", r[1]) for r in rows]
+        res = match("t3_08", ["kind", "price"], odd)
+        self.assertFalse(res.passed)
+        self.assertIn("matches no gold label", res.reason)
 
-    def test_label_only_with_many_groups_one_to_one(self):
+    def test_a_label_matching_both_gold_labels_fails(self):
+        cols, rows = project("t3_08", ["typ", "eur_mwh"])
+        both = [("weekday and weekend", r[1]) for r in rows]
+        res = match("t3_08", ["kind", "price"], both)
+        self.assertFalse(res.passed)
+        self.assertIn("more than one gold label", res.reason)
+
+    def test_two_gold_groups_given_one_label_fail(self):
+        cols, rows = project("t3_11", ["gruppe", "eur_mwh"])
+        same = [("above 5000", r[1]) for r in rows]
+        self.assertFalse(match("t3_11", ["g", "p"], same).passed)
+
+    def test_longer_phrases_and_negations_are_read_first(self):
+        meanings = ENTRIES["t3_11"]["label_meanings"]["gruppe"]
+        for text, want in (("above", "viel Solar"), ("Above 5000 MWh", "viel Solar"), ("not above", "wenig Solar"),
+                           ("5000 MWh or below", "wenig Solar"), ("below", "wenig Solar"), ("not above 5000", "wenig Solar"),
+                           ("no more than 5000", "wenig Solar"), ("more than 5000", "viel Solar"),
+                           ("  VIEL Solar  ", "viel Solar"), ("<= 5000", "wenig Solar"), ("< 5000", "wenig Solar"),
+                           ("> 5000", "viel Solar"), ("the rest", "wenig Solar")):
+            self.assertEqual(match_label(text, meanings), (want, "ok"), text)
+        for text in ("something", "5000", ""):
+            self.assertEqual(match_label(text, meanings)[1], "none", text)
+        non_renewable = ENTRIES["t2_15"]["label_meanings"]["kategorie"]
+        self.assertEqual(match_label("Non-renewable", non_renewable), ("Konventionell", "ok"))
+        self.assertEqual(match_label("renewables", non_renewable), ("Erneuerbar", "ok"))
+        self.assertEqual(match_label("Ökostrom", non_renewable), ("Erneuerbar", "ok"))
+        weekdays = ENTRIES["t3_08"]["label_meanings"]["typ"]
+        self.assertEqual(match_label("non-weekend", weekdays), ("Werktag", "ok"))
+        self.assertEqual(match_label("Mon-Fri", weekdays), ("Werktag", "ok"))
+        self.assertEqual(match_label("Saturday and Sunday", weekdays), ("Wochenende", "ok"))
+
+    def test_whole_words_only(self):
+        meanings = ENTRIES["t3_11"]["label_meanings"]["gruppe"]
+        self.assertEqual(match_label("overall", meanings)[1], "none")      # "over" inside a longer word
+        self.assertEqual(match_label("brother", meanings)[1], "none")      # "other" inside a longer word
+
+    def test_a_numeric_column_is_not_a_label(self):
+        # the old rule accepted any column that grouped the rows the same way; now a count cannot be a label
+        cols, rows = project("t3_11", ["gruppe", "eur_mwh"])
+        numbers_as_labels = [(10 + i, r[1]) for i, r in enumerate(rows)]
+        self.assertFalse(match("t3_11", ["n", "price"], numbers_as_labels).passed)
+
+    def test_label_meanings_cover_every_gold_label(self):
+        for qid, entry in ENTRIES.items():
+            for col in entry.get("label_only") or []:
+                meanings = entry["label_meanings"][col]
+                gold_labels = {r[0] for r in project(qid, [col])[1]}
+                self.assertEqual(set(meanings), gold_labels, qid)
+                for label in gold_labels:                       # each gold label means itself, and only itself
+                    self.assertEqual(match_label(label, meanings), (label, "ok"), (qid, label))
+                for label, kws in meanings.items():             # keywords are lowercase and not shared
+                    self.assertTrue(all(k == k.lower() for k in kws), (qid, label))
+                all_kws = [k for kws in meanings.values() for k in kws]
+                self.assertEqual(len(all_kws), len(set(all_kws)), (qid, "a keyword belongs to two labels"))
+
+    def test_label_only_without_meanings_is_refused(self):
         entry = {"required": ["g", "v"], "alternatives": [], "label_only": ["g"]}
-        gold_cols, gold_rows = ["g", "v"], [("a", 1), ("b", 2), ("c", 3), ("d", 4)]
-        ok = answer_match(["x", "y"], [("w", 1), ("x", 2), ("y", 3), ("z", 4)], gold_cols, gold_rows, entry, False, 0.005)
-        bad = answer_match(["x", "y"], [("w", 1), ("w", 2), ("y", 3), ("z", 4)], gold_cols, gold_rows, entry, False, 0.005)
-        self.assertTrue(ok.passed, ok.reason)
-        self.assertFalse(bad.passed)
+        with self.assertRaises(ValueError):
+            answer_match(["x", "y"], [("a", 1)], ["g", "v"], [("a", 1)], entry, False, 0.005)
 
     def test_extra_agent_column_passes(self):
         cols, rows = project("t2_04", ["monat", "mwh"])

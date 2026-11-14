@@ -10,6 +10,11 @@
 #               found from the gold SQL alone. They only have to group the rows the same way (a consistent one-to-one
 #               renaming), not carry the same text.
 # All other gold columns are optional: extra columns never hurt, they just are not required.
+# label_meanings: (D43) for every label_only column, for every gold label, lowercase keywords or phrases that mean the same
+#               (English and German). An agent label matches a gold label only if, after lowercasing and trimming, it contains
+#               a keyword of exactly one gold label (whole words; longer phrases are checked first, so "not above" is read
+#               before "above"). A label that matches none or both fails; the numbers next to a label must match that gold
+#               label's row. Drafted blind (question text and gold labels only), before the answer score was re-graded.
 # Review change (D42): t4_04 also accepts [beginn, ende] as an alternative, same as t4_02.
 items:
 - id: t1_01
@@ -212,6 +217,10 @@ items:
   required: [kategorie, mwh]
   alternatives: []
   label_only: [kategorie]
+  label_meanings:
+    kategorie:
+      Erneuerbar: [erneuerbar, erneuerbare, erneuerbaren, erneuerbarer, renewable, renewables, green, öko, oeko, ökostrom, oekostrom, clean]
+      Konventionell: [konventionell, konventionelle, konventionellen, konventioneller, conventional, fossil, fossils, fossil fuels, non-renewable, non renewable, nonrenewable, not renewable, nicht erneuerbar, nicht-erneuerbar]
   reason: 'rule 2: "Wie viel Ökostrom ... im Vergleich zum konventionellen Strom"; amounts of both categories'
 - id: t2_16
   required: [monat, eur_mwh]
@@ -286,6 +295,10 @@ items:
   required: [typ, eur_mwh]
   alternatives: []
   label_only: [typ]
+  label_meanings:
+    typ:
+      Werktag: [werktag, werktage, werktags, weekday, weekdays, week day, working day, working days, workday, workdays, business day, business days, mon-fri, mon - fri, mon–fri, mo-fr, monday to friday, monday-friday, monday through friday, montag bis freitag, montag-freitag, non-weekend, non weekend, not weekend, kein wochenende, nicht wochenende]
+      Wochenende: [wochenende, wochenenden, weekend, weekends, sat-sun, sat - sun, sat–sun, sa-so, sat/sun, sa/so, sat & sun, saturday and sunday, saturday-sunday, saturday & sunday, samstag und sonntag, samstag-sonntag, non-weekday, non weekday, not weekday, kein werktag, nicht werktag]
   reason: 'rules 2 and 4: "Was power more expensive on weekends or on weekdays"; both prices are what is compared, order is the answer'
 - id: t3_09
   required: [eur_mwh]
@@ -299,6 +312,10 @@ items:
   required: [gruppe, eur_mwh]
   alternatives: []
   label_only: [gruppe]
+  label_meanings:
+    gruppe:
+      viel Solar: [viel, viel solar, über, uber, ueber, mehr als, größer als, groesser als, höher als, hoeher als, above, over, more than, greater than, higher than, exceeds, exceeding, '>', high solar, high, a lot of solar, lots of solar, much solar, lot of solar, solar-rich, sunny]
+      wenig Solar: [wenig, wenig solar, unter, weniger als, kleiner als, höchstens, hoechstens, maximal, below, or below, at most, no more than, not more than, less than, lower than, up to, or less, or lower, <, <=, ≤, rest, the rest, remaining, other, others, everything else, all other, otherwise, low solar, low, not above, not over, not high, not a lot of solar, little solar, few solar, sonst, übrige, uebrige]
   reason: 'rules 2 and 5: "was the price different in quarter-hours with a lot of solar ... compared to the rest?"; the count n is optional'
 - id: t3_12
   required: [tag, abweichung_prozent]

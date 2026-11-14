@@ -13,17 +13,22 @@ columns* of grader/answer_columns.yaml (or one listed alternative):
     imported from comparator.py, not copied): types are compared as there, so a month as a number
     does not equal a month as a date;
   * label_only columns (labels written as string literals in the gold SQL, e.g. CASE ... THEN
-    'viel Solar') only have to group the rows the same way: the same agent value must always
-    correspond to the same gold value and vice versa (a one-to-one renaming), aligned with the
-    other needed columns.
+    'viel Solar') must MEAN the gold label (D43). Each agent label is translated to a gold label
+    with the keyword lists `label_meanings` of the YAML: after lowercasing and trimming it must
+    contain a keyword (whole words, longest phrase first, so "not above" is read before "above") of
+    exactly one gold label; a label that matches none or both fails. The translated column is then
+    compared like any other column, so the numbers next to a label must match that gold label's
+    row (swapped labels fail). D42 only required the labels to group the rows consistently, which
+    accepted weekday/weekend swapped.
 
 Tier 0 (no gold SQL) is graded exactly as the strict grader does it.
 
-Known limits: a computed column that is not a gold column does not count; rows that tie on all
-non-label needed columns are aligned by label text, so a label_only column with ties could
-misalign; the number of column assignments tried is capped (MAX_ASSIGNMENTS).
+Known limits: a computed column that is not a gold column does not count; a label the keyword
+lists do not know fails even if a human would accept it; the number of column assignments tried is
+capped (MAX_ASSIGNMENTS).
 """
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
@@ -88,78 +93,101 @@ def _sorted_rows(rows: list[tuple], idxs: list[int]) -> list[tuple]:
         return sorted(rows, key=lambda r: tuple((0, "") if r[i] is None else (1, str(r[i])) for i in idxs))
 
 
-def _hashable(v):
-    try:
-        hash(v)
-        return v
-    except TypeError:
-        return repr(v)
+def _letter_boundaries(keyword: str) -> str:
+    """Regex for a keyword as a whole word: no letter directly before or after it (symbols such as
+    '>' or '<=' need no boundary on their side)."""
+    left = r"(?<![^\W\d_])" if keyword[0].isalpha() else ""
+    right = r"(?![^\W\d_])" if keyword[-1].isalpha() else ""
+    return left + re.escape(keyword) + right
 
 
-def _pattern(values: list, ordered: bool):
-    """Shape of a label column, independent of the label text: for an ordered table the sequence of
-    first-occurrence numbers, otherwise the sorted group sizes."""
-    if ordered:
-        seen: dict = {}
-        return tuple(seen.setdefault(_hashable(v), len(seen)) for v in values)
-    counts: dict = {}
+def match_label(value, meanings: dict) -> tuple:
+    """Which gold label does an agent label mean? meanings: {gold label: [keywords]}.
+    Returns (gold label, "ok") or (None, "none") / (None, "both"). Keywords are tried longest first and
+    the text they match is used up, so a phrase like "not above" or "or below" is read as a whole and
+    its inner word ("above", "below") is not counted again."""
+    text = str(value).strip().lower()
+    pairs = sorted(((kw.lower(), label) for label, kws in meanings.items() for kw in kws),
+                   key=lambda p: -len(p[0]))
+    found = set()
+    for kw, label in pairs:
+        pattern = _letter_boundaries(kw)
+        if re.search(pattern, text):
+            found.add(label)
+            text = re.sub(pattern, "\x00" * len(kw), text)
+    if len(found) == 1:
+        return next(iter(found)), "ok"
+    return None, ("none" if not found else "both")
+
+
+def _map_label_column(values: list, meanings: dict) -> tuple:
+    """(column of gold labels, None) if every agent value means exactly one gold label, else
+    (None, reason)."""
+    mapped = []
     for v in values:
-        counts[_hashable(v)] = counts.get(_hashable(v), 0) + 1
-    return tuple(sorted(counts.values()))
+        label, kind = match_label(v, meanings)
+        if label is None:
+            what = "matches no gold label" if kind == "none" else "matches more than one gold label"
+            return None, f"agent label {v!r} {what}"
+        mapped.append(label)
+    return mapped, None
 
 
-def _column_compatible(g_vals: list, a_vals: list, is_label: bool, ordered: bool, tol: float) -> bool:
+def _column_compatible(g_vals: list, a_vals: list, ordered: bool, tol: float) -> bool:
     """Necessary condition for a gold column to be matched to an agent column (cheap pre-filter)."""
-    if is_label:
-        return _pattern(g_vals, ordered) == _pattern(a_vals, ordered)
     if not ordered:
         g_vals = [r[0] for r in _sorted_rows([(v,) for v in g_vals], [0])]
         a_vals = [r[0] for r in _sorted_rows([(v,) for v in a_vals], [0])]
     return all(_cells_match(g, a, tol)[0] for g, a in zip(g_vals, a_vals))
 
 
-def _joint_match(gold_rows, agent_rows, g_idx, a_idx, label_flags, g_names, ordered, tol) -> tuple[bool, str]:
-    """Compare the projected tables. g_idx/a_idx: the assigned columns, in the same order."""
-    pos = list(range(len(g_idx)))
-    nonlabel = [k for k in pos if not label_flags[k]]
-    labels = [k for k in pos if label_flags[k]]
-    g_proj = [tuple(r[i] for i in g_idx) for r in gold_rows]
-    a_proj = [tuple(r[i] for i in a_idx) for r in agent_rows]
+def _joint_match(g_cols: list[list], a_cols: list[list], g_names, ordered, tol) -> tuple[bool, str]:
+    """Compare the projected tables (lists of column values, already translated for label columns)."""
+    g_proj = list(zip(*g_cols))
+    a_proj = list(zip(*a_cols))
     if not ordered:
-        order = nonlabel + labels
+        order = list(range(len(g_names)))
         g_proj = _sorted_rows(g_proj, order)
         a_proj = _sorted_rows(a_proj, order)
-    g2a: dict = {}
-    a2g: dict = {}
     for n, (gr, ar) in enumerate(zip(g_proj, a_proj)):
-        for k in nonlabel:
+        for k, name in enumerate(g_names):
             ok, why = _cells_match(gr[k], ar[k], tol)
             if not ok:
-                return False, f"row {n} column {g_names[k]}: {why}"
-        for k in labels:
-            g, a = _hashable(gr[k]), _hashable(ar[k])
-            if g2a.setdefault(g, a) != a or a2g.setdefault(a, g) != g:
-                return False, (f"row {n} label column {g_names[k]}: labels are not a consistent "
-                               f"one-to-one renaming (gold {gr[k]!r} vs agent {ar[k]!r})")
+                return False, f"row {n} column {name}: {why}"
     return True, "ok"
 
 
-def _try_needed(needed: list[str], label_only: set, agent_cols, agent_rows, gold_cols, gold_rows,
+def _try_needed(needed: list[str], entry: dict, agent_cols, agent_rows, gold_cols, gold_rows,
                 ordered: bool, tol: float) -> tuple[bool, str, dict]:
+    label_only = set(entry.get("label_only") or [])
     missing = [c for c in needed if c not in gold_cols]
     if missing:
         raise ValueError(f"answer_columns.yaml names columns that the gold result does not have: {missing}")
     if len(agent_cols) < len(needed):
         return False, f"agent returned {len(agent_cols)} columns, {len(needed)} needed ({', '.join(needed)})", {}
     g_idx = [gold_cols.index(c) for c in needed]
-    flags = [c in label_only for c in needed]
     a_columns = [[r[j] for r in agent_rows] for j in range(len(agent_cols))]
-    candidates = []
-    for gi, flag, name in zip(g_idx, flags, needed):
-        g_vals = [r[gi] for r in gold_rows]
-        cand = [j for j in range(len(agent_cols))
-                if _column_compatible(g_vals, a_columns[j], flag, ordered, tol)]
+    g_columns = [[r[gi] for r in gold_rows] for gi in g_idx]
+    candidates = []        # per needed column: agent column index -> the values to compare (translated for labels)
+    for name, g_vals in zip(needed, g_columns):
+        cand: dict = {}
+        label_reasons = []
+        for j in range(len(agent_cols)):
+            values = a_columns[j]
+            if name in label_only:
+                meanings = (entry.get("label_meanings") or {}).get(name)
+                if not meanings:
+                    raise ValueError(f"label_only column {name} has no label_meanings in answer_columns.yaml")
+                values, why = _map_label_column(values, meanings)
+                if values is None:
+                    label_reasons.append(why)
+                    continue
+            if _column_compatible(g_vals, values, ordered, tol):
+                cand[j] = values
         if not cand:
+            if name in label_only:
+                shown = label_reasons[0] if label_reasons else "no agent column has the labels and numbers of the gold"
+                return False, f"no agent column means the labels of {name} with the right numbers ({shown})", {}
             return False, f"no agent column has the values of {name}", {}
         candidates.append(cand)
 
@@ -179,7 +207,8 @@ def _try_needed(needed: list[str], label_only: set, agent_cols, agent_rows, gold
         tried += 1
         if tried > MAX_ASSIGNMENTS:
             return False, f"gave up after {MAX_ASSIGNMENTS} column assignments", {}
-        ok, why = _joint_match(gold_rows, agent_rows, g_idx, a_idx, flags, needed, ordered, tol)
+        a_cols = [candidates[k][j] for k, j in enumerate(a_idx)]
+        ok, why = _joint_match(g_columns, a_cols, needed, ordered, tol)
         if ok:
             return True, "ok", {g: agent_cols[j] for g, j in zip(needed, a_idx)}
         last = why
@@ -195,12 +224,11 @@ def answer_match(agent_cols: list, agent_rows: list, gold_cols: list, gold_rows:
     right values? See the module text."""
     if len(agent_rows) != len(gold_rows):
         return AnswerResult(False, f"row count mismatch: gold={len(gold_rows)} agent={len(agent_rows)}")
-    label_only = set(entry.get("label_only") or [])
     options = [("required", list(entry["required"]))]
     options += [(f"alternative {n}", list(alt)) for n, alt in enumerate(entry.get("alternatives") or [], 1)]
     failures = []
     for name, needed in options:
-        ok, why, assignment = _try_needed(needed, label_only, agent_cols, agent_rows, gold_cols, gold_rows,
+        ok, why, assignment = _try_needed(needed, entry, agent_cols, agent_rows, gold_cols, gold_rows,
                                           reihenfolge_relevant, toleranz)
         if ok:
             return AnswerResult(True, f"ok ({name}: {', '.join(needed)})", assignment, name)
