@@ -41,8 +41,8 @@ That sentence is only available if the benchmark exists first. Which is why it d
 ### Source
 
 [SMARD.de](https://www.smard.de) — the Bundesnetzagentur's open electricity market
-platform. Free to use with attribution. Downloads are capped at two years per file,
-so the range was assembled from several exports.
+platform. Free to use with attribution. Each CSV was downloaded in one go with the download center's
+date range picker (confirmed by the owner on 14 Nov 2026).
 
 **Attribution line for the README:** Data source: Bundesnetzagentur | SMARD.de
 
