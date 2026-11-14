@@ -1,6 +1,14 @@
 # Evaluated Text-to-SQL for German Electricity Data (SMARD)
 
-Ask a question in English or German, an LLM writes PostgreSQL, the query runs behind safety checks, and every result is measured against a fixed exam.
+Ask a question in English or German (app in progress), an LLM writes PostgreSQL, the query runs behind safety checks, and every result is measured against a fixed exam.
+
+## At a glance
+
+- Exam of 84 questions in 5 tiers. Best setup, r3b_safe: **60.00 / 84 strict (71.4%)** and **67.67 / 84 answer score (80.6%)**. The exam is a development set; the held-out result is pending.
+- Strong on tiers 0 and 1 (strict 95.8% and 97.1%, answer score 95.8% and 100.0%). Weak on tiers 3 and 4 (strict 19.4% and 0.0%, answer score 52.8% and 41.7%).
+- Four safety walls in front of every query, checked by 183 offline tests.
+- Every run writes a manifest with prompt and file hashes.
+- Status: evaluation pipeline done, Streamlit app in progress.
 
 ## Example
 
@@ -68,7 +76,7 @@ Mean of 3 runs out of 84, temperature 0. Sources: strict from [PROJECT_PROGRESS.
 | + R1 error retry | 59.33 | 67.00 | SQL error goes back to the model |
 | + R2 empty retry | 59.67 | 67.67 | empty result goes back to the model |
 | + R3 decline review | 59.67 | 66.00 | false "no data" declines are checked against the tables |
-| + R3b system decline | **61.67** | **68.00** | proven-empty period: decline without a model call |
+| + R3b system decline | 61.67 | 68.00 | proven-empty period: decline without a model call |
 | + safe runner (r3b_safe) | 60.00 | 67.67 | four walls in front of every query; 0 queries blocked |
 | *dropped:* v2c | 57.00 | 60.67 | date range in the prompt: false declines |
 | *dropped:* v2b2 | 58.67 | 64.67 | "countries" wording: no gain |
@@ -82,7 +90,7 @@ R3b and r3b_safe differ by -1.67 on the strict score, which is within run-to-run
 - **One wrong note cost 11 points.** A catalog note said "multiply by 4 to get MW". The model did so on almost every question and scored 35 instead of 46 ([DECISIONS.md D18](DECISIONS.md#d18-the-mwhmw-catalog-note-was-reworded-after-it-caused-an-11-point-drop)).
 - **The decline option fixed tier 0.** Unanswerable questions went from 0 of 8 to 7 of 8 in every run ([D22](DECISIONS.md#d22-decline-option-added-on-top-of-schema-linked)).
 - **Examples fixed answer shape but caused false declines.** With ex-b, shape failures fell from 40 to 13, but the model declined 51 answerable questions ([PROJECT_PROGRESS.md](PROJECT_PROGRESS.md) section 14).
-- **The error retry matters most on the hardest tier.** Under the answer score, tier 4 goes from 0.00 (v2b_fresh) to 2.00 (R1, R2) and 1.33 to 1.67 (R3 to r3b_safe) of 4 questions. v2b_fresh had 6 crashed answers in 3 runs; r3b_safe had none ([results/analysis_r3b_safe_vs_r3b_2026-11-06.md](results/analysis_r3b_safe_vs_r3b_2026-11-06.md)). Tier 4 has only 4 questions.
+- **The strict score hid real fixes.** A second score that checks only the columns a question asks for (required columns written blind to agent results, [D42](DECISIONS.md#d42-answer-correctness-score-next-to-the-strict-score), [D43](DECISIONS.md#d43-second-external-review-plan-for-the-finish)) shows the error retry lifting tier 4 from 0 to about 2 of 4 (v2b_fresh 0.00; R1 and R2 2.00; R3 to r3b_safe 1.33 to 1.67). v2b_fresh had 6 crashed answers in 3 runs; r3b_safe had none ([results/analysis_r3b_safe_vs_r3b_2026-11-06.md](results/analysis_r3b_safe_vs_r3b_2026-11-06.md)). Tier 4 has only 4 questions.
 - **The system decline fixed the "no data" question without a model call.** u_08 passes 3 of 3 (R3 asked the model again and it answered `SELECT 0`) ([D39](DECISIONS.md#d39-system-decline-for-proven-empty-periods-row-r3b-kept)).
 
 ## How it works
@@ -145,6 +153,7 @@ About 3.48 million rows in total. Quirks the system has to handle:
 - Daylight-saving duplicate timestamps (12 of 105,300) can multiply rows in joins on `zeitpunkt` (open item O15).
 - An empty result can be a correct answer, so rewriting a query after an empty result can change the question (O16).
 - The label keyword lists of the answer score were written blind and are not exhaustive; an unknown label fails.
+- Only 7 of the 84 exam questions are in German, and most use the exact database words (open item O8), so German support is only lightly tested.
 - There is no user-facing app yet.
 
 ## Setup
@@ -153,21 +162,7 @@ Needs Docker, Python 3.12 and, only for model runs, an OpenAI API key.
 
 1. Create `.env` in the project root (it is in `.gitignore`) with these variables: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `POSTGRES_HOST` (all optional, defaults `app`, `app`, `smard`, `5432`, `localhost`), `GRADER_DB_USER` (the role name created by `sql/create_grader_role.sql`), `GRADER_DB_PASSWORD` (the password you choose for that role) and `OPENAI_API_KEY`.
 2. Install the packages: `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`.
-3. Download the three raw CSV files from SMARD.de (they are not in the repository) and save them in `data/raw/` under exactly these names:
-   - `Realisierte_Erzeugung_202306010000_202606020000_Viertelstunde.csv` (generation)
-   - `Actual_consumption_202306010000_202606020000_Quarterhour.csv` (consumption)
-   - `Gro_handelspreise_202306010000_202606020000_Viertelstunde.csv` (prices)
-
-   How these files were made, as far as the files and the loaders in `scripts/` confirm it:
-   1. Open <https://www.smard.de/en/downloadcenter/download-market-data/>.
-   2. **Generation:** actual generation, all sources (12 columns, `Biomasse` to `Sonstige Konventionelle`). Choose the **German** website language: the file has the columns `Datum von`, `Datum bis` and `<source> [MWh] Originalauflösungen`, German numbers (`1.026,00`) and dates like `01.06.2023 00:00`.
-   3. **Consumption:** actual consumption (4 columns: `grid load`, `Grid load incl. hydro pumped storage`, `Hydro pumped storage`, `Residual load`). Choose the **English** website language: the file has the columns `Start date`, `End date` and `<name> [MWh] Original resolutions`, numbers like `11,053.00` and dates like `Jun 1, 2023 12:00 AM`.
-   4. **Prices:** wholesale prices, all zones (17 columns, `Deutschland/Luxemburg` to `Ungarn`). Choose the **German** website language: the file has the columns `Datum von`, `Datum bis` and `<zone> [€/MWh] Originalauflösungen`, German numbers (`84,15`) and dates like `01.06.2023 00:00`.
-   5. For all three: region Germany (not verified: the CSV does not record the region), resolution quarter-hour (confirmed: 15-minute steps, columns marked "original resolutions"), period 01.06.2023 to 02.06.2026 (confirmed: the first row starts 01.06.2023 00:00 and the last row ends 02.06.2026 00:00), format CSV (confirmed: semicolon-separated, UTF-8 with a byte-order mark). The menu names on the website are not verified.
-   6. One download or several parts? The files cannot tell: each has a single header line and no break in time except the six daylight-saving clock changes (the last Sunday of March and October in 2023 to 2026), so a join would leave no trace. `PROJECT.md` says the site caps one download at two years and that the three-year range was assembled from several exports; how many parts and how they were joined is not recorded (not verified), and the repository has no join script. If you download in parts, join them into one file per dataset with one header line, rows in time order, no overlap and no gap.
-   7. Check each file: 105,312 data rows (`wc -l` prints 105313 with the header line), first row starting 1 June 2023 00:00.
-
-   The loaders expect these exact column names (`scripts/load_data.py`, `scripts/load_verbrauch.py`, `scripts/load_preise.py`), so a different website language needs a loader change.
+3. Download the three CSV files from the SMARD download center (https://www.smard.de/en/downloadcenter/download-market-data/): actual generation and wholesale prices with the website in German, actual consumption with the website in English; quarter-hour resolution, 01.06.2023 to 02.06.2026, CSV. Save them in `data/raw/` under the exact names listed in [docs/DATA.md](docs/DATA.md). Details and checks: [docs/DATA.md](docs/DATA.md).
 4. Start the database and load the data:
    ```bash
    docker compose up -d
@@ -221,6 +216,7 @@ Optional at the end: a LangGraph wrapper around the existing loop (checked again
 - [DECISIONS.md](DECISIONS.md): every decision with its reason and evidence (D1 to D43)
 - [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md): full state of the project, ablation table, open items
 - [grader/README.md](grader/README.md): how to run a row, what the outputs are
+- [docs/DATA.md](docs/DATA.md): where the SMARD CSV files come from and how to check them
 - [grader/](grader/): grader, loop, safe runner, answer comparator, tests; [grader/configs/](grader/configs/) has one file per row
 - [gold_set_smard.yaml](gold_set_smard.yaml), [heldout_smard.yaml](heldout_smard.yaml), [grader/answer_columns.yaml](grader/answer_columns.yaml): the exam, the held-out set, the answer columns
 - [scripts/](scripts/) and [sql/](sql/): data loaders and the read-only role

@@ -1,5 +1,5 @@
 -- Sanity checks for the erzeugung load (long format: zeitpunkt, energietraeger, mwh).
--- Run with: docker exec -i text-to-sql-db psql -U app -d smard -f scripts/sanity_checks.sql
+-- Run with (from the scripts folder): docker exec -i text-to-sql-db psql -U app -d smard < sanity_checks.sql
 -- (or paste sections into psql interactively)
 
 -- 1. Row count — should be 1,263,744 (105,312 source rows x 12 energietraeger).
