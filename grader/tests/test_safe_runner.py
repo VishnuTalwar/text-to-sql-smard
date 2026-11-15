@@ -17,6 +17,7 @@ import safe_runner
 from executor import QueryError
 from loader import load_questions
 from safe_runner import Limits, SafeResult, check_static, load_limits, safe_execute
+from _db import needs_db  # noqa: E402  (D46: skipped only when SKIP_DB_TESTS=1)
 
 LIMITS = load_limits()
 
@@ -161,6 +162,7 @@ class TestWall1Allows(unittest.TestCase):
 
 
 class TestWalls2And3(unittest.TestCase):
+    @needs_db
     def test_cross_join_is_blocked_by_plan_cost(self):
         res = safe_execute("SELECT a.zeitpunkt FROM erzeugung a CROSS JOIN erzeugung b", LIMITS)
         self.assertTrue(res.blocked)
@@ -169,6 +171,7 @@ class TestWalls2And3(unittest.TestCase):
         self.assertEqual(res.kind, "plan_cost")
         self.assertGreater(res.plan_cost, LIMITS.max_plan_cost)
 
+    @needs_db
     def test_more_than_max_rows_is_too_many_rows(self):
         res = safe_execute("SELECT zeitpunkt FROM erzeugung", LIMITS)  # ~23000 rows, limit 20000
         self.assertTrue(res.blocked)
@@ -176,12 +179,14 @@ class TestWalls2And3(unittest.TestCase):
         self.assertIn("too_many_rows", res.reason)
         self.assertIsNone(res.rows)
 
+    @needs_db
     def test_row_cap_with_small_limit_fetches_one_row_more(self):
         small = Limits(max_plan_cost=LIMITS.max_plan_cost, max_rows=5, timeout_ms=LIMITS.timeout_ms)
         self.assertEqual(safe_execute("SELECT zeitpunkt FROM erzeugung LIMIT 5", small).n_rows, 5)
         res = safe_execute("SELECT zeitpunkt FROM erzeugung LIMIT 6", small)
         self.assertEqual((res.blocked, res.wall, res.kind), (True, 3, "too_many_rows"))
 
+    @needs_db
     def test_timeout_is_a_block(self):
         tiny = Limits(max_plan_cost=LIMITS.max_plan_cost, max_rows=LIMITS.max_rows, timeout_ms=1)
         res = safe_execute("SELECT count(*) FROM erzeugung a JOIN erzeugung b "
@@ -190,6 +195,7 @@ class TestWalls2And3(unittest.TestCase):
         self.assertEqual(res.kind, "timeout")
         self.assertIn(res.wall, (2, 3))
 
+    @needs_db
     def test_normal_gold_query_passes(self):
         q = next(q for q in load_questions() if q.gold_sql)
         res = safe_execute(q.gold_sql, LIMITS)
@@ -198,12 +204,14 @@ class TestWalls2And3(unittest.TestCase):
         self.assertEqual(res.n_rows, len(res.rows))
         self.assertIsNotNone(res.plan_cost)
 
+    @needs_db
     def test_postgres_error_is_a_query_error_not_a_block(self):
         with self.assertRaises(QueryError) as ctx:
             safe_execute("SELECT mwhh FROM erzeugung", LIMITS)
         self.assertEqual(agent_loop.format_pg_error(ctx.exception).splitlines()[0],
                          'column "mwhh" does not exist')
 
+    @needs_db
     def test_connection_is_read_only(self):
         conn = safe_runner.connect()
         try:
@@ -216,6 +224,7 @@ class TestWalls2And3(unittest.TestCase):
             conn.rollback()
             conn.close()
 
+    @needs_db
     def test_precheck_does_not_run_the_query(self):
         res = safe_runner.precheck("SELECT count(*) FROM erzeugung", LIMITS)
         self.assertFalse(res.blocked)
@@ -227,6 +236,7 @@ class TestWalls2And3(unittest.TestCase):
         code = "\n".join(l for l in text.splitlines() if not l.lstrip().startswith(("#", '"""')))
         self.assertNotIn(".fetchall(", code)
 
+    @needs_db
     def test_all_gold_queries_pass_all_walls(self):
         rep = safe_runner.check_gold_against_limits(LIMITS)
         self.assertEqual(rep["failures"], [])
@@ -265,6 +275,7 @@ class TestLoopSwitch(unittest.TestCase):
         self.assertIn("safe_runner", agent_loop.SWITCH_NAMES)
         self.assertFalse(agent_loop.DEFAULT_SWITCHES["safe_runner"])
 
+    @needs_db
     def test_block_is_retried_like_an_error_with_the_exact_message(self):
         model = FakeModel(["SELECT pg_sleep(1) FROM erzeugung", GOOD])
         rec = agent_loop.run_question("q", {"error_retry": True, "safe_runner": True}, llm=model)
@@ -281,6 +292,7 @@ class TestLoopSwitch(unittest.TestCase):
         self.assertEqual(rec["final_sql"], GOOD)
         self.assertFalse(rec["cap_hit"])
 
+    @needs_db
     def test_postgres_error_still_uses_the_postgres_message(self):
         model = FakeModel(["SELECT mwhh FROM erzeugung", GOOD])
         rec = agent_loop.run_question("q", {"error_retry": True, "safe_runner": True}, llm=model)
@@ -340,6 +352,7 @@ class TestLoopSwitch(unittest.TestCase):
         for key in ("blocked", "wall", "reason"):
             self.assertNotIn(key, rec["attempts"][0])
 
+    @needs_db
     def test_a_blocked_query_is_never_executed_by_the_old_path(self):
         executed = []
         model = FakeModel(["SELECT pg_sleep(1) FROM erzeugung", GOOD])

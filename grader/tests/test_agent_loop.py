@@ -18,6 +18,7 @@ import agent_loop
 import prompt_template_v2b
 from executor import QueryError, run_query
 from loader import load_questions
+from _db import needs_db  # noqa: E402  (D46: skipped only when SKIP_DB_TESTS=1)
 
 BROKEN_HINT = "SELECT mwhh FROM erzeugung LIMIT 1"            # error with a HINT
 BROKEN_NO_HINT = "SELECT zero_stretch FROM erzeugung LIMIT 1"  # error without a HINT
@@ -86,23 +87,27 @@ class TestPromptAndSettings(unittest.TestCase):
         for s in ["NO_QUERY: x", "no_query: x", "  No_Query", "SELECT 1", "", "-- NO_QUERY"]:
             self.assertEqual(agent_loop.is_decline(s), run_v2b.is_decline(s), s)
 
+    @needs_db
     def test_fenced_sql_is_stripped_like_v2b(self):
         model = FakeModel(["```sql\nSELECT 1\n```"])
         rec = agent_loop.run_question("q", llm=model, prompt_builder=lambda q: "p")
         self.assertEqual(rec["final_sql"], "SELECT 1")
         self.assertEqual(rec["n_attempts"], 1)
 
+    @needs_db
     def test_role_statement_timeout_is_30s(self):
         self.assertEqual(run_query("SHOW statement_timeout"), [("30s",)])
 
 
 class TestSwitches(unittest.TestCase):
+    @needs_db
     def test_decline_review_switch_is_implemented(self):
         rec = agent_loop.run_question("q", {"decline_review": True}, llm=FakeModel(["SELECT 1"]),
                                       prompt_builder=lambda q: "p")
         self.assertEqual(rec["n_attempts"], 1)
         self.assertFalse(rec["review_fired"])
 
+    @needs_db
     def test_empty_retry_switch_is_implemented(self):
         rec = agent_loop.run_question("q", {"empty_retry": True}, llm=FakeModel(["SELECT 1"]),
                                       prompt_builder=lambda q: "p")
@@ -129,6 +134,7 @@ class TestSwitches(unittest.TestCase):
 
 
 class TestLoopBehaviour(unittest.TestCase):
+    @needs_db
     def test_working_sql_stops_at_attempt_1(self):
         model = FakeModel([WORKING])
         rec = agent_loop.run_question("q", llm=model, prompt_builder=lambda q: "p")
@@ -145,6 +151,7 @@ class TestLoopBehaviour(unittest.TestCase):
         self.assertIsNone(rec["final_sql"])
         self.assertFalse(rec["declined_after_error"])
 
+    @needs_db
     def test_b_broken_then_working(self):
         model = FakeModel([BROKEN_HINT, WORKING])
         rec = agent_loop.run_question("q", llm=model, prompt_builder=lambda q: "PROMPT")
@@ -167,6 +174,7 @@ class TestLoopBehaviour(unittest.TestCase):
         self.assertEqual(rec["prompt_tokens"], 200)
         self.assertEqual(rec["completion_tokens"], 20)
 
+    @needs_db
     def test_error_without_hint_has_no_hint_line_and_no_context(self):
         model = FakeModel([BROKEN_NO_HINT, WORKING])
         agent_loop.run_question("q", llm=model, prompt_builder=lambda q: "p")
@@ -175,6 +183,7 @@ class TestLoopBehaviour(unittest.TestCase):
         for forbidden in ("HINT", "LINE 1", "Traceback", "^"):
             self.assertNotIn(forbidden, text)
 
+    @needs_db
     def test_c_three_failures_stop_at_cap(self):
         model = FakeModel([BROKEN_HINT, BROKEN_NO_HINT, BROKEN_HINT, WORKING])
         rec = agent_loop.run_question("q", llm=model, prompt_builder=lambda q: "p")
@@ -186,6 +195,7 @@ class TestLoopBehaviour(unittest.TestCase):
         self.assertEqual(rec["final_sql"], BROKEN_HINT)  # the final attempt is the answer
         self.assertFalse(rec["declined_after_error"])
 
+    @needs_db
     def test_d_broken_then_no_query(self):
         model = FakeModel([BROKEN_HINT, "NO_QUERY: the data is missing", WORKING])
         rec = agent_loop.run_question("q", llm=model, prompt_builder=lambda q: "p")
@@ -201,6 +211,7 @@ class TestLoopBehaviour(unittest.TestCase):
 class TestReadOnlyRole(unittest.TestCase):
     TABLE = "zz_agent_loop_must_not_exist"
 
+    @needs_db
     def test_e_write_statements_are_refused(self):
         statements = [
             f"CREATE TABLE {self.TABLE} (a int)",
@@ -220,6 +231,7 @@ class TestReadOnlyRole(unittest.TestCase):
         self.assertEqual(run_query(f"SELECT to_regclass('public.{self.TABLE}')"), [(None,)])
         self.assertEqual(run_query("SELECT COUNT(*) FROM erzeugung"), before)
 
+    @needs_db
     def test_e_write_through_the_loop_comes_back_as_an_error(self):
         model = FakeModel([f"CREATE TABLE {self.TABLE} (a int)", WORKING])
         rec = agent_loop.run_question("q", llm=model, prompt_builder=lambda q: "p")
@@ -232,6 +244,7 @@ class TestRunnerSmoke(unittest.TestCase):
     """run_r1.run() end to end with a fake model that answers with the gold SQL
     (and NO_QUERY for tier 0), except that t1_01 first sends broken SQL."""
 
+    @needs_db
     def test_full_pipeline_with_fake_model(self):
         import json
         import run_r1
@@ -289,6 +302,7 @@ class TestEmptyRetry(unittest.TestCase):
         rec = agent_loop.run_question("q", sw, llm=model, prompt_builder=lambda q: "PROMPT")
         return model, rec
 
+    @needs_db
     def test_a_zero_rows_then_rows(self):
         model, rec = self.run_q([self.ZERO_ROWS, self.WITH_ROWS])
         self.assertEqual(rec["n_attempts"], 2)
@@ -304,6 +318,7 @@ class TestEmptyRetry(unittest.TestCase):
         self.assertFalse(rec["declined_after_empty"])
         self.assertFalse(rec["ended_empty"])
 
+    @needs_db
     def test_b_only_null_then_no_query(self):
         model, rec = self.run_q([self.ONE_NULL, "NO_QUERY: no data for that period", self.WITH_ROWS])
         self.assertEqual(len(model.calls), 2)  # NO_QUERY stops the loop
@@ -314,6 +329,7 @@ class TestEmptyRetry(unittest.TestCase):
         self.assertFalse(rec["declined_after_error"])
         self.assertIsNone(rec["final_sql"])
 
+    @needs_db
     def test_c_a_single_zero_is_not_empty(self):
         model, rec = self.run_q([self.ONE_ZERO])
         self.assertEqual(len(model.calls), 1)
@@ -322,6 +338,7 @@ class TestEmptyRetry(unittest.TestCase):
         self.assertFalse(rec["empty_on_attempt1"])
         self.assertEqual(rec["final_sql"], self.ONE_ZERO)
 
+    @needs_db
     def test_d_error_then_empty_then_rows(self):
         model, rec = self.run_q([BROKEN_HINT, self.ZERO_ROWS, self.WITH_ROWS, "SELECT 99"])
         self.assertEqual(len(model.calls), 3)  # stops at 3 attempts in total
@@ -343,6 +360,7 @@ class TestEmptyRetry(unittest.TestCase):
         self.assertTrue(rec["retried_after_empty"])
         self.assertFalse(rec["cap_hit"])
 
+    @needs_db
     def test_last_attempt_still_empty_is_the_answer(self):
         model, rec = self.run_q([self.ZERO_ROWS, self.ONE_NULL, self.ZERO_ROWS, self.WITH_ROWS])
         self.assertEqual(len(model.calls), 3)
@@ -351,6 +369,7 @@ class TestEmptyRetry(unittest.TestCase):
         self.assertTrue(rec["cap_hit"])
         self.assertEqual([a["check_fired"] for a in rec["attempts"]], ["empty_rows", "empty_null", "empty_rows"])
 
+    @needs_db
     def test_e_empty_retry_off_returns_the_empty_result_after_one_attempt(self):
         for switches in ({"error_retry": True, "empty_retry": False}, {}):  # {} = the default switches
             model, rec = self.run_q([self.ZERO_ROWS, self.WITH_ROWS], switches)
@@ -382,6 +401,7 @@ class TestEmptyRetry(unittest.TestCase):
         print(f"\nR2 switches: {identical}/{len(questions)} attempt-1 prompts identical to v2b")
         self.assertEqual(identical, len(questions))
 
+    @needs_db
     def test_run_r2_pipeline_with_fake_model(self):
         """run_r2.run() end to end: u_08 first answers with SQL that returns one NULL,
         then declines after the empty retry; t4_03 first returns no rows."""
@@ -440,6 +460,7 @@ class TestDeclineReview(unittest.TestCase):
                                       prompt_builder=lambda q: "PROMPT")
         return model, rec
 
+    @needs_db
     def test_a_false_date_claim_is_reviewed_once(self):
         model, rec = self.run_q([self.FALSE_CLAIM, self.WITH_ROWS])
         want = ('Your reason was: "The table does not contain data for February 2026."\n'
@@ -460,18 +481,21 @@ class TestDeclineReview(unittest.TestCase):
         self.assertEqual((rec["review_periods"][0]["start"], rec["review_periods"][0]["end"]), ("2026-02-01", "2026-02-28"))
         self.assertGreater(sum(rec["review_periods"][0]["rows"].values()), 0)
 
+    @needs_db
     def test_b_true_claim_is_not_reviewed(self):
         model, rec = self.run_q(["NO_QUERY: Data for July 2026 is missing.", self.WITH_ROWS])
         self.assertEqual(len(model.calls), 1)
         self.assertTrue(rec["declined"])
         self.assertFalse(rec["review_fired"])
 
+    @needs_db
     def test_c_open_ended_claim_is_not_reviewed(self):
         model, rec = self.run_q(["NO_QUERY: There is no data for nuclear power after 2024-01-30.", self.WITH_ROWS])
         self.assertEqual(len(model.calls), 1)
         self.assertTrue(rec["declined"])
         self.assertFalse(rec["review_fired"])
 
+    @needs_db
     def test_d_second_decline_stands_after_one_review(self):
         claim = "NO_QUERY: Data for 2025 is missing."
         model, rec = self.run_q([claim, claim, self.WITH_ROWS])
@@ -486,6 +510,7 @@ class TestDeclineReview(unittest.TestCase):
         self.assertFalse(rec["answered_after_review"])
         self.assertIsNone(rec["final_sql"])
 
+    @needs_db
     def test_e_no_review_when_the_cap_is_reached(self):
         model, rec = self.run_q([BROKEN_HINT, BROKEN_NO_HINT, self.FALSE_CLAIM, self.WITH_ROWS])
         self.assertEqual(len(model.calls), 3)
@@ -494,12 +519,14 @@ class TestDeclineReview(unittest.TestCase):
         self.assertFalse(rec["review_fired"])
         self.assertEqual([a["check_fired"] for a in rec["attempts"]], ["error", "error", None])
 
+    @needs_db
     def test_review_is_possible_on_attempt_2_and_leaves_room_for_attempt_3(self):
         model, rec = self.run_q([BROKEN_HINT, self.FALSE_CLAIM, BROKEN_NO_HINT, self.WITH_ROWS])
         self.assertEqual([a["check_fired"] for a in rec["attempts"]], ["error", "review", "error"])
         self.assertEqual(len(model.calls), 3)
         self.assertTrue(rec["cap_hit"])
 
+    @needs_db
     def test_f_empty_fact_for_a_period_without_rows(self):
         model, rec = self.run_q([self.JULY_2026, "NO_QUERY: Data for July 2026 is missing."])
         want = ("This query ran but returned only NULL values.\n"
@@ -517,6 +544,7 @@ class TestDeclineReview(unittest.TestCase):
         self.assertTrue(rec["declined_after_empty"])
         self.assertFalse(rec["review_fired"])  # a decline after the empty fact is not reviewed (claim is true)
 
+    @needs_db
     def test_g_no_fact_without_a_date_in_the_sql(self):
         model, rec = self.run_q([self.EMPTY_NO_DATE, self.WITH_ROWS])
         self.assertEqual(model.calls[1][2]["content"],
@@ -525,6 +553,7 @@ class TestDeclineReview(unittest.TestCase):
         self.assertFalse(rec["empty_fact_fired"])
         self.assertEqual(rec["empty_fact_period"], [])
 
+    @needs_db
     def test_h_decline_review_off_behaves_like_r2(self):
         for replies in ([self.FALSE_CLAIM, self.WITH_ROWS], [self.JULY_2026, "NO_QUERY: x", self.WITH_ROWS],
                         [self.EMPTY_NO_DATE, self.WITH_ROWS], [BROKEN_HINT, self.WITH_ROWS]):
@@ -542,6 +571,7 @@ class TestDeclineReview(unittest.TestCase):
                          "This query ran but returned only NULL values.\nWrite a corrected query. Return only the SQL.")
         self.assertFalse(r["empty_fact_fired"])
 
+    @needs_db
     def test_i_attempt_1_prompt_identical_to_v2b_for_all_84_with_r3_switches(self):
         questions = load_questions()
         identical = 0
@@ -555,6 +585,7 @@ class TestDeclineReview(unittest.TestCase):
         print(f"\nR3 switches: {identical}/{len(questions)} attempt-1 prompts identical to v2b")
         self.assertEqual(identical, len(questions))
 
+    @needs_db
     def test_run_r3_pipeline_with_fake_model(self):
         """run_r3.run() end to end. t1_12 is first declined with a false date claim and then
         answered; u_01 declines with open-ended wording (no review); u_08 gets the empty fact
@@ -616,6 +647,7 @@ class TestEmptyFactDecline(unittest.TestCase):
                                       prompt_builder=lambda q: "PROMPT")
         return model, rec
 
+    @needs_db
     def test_a_proven_empty_period_stops_with_a_system_decline(self):
         model, rec = self.run_q([self.JULY_2026, self.WITH_ROWS])
         self.assertEqual(len(model.calls), 1)  # no second model call
@@ -633,11 +665,13 @@ class TestEmptyFactDecline(unittest.TestCase):
         self.assertFalse(rec["declined_after_empty"])
         self.assertFalse(rec["cap_hit"])
 
+    @needs_db
     def test_graded_like_a_no_query(self):
         # the reply starts with NO_QUERY, so the existing decline detection treats it as one
         self.assertTrue(agent_loop.is_decline(agent_loop.run_question(
             "q", self.R3B, llm=FakeModel([self.JULY_2026]), prompt_builder=lambda q: "p")["final_reply"]))
 
+    @needs_db
     def test_b_empty_result_over_a_period_with_rows_uses_the_r2_message(self):
         model, rec = self.run_q([self.EMPTY_FEB, self.WITH_ROWS])
         self.assertEqual(len(model.calls), 2)
@@ -647,6 +681,7 @@ class TestEmptyFactDecline(unittest.TestCase):
         self.assertFalse(rec["empty_fact_fired"])
         self.assertEqual(rec["final_sql"], self.WITH_ROWS)
 
+    @needs_db
     def test_c_empty_result_without_a_date_uses_the_r2_message(self):
         model, rec = self.run_q([self.EMPTY_NO_DATE, self.WITH_ROWS])
         self.assertEqual(model.calls[1][2]["content"],
@@ -654,6 +689,7 @@ class TestEmptyFactDecline(unittest.TestCase):
         self.assertFalse(rec["system_declined"])
         self.assertEqual(rec["system_decline_period"], [])
 
+    @needs_db
     def test_system_decline_after_an_earlier_error_retry(self):
         model, rec = self.run_q([BROKEN_HINT, self.JULY_2026, self.WITH_ROWS])
         self.assertEqual(len(model.calls), 2)
@@ -661,6 +697,7 @@ class TestEmptyFactDecline(unittest.TestCase):
         self.assertEqual(rec["n_attempts"], 2)
         self.assertTrue(rec["retried_after_error"])
 
+    @needs_db
     def test_d_switch_off_behaves_like_r3(self):
         for replies in ([self.JULY_2026, "NO_QUERY: x"], [self.EMPTY_FEB, self.WITH_ROWS],
                         [self.EMPTY_NO_DATE, self.WITH_ROWS], [BROKEN_HINT, self.WITH_ROWS],
@@ -676,6 +713,7 @@ class TestEmptyFactDecline(unittest.TestCase):
         self.assertIn("Fact: the tables have no rows for the period 2026-07-01 to 2026-07-31.", m.calls[1][2]["content"])
         self.assertFalse(r["system_declined"])
 
+    @needs_db
     def test_e_attempt_1_prompt_identical_to_v2b_for_all_84_with_r3b_switches(self):
         questions = load_questions()
         identical = 0
@@ -689,6 +727,7 @@ class TestEmptyFactDecline(unittest.TestCase):
         print(f"\nR3b switches: {identical}/{len(questions)} attempt-1 prompts identical to v2b")
         self.assertEqual(identical, len(questions))
 
+    @needs_db
     def test_run_r3b_pipeline_with_fake_model(self):
         import json
         import run_r3b
@@ -777,6 +816,7 @@ class TestModelVersionLogging(unittest.TestCase):
         agent_loop.call_openai([{"role": "user", "content": "x"}], client=client)
         self.assertEqual((seen["model"], seen["temperature"], seen["seed"]), ("gpt-4o-2024-08-06", 0, 0))
 
+    @needs_db
     def test_attempts_and_jsonl_record_carry_both_fields(self):
         import json
         import run_r1

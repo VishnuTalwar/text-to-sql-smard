@@ -13,6 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import date_facts as df
+from _db import needs_db  # noqa: E402  (D46: skipped only when SKIP_DB_TESTS=1)
 
 
 def D(y, m, d):
@@ -194,6 +195,7 @@ class TestSqlPeriods(unittest.TestCase):
             self.assertEqual(df.find_periods_in_sql(sql), [(D(2026, 7, 1), D(2026, 8, 1))], sql)
 
 
+@needs_db
 class TestDecisions(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

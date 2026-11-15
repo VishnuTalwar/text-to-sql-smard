@@ -24,8 +24,11 @@ sys.path.insert(0, str(APP_DIR / "tests"))
 import answer  # noqa: E402
 import summary  # noqa: E402
 import tracing  # noqa: E402
-from test_answer import (BROKEN, GOOD, FakeModel, TestEquivalenceWithRunPy)  # noqa: E402
+import test_answer  # noqa: E402  (the module, not its TestCase classes: those would be collected twice)
+from test_answer import BROKEN, GOOD, FakeModel  # noqa: E402
 from tracing_fakes import RaisingStepTracer, RaisingTracer, RecordingTracer  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "grader" / "tests"))
+from _db import needs_db  # noqa: E402  (D46: skipped only when SKIP_DB_TESTS=1)
 
 KEYS = {"LANGFUSE_PUBLIC_KEY": "pk-test", "LANGFUSE_SECRET_KEY": "sk-secret-123"}
 ENV = {**KEYS, "LANGFUSE_BASE_URL": "https://cloud.langfuse.com"}
@@ -237,6 +240,7 @@ class TestLangfuseTracerWithRealSdk(unittest.TestCase):
         self.assertIn("column oops does not exist", span.attributes["langfuse.observation.output"])
         self.assertGreaterEqual(span.end_time - span.start_time, 0.05e9)
 
+    @needs_db
     def test_real_durations_a_slow_model_gives_a_generation_of_at_least_0_2_s(self):
         class SlowModel(FakeModel):
             def __call__(self, messages):
@@ -260,12 +264,14 @@ class TestLangfuseTracerWithRealSdk(unittest.TestCase):
 
 
 class TestAnswerQuestionTracing(unittest.TestCase):
+    @needs_db
     def test_a_equivalence_with_run_py_also_with_a_recording_tracer(self):
         tracer = RecordingTracer()
-        TestEquivalenceWithRunPy("test_g_same_attempts_and_final_sql_as_run_py").check_equivalence(tracer)
+        test_answer.TestEquivalenceWithRunPy("test_g_same_attempts_and_final_sql_as_run_py").check_equivalence(tracer)
         self.assertEqual(len(tracer.of("start_trace")), 5)
         self.assertEqual(len(tracer.of("end_trace")), 5)
 
+    @needs_db
     def test_b_two_attempts_error_then_good(self):
         tracer = RecordingTracer()
         r = answer.answer_question("Show some wind generation values.", model_caller=FakeModel([BROKEN, GOOD]),
@@ -317,6 +323,7 @@ class TestAnswerQuestionTracing(unittest.TestCase):
         self.assertFalse(ok_args[0]["blocked"])
         self.assertEqual(r.tracing_status, "tracing on")
 
+    @needs_db
     def test_c_a_tracer_that_raises_changes_nothing(self):
         null = answer.answer_question("Show some wind generation values.", model_caller=FakeModel([BROKEN, GOOD]))
         with self.assertLogs("app.tracing", "WARNING"):
@@ -338,6 +345,7 @@ class TestAnswerQuestionTracing(unittest.TestCase):
         self.assertEqual(s_bad, s_null)
         self.assertTrue(s_null.shown)
 
+    @needs_db
     def test_tracer_none_calls_nothing_and_equals_old_behaviour(self):
         r = answer.answer_question("Show some wind generation values.", model_caller=FakeModel([GOOD]))
         self.assertEqual((r.status, r.trace_id), ("answered", None))
@@ -355,6 +363,7 @@ class TestAnswerQuestionTracing(unittest.TestCase):
         self.assertIsInstance(fail_args[0], ConnectionError)
         self.assertEqual(len(tracer.of("flush")), 1)
 
+    @needs_db
     def test_e_summary_steps_are_on_the_same_trace(self):
         tracer = RecordingTracer()
         r = answer.answer_question("Show some wind generation values.", model_caller=FakeModel([GOOD]),
@@ -379,6 +388,7 @@ class TestAnswerQuestionTracing(unittest.TestCase):
         self.assertEqual(sargs[:3], (r.trace_id, False, "number_check"))
         self.assertEqual([str(n) for n in sargs[3]], ["12345"])
 
+    @needs_db
     def test_f_trace_output_holds_at_most_50_rows(self):
         tracer = RecordingTracer()
         r = answer.answer_question("Show sixty values.", model_caller=FakeModel(["SELECT mwh FROM erzeugung LIMIT 60"]),

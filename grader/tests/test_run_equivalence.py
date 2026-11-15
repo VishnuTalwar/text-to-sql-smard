@@ -33,6 +33,7 @@ sys.path.insert(0, str(GRADER))
 import run as shared_runner
 import prompt_template_v2b
 from loader import GOLD_SET_PATH, load_questions
+from _db import needs_db  # noqa: E402  (D46: skipped only when SKIP_DB_TESTS=1)
 
 CONFIG_DIR = GRADER / "configs"
 QUESTIONS = load_questions()
@@ -200,6 +201,7 @@ class TestPromptEquivalenceSingleCallRows(unittest.TestCase):
 
 # ---------------------------------------------------------------- 5a/5b/5c, loop rows
 
+@needs_db
 class TestPipelineEquivalenceLoopRows(unittest.TestCase):
     prompt_summary = {}
     pipeline_summary = {}

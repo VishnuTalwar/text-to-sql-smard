@@ -23,6 +23,8 @@ import answer  # noqa: E402  (puts grader/ on sys.path)
 import run as grader_run  # noqa: E402
 from executor import run_query  # noqa: E402
 from loader import GOLD_SET_PATH, load_questions  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "grader" / "tests"))
+from _db import needs_db  # noqa: E402  (D46: skipped only when SKIP_DB_TESTS=1)
 
 CONFIG = PROJECT_ROOT / "grader" / "configs" / "r3b_safe.yaml"
 GOOD = "SELECT mwh FROM erzeugung LIMIT 5"
@@ -53,6 +55,7 @@ class FakeModel:
 
 
 class TestAnswerQuestion(unittest.TestCase):
+    @needs_db
     def test_a_normal_answer(self):
         r = answer.answer_question("Show some wind generation values.", model_caller=FakeModel([GOOD]))
         self.assertEqual(r.status, "answered")
@@ -72,6 +75,7 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertEqual(r.seconds_model, 0.5)
         self.assertGreaterEqual(r.seconds_total, r.seconds_model)
 
+    @needs_db
     def test_b_model_declines(self):
         model = FakeModel(["NO_QUERY: the tables have no weather data."])
         r = answer.answer_question("What was the temperature in Berlin?", model_caller=model)
@@ -82,6 +86,7 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertIsNone(r.final_sql)
         self.assertEqual((r.rows, r.row_count), ([], 0))
 
+    @needs_db
     def test_c_system_decline_for_a_period_without_data(self):
         model = FakeModel([WIND_JULY_2026])
         r = answer.answer_question("What was the total wind generation in July 2026?", model_caller=model)
@@ -93,6 +98,7 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertEqual(r.attempts[0].sql, WIND_JULY_2026)
         self.assertIsNone(r.final_sql)
 
+    @needs_db
     def test_d_first_query_empty_second_has_rows(self):
         model = FakeModel([NO_PERIOD_EMPTY, GOOD])
         r = answer.answer_question("Show some wind generation values.", model_caller=model)
@@ -105,6 +111,7 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertEqual(r.row_count, 5)
         self.assertEqual(len(model.calls), 2)
 
+    @needs_db
     def test_e_every_attempt_empty(self):
         model = FakeModel([EMPTY_IN_DATA_PERIOD] * 3)
         r = answer.answer_question("Show wind generation in January 2025.", model_caller=model)
@@ -116,6 +123,7 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertEqual((r.rows, r.row_count), ([], 0))
         self.assertEqual(len(model.calls), 3)
 
+    @needs_db
     def test_f_delete_in_a_cte_is_blocked_and_nothing_changes(self):
         before = run_query("SELECT COUNT(*) FROM preise")
         model = FakeModel([DELETE_IN_CTE] * 3)
@@ -129,6 +137,7 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertEqual(run_query("SELECT COUNT(*) FROM preise"), before)
         self.assertGreater(before[0][0], 0)
 
+    @needs_db
     def test_f2_blocked_first_then_a_good_answer(self):
         r = answer.answer_question("Show some values.", model_caller=FakeModel([DELETE_IN_CTE, GOOD]))
         self.assertEqual(r.status, "answered")
@@ -148,6 +157,7 @@ class TestAnswerQuestion(unittest.TestCase):
             self.assertIn("safe_runner", str(ctx.exception))
             self.assertEqual(model.calls, [], "the model must not be called")
 
+    @needs_db
     def test_error_after_three_attempts(self):
         r = answer.answer_question("Show some values.", model_caller=FakeModel([BROKEN] * 3))
         self.assertEqual(r.status, "error")
@@ -180,28 +190,35 @@ class TestSqlToShow(unittest.TestCase):
 class TestColumnNames(unittest.TestCase):
     BASE = "SELECT mwh AS strom, energietraeger AS quelle FROM erzeugung LIMIT 1"
 
+    @needs_db
     def test_plain_sql(self):
         self.assertEqual(answer._column_names(self.BASE, 2), ["strom", "quelle"])
 
+    @needs_db
     def test_trailing_semicolon(self):
         self.assertEqual(answer._column_names(self.BASE + ";", 2), ["strom", "quelle"])
 
+    @needs_db
     def test_trailing_semicolon_with_spaces_and_newline(self):
         self.assertEqual(answer._column_names(self.BASE + ";  \n", 2), ["strom", "quelle"])
 
+    @needs_db
     def test_trailing_line_comment_after_semicolon_free_sql(self):
         self.assertEqual(answer._column_names(self.BASE + " -- last row only", 2), ["strom", "quelle"])
 
+    @needs_db
     def test_names_are_not_the_fallback_when_the_query_is_wrapped(self):
         # the fallback gives column_1, column_2: a wrapping error would show up as those names
         self.assertNotEqual(answer._column_names(self.BASE + ";", 2), ["column_1", "column_2"])
 
+    @needs_db
     def test_answer_question_with_a_semicolon_gives_the_right_names(self):
         sql = self.BASE + ";"
         r = answer.answer_question("Show some wind generation values.", model_caller=FakeModel([sql]))
         self.assertEqual(r.status, "answered")
         self.assertEqual(r.columns, ["strom", "quelle"])
 
+    @needs_db
     def test_runs_as_grader_ro_read_only_with_the_limits_timeout(self):
         """The column query uses safe_runner.connect(): check what that connection is."""
         seen = {}
@@ -294,6 +311,7 @@ class ScriptedModel:
 class TestEquivalenceWithRunPy(unittest.TestCase):
     IDS = ["t1_01", "t2_01", "t3_01", "t4_01", "t4_02"]
 
+    @needs_db
     def test_g_same_attempts_and_final_sql_as_run_py(self):
         self.check_equivalence(None)
 

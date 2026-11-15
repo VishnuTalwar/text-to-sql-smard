@@ -1,6 +1,6 @@
 # Evaluated Text-to-SQL for German Electricity Data (SMARD)
 
-Ask a question in English or German (app in progress), an LLM writes PostgreSQL, the query runs behind safety checks, and every result is measured against a fixed exam.
+Ask a question in English or German, an LLM writes PostgreSQL, the query runs behind safety checks, and every result is measured against a fixed exam.
 
 ## At a glance
 
@@ -8,7 +8,7 @@ Ask a question in English or German (app in progress), an LLM writes PostgreSQL,
 - Strong on tiers 0 and 1 (strict 95.8% and 97.1%, answer score 95.8% and 100.0%). Weak on tiers 3 and 4 (strict 19.4% and 0.0%, answer score 52.8% and 41.7%).
 - Four safety walls in front of every query, checked by 183 offline tests.
 - Every run writes a manifest with prompt and file hashes.
-- Status: evaluation pipeline done, Streamlit app in progress.
+- Status: evaluation pipeline done, app built (Streamlit, with Langfuse tracing).
 
 ## Example
 
@@ -154,13 +154,12 @@ About 3.48 million rows in total. Quirks the system has to handle:
 - An empty result can be a correct answer, so rewriting a query after an empty result can change the question (O16).
 - The label keyword lists of the answer score were written blind and are not exhaustive; an unknown label fails.
 - Only 7 of the 84 exam questions are in German, and most use the exact database words (open item O8), so German support is only lightly tested.
-- There is no user-facing app yet.
 
 ## Setup
 
 Needs Docker, Python 3.12 and, only for model runs, an OpenAI API key.
 
-1. Create `.env` in the project root (it is in `.gitignore`) with these variables: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `POSTGRES_HOST` (all optional, defaults `app`, `app`, `smard`, `5432`, `localhost`), `GRADER_DB_USER` (the role name created by `sql/create_grader_role.sql`), `GRADER_DB_PASSWORD` (the password you choose for that role) and `OPENAI_API_KEY`. Also `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` and `LANGFUSE_BASE_URL` (LANGFUSE_HOST still accepted), all optional, only for tracing in the app (D45).
+1. Copy `.env.example` to `.env` and fill in your values (`.env` is in `.gitignore`). The file lists every variable the code reads, with a comment for each. You must set `GRADER_DB_USER`, `GRADER_DB_PASSWORD` (the password you choose for the read-only role) and `OPENAI_API_KEY`; the `POSTGRES_*` values have defaults, and the `LANGFUSE_*` values are optional (tracing in the app, D45).
 2. Install the packages: `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`.
 3. Download the three CSV files from the SMARD download center (https://www.smard.de/en/downloadcenter/download-market-data/): "Generation" and the prices dataset with the website in German, "Consumption" with the website in English; quarter-hour resolution, 01.06.2023 to 02.06.2026, CSV. Save them in `data/raw/` under the exact names listed in [docs/DATA.md](docs/DATA.md). Details and checks: [docs/DATA.md](docs/DATA.md).
 4. Start the database and load the data:
@@ -179,16 +178,29 @@ Needs Docker, Python 3.12 and, only for model runs, an OpenAI API key.
    ```bash
    docker exec -i text-to-sql-db psql -U app -d smard < sanity_checks.sql
    ```
-7. Run the offline tests (no API calls, they need the database and the role, and take a few minutes):
+7. Run the app (from the project root):
    ```bash
-   cd ../grader
-   python -m unittest discover -s tests
+   cd ..
+   streamlit run app/streamlit_app.py
    ```
+   Restart the app after changing `.env` (the app reads it once at start).
 8. Run one row of the exam (about 84 or more API calls per run; the 3 runs of r3b_safe cost $0.57, see [the analysis](results/analysis_r3b_safe_vs_r3b_2026-11-06.md)):
    ```bash
+   cd grader
    python run.py --config configs/r3b_safe.yaml
    ```
    Add `--runs 1` for a single run. Results and run receipts go to `results/`; see [grader/README.md](grader/README.md).
+
+## Tests
+
+From the project root:
+
+```bash
+python -m unittest discover -s app/tests
+python -m unittest discover -s grader/tests
+```
+
+No test calls OpenAI or Langfuse. Tests that need the loaded SMARD database and the read-only role (setup steps 3 to 5) are marked `@needs_db`. They run by default and fail if the database is down. Set `SKIP_DB_TESTS=1` to skip them, for example `SKIP_DB_TESTS=1 python -m unittest discover -s app/tests`. CI on GitHub runs 224 of 338 tests, the ones that need neither the SMARD database nor an API; the other 114 need the full database and run locally.
 
 ## Tech stack
 
@@ -196,6 +208,7 @@ Needs Docker, Python 3.12 and, only for model runs, an OpenAI API key.
 - PostgreSQL 16 in Docker
 - OpenAI API, model `gpt-4o-2024-08-06` pinned ([D36](DECISIONS.md#d36-model-pinned-to-the-dated-snapshot-gpt-4o-2024-08-06)); `text-embedding-3-small` only in the dropped ex-b row
 - sqlglot (static SQL check and date finder), psycopg2, PyYAML, python-dotenv
+- Streamlit and Plotly (the app), Langfuse (optional tracing in the app)
 - pandas (data loaders), scikit-learn (overlap check between exam and held-out set)
 
 ## Roadmap
@@ -203,9 +216,9 @@ Needs Docker, Python 3.12 and, only for model runs, an OpenAI API key.
 Order from [D43](DECISIONS.md#d43-second-external-review-plan-for-the-finish):
 1. Done: label matching in the answer score requires meaning.
 2. This README.
-3. Streamlit app: question, SQL, result, chart, short explanation, with honest "no rows match" and "no data" messages.
-4. Langfuse tracing in the app.
-5. Easy setup: `.env.example`, pinned packages, CI running the offline tests.
+3. Done: Streamlit app: question, SQL, result, chart, short explanation, with honest "no rows match" and "no data" messages.
+4. Done: Langfuse tracing in the app.
+5. Done: easy setup: `.env.example`, pinned packages, CI running the offline tests.
 6. Freeze code and scoring, then the final held-out run.
 7. Small user study (3 to 5 people, fixed tasks, completion and time).
 
@@ -213,10 +226,11 @@ Optional at the end: a LangGraph wrapper around the existing loop (checked again
 
 ## Repository map
 
-- [DECISIONS.md](DECISIONS.md): every decision with its reason and evidence (D1 to D43)
+- [DECISIONS.md](DECISIONS.md): every decision with its reason and evidence (D1 to D46)
 - [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md): full state of the project, ablation table, open items
 - [grader/README.md](grader/README.md): how to run a row, what the outputs are
 - [docs/DATA.md](docs/DATA.md): where the SMARD CSV files come from and how to check them
+- [app/](app/): the Streamlit app, its core function, tracing and tests; [.env.example](.env.example) lists every environment variable; [.github/workflows/tests.yml](.github/workflows/tests.yml) is the CI
 - [grader/](grader/): grader, loop, safe runner, answer comparator, tests; [grader/configs/](grader/configs/) has one file per row
 - [gold_set_smard.yaml](gold_set_smard.yaml), [heldout_smard.yaml](heldout_smard.yaml), [grader/answer_columns.yaml](grader/answer_columns.yaml): the exam, the held-out set, the answer columns
 - [scripts/](scripts/) and [sql/](sql/): data loaders and the read-only role

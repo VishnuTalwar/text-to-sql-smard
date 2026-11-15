@@ -17,6 +17,7 @@ from answer_comparator import (answer_compare, answer_match, literal_label_colum
                                load_answer_columns, match_label)
 from executor import run_query_with_columns
 from loader import load_questions
+from _db import needs_db  # noqa: E402  (D46: skipped only when SKIP_DB_TESTS=1)
 
 QUESTIONS = {q.id: q for q in load_questions()}
 ENTRIES = load_answer_columns()
@@ -50,6 +51,7 @@ class TestYaml(unittest.TestCase):
         self.assertEqual(set(ENTRIES), with_sql)
         self.assertEqual(len(ENTRIES), 76)
 
+    @needs_db
     def test_columns_exist_in_the_gold_result(self):
         for qid, e in ENTRIES.items():
             cols = gold(qid)[0]
@@ -71,6 +73,7 @@ class TestYaml(unittest.TestCase):
 
 
 class TestGoldAgainstItself(unittest.TestCase):
+    @needs_db
     def test_every_gold_result_passes_against_itself(self):
         passed = 0
         for qid in ENTRIES:
@@ -83,23 +86,27 @@ class TestGoldAgainstItself(unittest.TestCase):
 
 
 class TestAnswerMatch(unittest.TestCase):
+    @needs_db
     def test_one_required_column_is_enough_t2_06(self):
         cols, rows = project("t2_06", ["preiszone"])
         res = match("t2_06", cols, rows)
         self.assertTrue(res.passed, res.reason)
         self.assertEqual(res.used, "required")
 
+    @needs_db
     def test_english_names_and_different_column_order(self):
         cols, rows = project("t2_04", ["mwh", "monat"], rename={"mwh": "total_generation", "monat": "month"})
         res = match("t2_04", cols, rows)
         self.assertTrue(res.passed, res.reason)
         self.assertEqual(res.assignment, {"monat": "month", "mwh": "total_generation"})
 
+    @needs_db
     def test_half_answer_t3_12_only_the_date_fails(self):
         cols, rows = project("t3_12", ["tag"])
         res = match("t3_12", cols, rows)
         self.assertFalse(res.passed)
 
+    @needs_db
     def test_right_columns_wrong_values_fail(self):
         cols, rows = project("t2_04", ["monat", "mwh"])
         rows = [list(r) for r in rows]
@@ -107,11 +114,13 @@ class TestAnswerMatch(unittest.TestCase):
         res = match("t2_04", cols, [tuple(r) for r in rows])
         self.assertFalse(res.passed)
 
+    @needs_db
     def test_wrong_label_values_fail(self):
         cols, rows = project("t2_02", ["energietraeger", "mwh"])
         rows = [("Kohle?",) + r[1:] if i == 0 else r for i, r in enumerate(rows)]
         self.assertFalse(match("t2_02", cols, rows).passed)
 
+    @needs_db
     def test_one_row_too_many_or_too_few_fails(self):
         cols, rows = project("t2_04", ["monat", "mwh"])
         self.assertFalse(match("t2_04", cols, rows + [rows[0]]).passed)
@@ -119,6 +128,7 @@ class TestAnswerMatch(unittest.TestCase):
         res = match("t2_04", cols, rows[:-1])
         self.assertIn("row count", res.reason)
 
+    @needs_db
     def test_ranking_with_two_rows_swapped(self):
         # t2_02: reihenfolge_relevant true -> the swap fails
         self.assertTrue(QUESTIONS["t2_02"].reihenfolge_relevant)
@@ -151,6 +161,7 @@ class TestAnswerMatch(unittest.TestCase):
                                          gold_cols, gold_rows, entry, False, 0.005)
         self.assertFalse(swapped_unordered.passed)
 
+    @needs_db
     def test_english_labels_with_the_right_numbers_pass(self):
         # t3_08 on the real gold numbers
         cols, rows = project("t3_08", ["typ", "eur_mwh"])
@@ -167,6 +178,7 @@ class TestAnswerMatch(unittest.TestCase):
         res = match("t2_15", ["category", "total"], english)
         self.assertTrue(res.passed, res.reason)
 
+    @needs_db
     def test_swapped_labels_fail_on_the_real_gold_numbers(self):
         for qid, col, val, a, b in (("t3_08", "typ", "eur_mwh", "Weekday", "Weekend"),
                                     ("t3_11", "gruppe", "eur_mwh", "Above 5000 MWh", "5000 MWh or below"),
@@ -176,6 +188,7 @@ class TestAnswerMatch(unittest.TestCase):
             swapped = [(b if r[0] == first_label else a, r[1]) for r in rows]
             self.assertFalse(match(qid, ["x", "y"], swapped).passed, qid)
 
+    @needs_db
     def test_german_labels_and_symbols_pass(self):
         cols, rows = project("t3_11", ["gruppe", "eur_mwh"])
         for hi, lo in (("viel Solar", "wenig Solar"), ("> 5000", "<= 5000"), ("über 5000 MWh", "höchstens 5000 MWh"),
@@ -184,6 +197,7 @@ class TestAnswerMatch(unittest.TestCase):
             res = match("t3_11", ["g", "p"], labelled)
             self.assertTrue(res.passed, (hi, lo, res.reason))
 
+    @needs_db
     def test_a_label_matching_neither_gold_label_fails(self):
         cols, rows = project("t3_08", ["typ", "eur_mwh"])
         odd = [("Tuesday" if r[0] == "Werktag" else "Holiday", r[1]) for r in rows]
@@ -191,6 +205,7 @@ class TestAnswerMatch(unittest.TestCase):
         self.assertFalse(res.passed)
         self.assertIn("matches no gold label", res.reason)
 
+    @needs_db
     def test_a_label_matching_both_gold_labels_fails(self):
         cols, rows = project("t3_08", ["typ", "eur_mwh"])
         both = [("weekday and weekend", r[1]) for r in rows]
@@ -198,6 +213,7 @@ class TestAnswerMatch(unittest.TestCase):
         self.assertFalse(res.passed)
         self.assertIn("more than one gold label", res.reason)
 
+    @needs_db
     def test_two_gold_groups_given_one_label_fail(self):
         cols, rows = project("t3_11", ["gruppe", "eur_mwh"])
         same = [("above 5000", r[1]) for r in rows]
@@ -227,12 +243,14 @@ class TestAnswerMatch(unittest.TestCase):
         self.assertEqual(match_label("overall", meanings)[1], "none")      # "over" inside a longer word
         self.assertEqual(match_label("brother", meanings)[1], "none")      # "other" inside a longer word
 
+    @needs_db
     def test_a_numeric_column_is_not_a_label(self):
         # the old rule accepted any column that grouped the rows the same way; now a count cannot be a label
         cols, rows = project("t3_11", ["gruppe", "eur_mwh"])
         numbers_as_labels = [(10 + i, r[1]) for i, r in enumerate(rows)]
         self.assertFalse(match("t3_11", ["n", "price"], numbers_as_labels).passed)
 
+    @needs_db
     def test_label_meanings_cover_every_gold_label(self):
         for qid, entry in ENTRIES.items():
             for col in entry.get("label_only") or []:
@@ -251,6 +269,7 @@ class TestAnswerMatch(unittest.TestCase):
         with self.assertRaises(ValueError):
             answer_match(["x", "y"], [("a", 1)], ["g", "v"], [("a", 1)], entry, False, 0.005)
 
+    @needs_db
     def test_extra_agent_column_passes(self):
         cols, rows = project("t2_04", ["monat", "mwh"])
         extra = [r + ("extra",) for r in rows]
@@ -258,6 +277,7 @@ class TestAnswerMatch(unittest.TestCase):
         self.assertTrue(res.passed, res.reason)
         self.assertEqual(res.assignment, {"monat": "monat", "mwh": "mwh"})
 
+    @needs_db
     def test_alternative_satisfied_but_not_required_t3_06(self):
         cols, rows = project("t3_06", ["mwh_2024", "mwh_2025", "veraenderung_prozent"])
         res = match("t3_06", cols, rows)
@@ -270,18 +290,21 @@ class TestAnswerMatch(unittest.TestCase):
         cols, rows = project("t3_06", ["veraenderung_prozent"])
         self.assertFalse(match("t3_06", cols, rows).passed)
 
+    @needs_db
     def test_t4_04_period_alternative(self):
         cols, rows = project("t4_04", ["beginn", "ende"])
         res = match("t4_04", cols, rows)
         self.assertTrue(res.passed, res.reason)
         self.assertEqual(res.used, "alternative 2")
 
+    @needs_db
     def test_type_mismatch_month_number_vs_date(self):
         # as in the strict comparator: a month as a number is not a month as a date
         cols, rows = project("t2_04", ["monat", "mwh"])
         as_numbers = [(r[0].month, r[1]) for r in rows]
         self.assertFalse(match("t2_04", cols, as_numbers).passed)
 
+    @needs_db
     def test_columns_matched_by_values_not_names(self):
         # the agent calls its value column "monat" and its month column "mwh": still matched by values
         cols, rows = project("t2_04", ["monat", "mwh"])
@@ -295,6 +318,7 @@ class TestAnswerMatch(unittest.TestCase):
         self.assertTrue(ok.passed)
         self.assertFalse(bad.passed)
 
+    @needs_db
     def test_agent_with_too_few_columns_fails(self):
         cols, rows = project("t2_04", ["monat"])
         res = match("t2_04", cols, rows)
@@ -313,12 +337,14 @@ class TestAnswerCompareOneQuestion(unittest.TestCase):
         self.assertTrue(answer_compare(q, "", None).passed)
         self.assertFalse(answer_compare(q, "SELECT 1", None).passed)
 
+    @needs_db
     def test_answer_compare_with_a_sql(self):
         q = QUESTIONS["t2_06"]
         res = answer_compare(q, "SELECT preiszone FROM preise GROUP BY preiszone HAVING COUNT(preis_eur_mwh) > 0 "
                                 "ORDER BY AVG(preis_eur_mwh) DESC LIMIT 1", ENTRIES["t2_06"])
         self.assertTrue(res.passed, res.reason)
 
+    @needs_db
     def test_broken_sql_and_no_sql_fail(self):
         q = QUESTIONS["t2_06"]
         self.assertFalse(answer_compare(q, "SELECT nope FROM preise", ENTRIES["t2_06"]).passed)
