@@ -1,0 +1,29 @@
+# Example questions for the app (D44). Every question is an item of gold_set_smard.yaml (the
+# development exam), word for word; none comes from the held-out set. Each one passed in 3 of 3 runs
+# of results/r3b_safe_run{1,2,3}_2026-11-06.jsonl (the exact setup the app runs).
+# tests/test_examples.py checks all of this.
+examples:
+  - id: t1_01
+    label: Solar in June 2025
+    question: How much electricity did solar produce in total in June 2025?
+    why: tier 1, one number (shows the single-value display with a unit)
+  - id: t2_02
+    label: Rank sources, July 2025
+    question: Rank all sources by total output in July 2025.
+    why: tier 2 ranking, 12 rows in SQL order (shows the bar chart; the order is the answer)
+  - id: t2_04
+    label: Generation per month 2025
+    question: Give me total generation per month for 2025.
+    why: time series, 12 months (shows the line chart)
+  - id: t1_11
+    label: Strompreis 2025 (German)
+    question: Durchschnittlicher Strompreis in Deutschland im Jahr 2025?
+    why: German question, price column (unit EUR/MWh)
+  - id: u_08
+    label: Wind in July 2026 (no data)
+    question: How much wind did we generate in July 2026?
+    why: tier 0, the data ends 2026-06-01, so the system answers "No data" without asking the model again
+  - id: u_03
+    label: Demand next winter (decline)
+    question: What will demand be next winter?
+    why: tier 0, a forecast the tables cannot answer; the model declines

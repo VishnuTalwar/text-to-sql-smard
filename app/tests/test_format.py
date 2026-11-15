@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from format import format_cell, format_table  # noqa: E402
+from format import format_cell, format_table, to_csv  # noqa: E402
 
 
 class TestFormatCell(unittest.TestCase):
@@ -70,6 +70,16 @@ class TestFormatTable(unittest.TestCase):
 
     def test_empty(self):
         self.assertEqual(format_table(["a"], []), [])
+
+
+class TestToCsv(unittest.TestCase):
+    def test_raw_values_not_formatted(self):
+        rows = [(datetime(2025, 7, 1), Decimal("9056373.391"), 1263744, None, "Wind, Onshore")]
+        text = to_csv(["t (x)", "v", "n", "d", "name"], rows)
+        self.assertEqual(text, 't (x),v,n,d,name\n2025-07-01 00:00:00,9056373.391,1263744,,"Wind, Onshore"\n')
+
+    def test_header_only(self):
+        self.assertEqual(to_csv(["a", "b"], []), "a,b\n")
 
 
 if __name__ == "__main__":

@@ -156,6 +156,27 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertEqual([a.outcome for a in r.attempts], ["error"] * 3)
 
 
+class TestSqlToShow(unittest.TestCase):
+    def make(self, final_sql, attempt_sqls):
+        attempts = [answer.Attempt(i + 1, sql, "ok", None, None) for i, sql in enumerate(attempt_sqls)]
+        return answer.AnswerResult(question="q", status="blocked", message="", attempts=attempts, final_sql=final_sql)
+
+    def test_final_sql_wins(self):
+        self.assertEqual(answer.sql_to_show(self.make("SELECT 1", ["SELECT 2"])), "SELECT 1")
+
+    def test_last_attempt_with_sql_when_there_is_no_final_sql(self):
+        self.assertEqual(answer.sql_to_show(self.make(None, ["SELECT 1", "SELECT 2", None])), "SELECT 2")
+
+    def test_none_when_the_model_wrote_no_sql(self):
+        self.assertIsNone(answer.sql_to_show(self.make(None, [None])))
+
+    def test_blocked_result_still_shows_its_sql(self):
+        r = answer.answer_question("Delete all prices.", model_caller=FakeModel([DELETE_IN_CTE] * 3))
+        self.assertEqual(r.status, "blocked")
+        self.assertIsNone(r.final_sql)
+        self.assertEqual(answer.sql_to_show(r), DELETE_IN_CTE)
+
+
 class TestColumnNames(unittest.TestCase):
     BASE = "SELECT mwh AS strom, energietraeger AS quelle FROM erzeugung LIMIT 1"
 

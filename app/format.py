@@ -11,6 +11,8 @@ exactly as the screen shows them.
   everything else   str(value)
 """
 
+import csv
+import io
 from datetime import date, datetime
 from decimal import ROUND_HALF_UP, Decimal
 
@@ -43,3 +45,13 @@ def format_cell(value) -> str:
 def format_table(columns, rows) -> list[list[str]]:
     """The rows as lists of strings, one string per cell. The column names are not included."""
     return [[format_cell(v) for v in row] for row in rows]
+
+
+def to_csv(headers, rows) -> str:
+    """CSV text with the RAW values (not formatted): None is an empty field, everything else str(value)."""
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow(headers)
+    for row in rows:
+        writer.writerow(["" if v is None else str(v) for v in row])
+    return buf.getvalue()

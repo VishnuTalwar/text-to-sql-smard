@@ -124,6 +124,17 @@ def _attempt_from_loop(a: dict, system_declined_last: bool) -> Attempt:
     return Attempt(n, sql, "ok", None, a["n_rows"])
 
 
+def sql_to_show(result: AnswerResult) -> str | None:
+    """The SQL the screen shows (D10: never hidden): the final SQL, or, when there is none (blocked,
+    error, system decline), the SQL of the last attempt that had one. None if the model never wrote any."""
+    if result.final_sql:
+        return result.final_sql
+    for a in reversed(result.attempts):
+        if a.sql:
+            return a.sql
+    return None
+
+
 # ---------------------------------------------------------------- the function
 
 def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None) -> AnswerResult:
