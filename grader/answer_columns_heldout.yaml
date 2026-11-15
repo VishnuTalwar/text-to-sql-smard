@@ -1,0 +1,121 @@
+# Answer columns for the 30 held-out items (D47), DRAFT for review, 2026-11-15.
+# One entry per held-out item that has SQL (27; the 3 tier-0 items have none, as in answer_columns.yaml).
+# Same format and same written rules as answer_columns.yaml: results/answer_columns_rules_2026-11-06.md
+# (and the D43 label-meaning rule, which has nothing to do here: no held-out gold column is a string literal
+# of the SQL, so there is no label_only column and no label_meanings).
+# Drafted from the question text and the gold column names only, blind to every agent answer: no held-out results
+# file was opened, and no model was called. heldout_smard.yaml and answer_columns.yaml are not changed.
+# Reasons cite the rule number only (no question text).
+#
+# required:     columns (by their gold column names) that an answer must contain.
+# alternatives: only where the question is honestly ambiguous between two measures (rule 6); none here.
+# All other gold columns are optional: extra columns never hurt, they just are not required.
+items:
+- id: h1_01
+  required: [mwh]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_02
+  required: [durchschnittspreis]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_03
+  required: [hoechstpreis]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_04
+  required: [mwh]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_05
+  required: [viertelstunden]
+  alternatives: []
+  reason: 'rule 2: asks for one count; the only gold column'
+- id: h1_06
+  required: [mwh]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_07
+  required: [mwh]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_08
+  required: [mwh]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_09
+  required: [mwh]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h1_10
+  required: [durchschnittspreis]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h2_01
+  required: [wochentag]
+  alternatives: []
+  reason: 'rule 1: a which-question with one answer; the label is required, the price it was chosen by is optional'
+- id: h2_02
+  required: [preiszone, durchschnittspreis]
+  alternatives: []
+  reason: 'rule 4: top-N ranking with N > 1; label and value are required; order counts (reihenfolge_relevant)'
+- id: h2_03
+  required: [anteil_prozent]
+  alternatives: []
+  reason: 'rule 2: asks for one share; the only gold column'
+- id: h2_04
+  required: [monat, mwh]
+  alternatives: []
+  reason: 'rule 4: one value per month; the month and the value are required'
+- id: h2_05
+  required: [stunde]
+  alternatives: []
+  reason: 'rule 1: a which-question with one answer; the label is required, the price it was chosen by is optional'
+- id: h2_06
+  required: [energietraeger, mwh]
+  alternatives: []
+  reason: 'rule 4: ranking of listed sources by a value; label and value are required; order counts (reihenfolge_relevant)'
+- id: h2_07
+  required: [wochentag]
+  alternatives: []
+  reason: 'rule 1: a which-question with one answer; the label is required, the value it was chosen by is optional'
+- id: h2_08
+  required: [quartal, anteil_prozent]
+  alternatives: []
+  reason: 'rule 4: one share per quarter; the quarter and the share are required'
+- id: h2_09
+  required: [monat, mwh]
+  alternatives: []
+  reason: 'rule 4: top-N ranking with N > 1; label and value are required; order counts (reihenfolge_relevant)'
+- id: h2_10
+  required: [preiszone]
+  alternatives: []
+  reason: 'rule 1: a which-question with one answer (top-1); the label is required, the price it was chosen by is optional'
+- id: h3_01
+  required: [veraenderung_prozent]
+  alternatives: []
+  reason: 'rule 2: asks for one percentage change; the only gold column'
+- id: h3_02
+  required: [durchschnittspreis]
+  alternatives: []
+  reason: 'rule 2: asks for one value; the only gold column'
+- id: h3_03
+  required: [tage]
+  alternatives: []
+  reason: 'rule 2: asks for one count; the only gold column'
+- id: h3_04
+  required: [mehr_prozent]
+  alternatives: []
+  reason: 'rule 2: asks for one percentage; the only gold column'
+- id: h3_05
+  required: [anteil_prozent]
+  alternatives: []
+  reason: 'rule 2: asks for one percentage; the only gold column'
+- id: h4_01
+  required: [beginn, viertelstunden]
+  alternatives: []
+  reason: 'rule 3: asks for both when it started and how long it lasted; both are required'
+- id: h4_02
+  required: [monat, durchschnittspreis, veraenderung]
+  alternatives: []
+  reason: 'rules 3 and 4: per month, the average and the change are both asked for; all three are required'

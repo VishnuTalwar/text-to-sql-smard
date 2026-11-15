@@ -242,6 +242,11 @@ Drafted by Claude in an incognito chat outside the Project that saw only the sch
 **Why:** A reviewer should get from clone to a running setup without guessing variable names or package versions, and should see a green check proving that everything testable without the data still works. The full database cannot run in CI (the raw CSVs are not in git, 3.5 million rows), so the honest choice is to run what can run and say how much that is. Skipping only on an explicit flag keeps local runs from passing by accident when the database is down.
 **Status:** Built 15 Nov 2026. CI runs 224 of 338 offline tests (the other 114 need the full SMARD database and run locally).
 
+## D47. Final held-out run: rules fixed before the run (step 6)
+**Decision:** (1) Freeze: a SHA-256 fingerprint of every file that affects a score (configs, prompt and catalog files, loop, date finder, safe runner and limits, both comparators, answer columns, runner, exam and held-out files, requirements) is stored in `results/freeze_final-v1.json`, the commit is tagged `final-v1`, and the final run refuses to start if any fingerprint differs. (2) The answer columns for the 30 held-out items are drafted by the same written rules as the exam's (`results/answer_columns_rules_2026-11-06.md`), without opening any held-out result file, and reviewed locally before the freeze. (3) A prediction is written and committed before any API call. (4) The final setup (r3b_safe) and the base (v2b) each run 3 times on the held-out set on the same day (D36 rule), about $0.50 in total. (5) Only per-tier totals for both scores and counts of failure types are reported, with no question text; any change made afterwards is labelled "after the final held-out run".
+**Why:** The held-out set is the only score not shaped by tuning, so it is only worth something if nothing can be adjusted after seeing it. Fingerprints make "nothing changed" checkable instead of a promise. Running the base on the same day separates the effect of the setup from model drift, which earlier rows showed is real. A prediction written first keeps the reading honest.
+**Status:** Confirmed 15 Nov 2026. Not run yet.
+
 ## Principles
 - The grader must exist and be validated before any agent code.
 - Never change the model between stages.

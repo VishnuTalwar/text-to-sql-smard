@@ -200,7 +200,7 @@ python -m unittest discover -s app/tests
 python -m unittest discover -s grader/tests
 ```
 
-No test calls OpenAI or Langfuse. Tests that need the loaded SMARD database and the read-only role (setup steps 3 to 5) are marked `@needs_db`. They run by default and fail if the database is down. Set `SKIP_DB_TESTS=1` to skip them, for example `SKIP_DB_TESTS=1 python -m unittest discover -s app/tests`. CI on GitHub runs 224 of 338 tests, the ones that need neither the SMARD database nor an API; the other 114 need the full database and run locally.
+No test calls OpenAI or Langfuse. Tests that need the loaded SMARD database and the read-only role (setup steps 3 to 5) are marked `@needs_db`. They run by default and fail if the database is down. Set `SKIP_DB_TESTS=1` to skip them, for example `SKIP_DB_TESTS=1 python -m unittest discover -s app/tests`. CI on GitHub runs 256 of 373 tests, the ones that need neither the SMARD database nor an API; the other 117 need the full database and run locally.
 
 ## Tech stack
 
