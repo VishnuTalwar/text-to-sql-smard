@@ -33,12 +33,12 @@ INSTRUCTIONS = (
 
 BANNED_WORDS = (
     # quantity words that hide a calculation (English, German)
-    "twice", "double", "half", "triple", "thrice", "quarter", "dozen", "hundred", "thousand",
+    "twice", "double", "half", "triple", "thrice", "dozen", "hundred", "thousand",
     "million", "billion", "doppelt", "halb", "hälfte", "haelfte", "dreimal", "hundert", "tausend",
     "millionen", "milliarde", "milliarden",
     # number words one to twelve
-    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
-    "eins", "ein", "zwei", "drei", "vier", "fünf", "fuenf", "sechs", "sieben", "acht", "neun",
+    "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+    "eins", "zwei", "drei", "vier", "fünf", "fuenf", "sechs", "sieben", "acht", "neun",
     "zehn", "elf", "zwölf", "zwoelf",
 )
 _BANNED_RE = re.compile(r"(?<!\w)(" + "|".join(sorted(set(BANNED_WORDS), key=len, reverse=True)) + r")(?!\w)",
@@ -67,9 +67,11 @@ def extract_numbers(text: str) -> list[Decimal]:
     return out
 
 
-def banned_words(sentence: str) -> list[str]:
-    """Banned words found in the sentence (whole words, any letter case), in order of appearance."""
-    return [m.group(0) for m in _BANNED_RE.finditer(sentence)]
+def banned_words(sentence: str, question: str = "") -> list[str]:
+    """Banned words found in the sentence (whole words, any letter case), in order of appearance.
+    A banned word that the question itself contains (same whole-word rule) is allowed."""
+    in_question = {m.group(0).lower() for m in _BANNED_RE.finditer(question)}
+    return [m.group(0) for m in _BANNED_RE.finditer(sentence) if m.group(0).lower() not in in_question]
 
 
 def number_check(sentence: str, table_strings, question: str, columns=()) -> tuple[bool, list]:
@@ -83,7 +85,7 @@ def number_check(sentence: str, table_strings, question: str, columns=()) -> tup
         flat.extend(item if isinstance(item, (list, tuple)) else [item])
     for text in [*flat, *columns, question]:
         known.update(extract_numbers(str(text)))
-    unknown: list = banned_words(sentence)
+    unknown: list = banned_words(sentence, question)
     unknown += [n for n in extract_numbers(sentence) if n not in known]
     return (not unknown), unknown
 
@@ -151,7 +153,7 @@ def summarize(result: AnswerResult, model_caller=None) -> Summary:
 
     if _too_long(text):
         return hide("too_long")
-    banned = banned_words(text)
+    banned = banned_words(text, result.question)
     if banned:
         return hide("banned_word", banned)
     ok, unknown = number_check(text, formatted, result.question, result.columns)

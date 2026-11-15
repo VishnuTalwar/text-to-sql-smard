@@ -80,9 +80,10 @@ class TestNumberCheck(unittest.TestCase):
 
     def test_banned_words_whole_words_any_case(self):
         for text in ("About HALF of it", "Eine Hälfte davon", "dreimal so viel", "Nine sources", "Es sind zwölf",
-                     "ein Wert", "a Dozen", "Millionen"):
+                     "a Dozen", "Millionen", "Triple"):
             self.assertFalse(number_check(text, [], "q")[0], text)
-        for text in ("Phone numbers", "Onshore wind", "Einheit stimmt", "tenant"):  # contain a banned word only as part
+        for text in ("Phone numbers", "Onshore wind", "Einheit stimmt", "tenant",
+                     "ein Wert", "one source", "the quarter-hour price"):  # "ein", "one", "quarter" are not banned  # contain a banned word only as part
             self.assertTrue(number_check(text, [], "q")[0], text)
 
 
@@ -175,6 +176,32 @@ class TestSummarize(unittest.TestCase):
                    rows=[(D("9056373.39"),)])
         s = summarize(r, model_caller=FakeModel("Die Erzeugung im Juli 2025 betrug 9,056,373.39."))
         self.assertTrue(s.shown, s.unknown_numbers)
+
+    def test_12_quarter_hour_is_allowed(self):
+        r = result(question="What was the highest price?", columns=("preis",), rows=[(D("512"),)])
+        s = summarize(r, model_caller=FakeModel("The highest quarter-hour price was 512.00."))
+        self.assertTrue(s.shown, (s.hidden_reason, s.unknown_numbers))
+
+    def test_13_german_article_ein_is_allowed(self):
+        r = result(question="Wie hoch war die Erzeugung im Juli 2025?", columns=("summe_mwh",),
+                   rows=[(D("9056373.39"),)])
+        s = summarize(r, model_caller=FakeModel(
+            "Im Juli 2025 lag die Erzeugung bei 9,056,373.39 und ein Wert war negativ."))
+        self.assertTrue(s.shown, (s.hidden_reason, s.unknown_numbers))
+
+    def test_14_banned_word_from_the_question_is_allowed(self):
+        r = result(question="How much solar in the first half of 2025?", columns=("mwh",),
+                   rows=[(D("1234"),)])
+        s = summarize(r, model_caller=FakeModel("In the first half of 2025 solar produced 1,234.00."))
+        self.assertTrue(s.shown, (s.hidden_reason, s.unknown_numbers))
+        # the allowance is for that word only: another banned word still hides the sentence
+        s = summarize(r, model_caller=FakeModel("In the first half of 2025 solar produced twice 1,234.00."))
+        self.assertEqual((s.shown, s.hidden_reason, s.unknown_numbers), (False, "banned_word", ["twice"]))
+
+    def test_15_twice_is_still_banned(self):
+        r = result(question="How high were the prices?", columns=("preis",), rows=[(D("5"),)])
+        s = summarize(r, model_caller=FakeModel("Prices were twice as high as 5.00."))
+        self.assertEqual((s.shown, s.hidden_reason, s.unknown_numbers), (False, "banned_word", ["twice"]))
 
     def test_model_sees_only_question_columns_and_table(self):
         m = FakeModel("It was 9,056,373.39 in 2025.")
