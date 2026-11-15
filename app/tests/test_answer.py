@@ -295,6 +295,9 @@ class TestEquivalenceWithRunPy(unittest.TestCase):
     IDS = ["t1_01", "t2_01", "t3_01", "t4_01", "t4_02"]
 
     def test_g_same_attempts_and_final_sql_as_run_py(self):
+        self.check_equivalence(None)
+
+    def check_equivalence(self, tracer):
         self.assertEqual(Path(GOLD_SET_PATH).name, "gold_set_smard.yaml")
         questions = load_questions()
         by_id = {q.id: q for q in questions}
@@ -315,7 +318,7 @@ class TestEquivalenceWithRunPy(unittest.TestCase):
         for q in chosen:
             with self.subTest(question=q.id):
                 loop = out["loops"][q.id]
-                r = answer.answer_question(q.frage, model_caller=model_app)
+                r = answer.answer_question(q.frage, model_caller=model_app, tracer=tracer)
                 self.assertEqual(len(r.attempts), loop["n_attempts"])
                 for mine, theirs in zip(r.attempts, loop["attempts"]):
                     self.assertEqual(mine.number, theirs["attempt"])

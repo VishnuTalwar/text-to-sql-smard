@@ -160,7 +160,7 @@ About 3.48 million rows in total. Quirks the system has to handle:
 
 Needs Docker, Python 3.12 and, only for model runs, an OpenAI API key.
 
-1. Create `.env` in the project root (it is in `.gitignore`) with these variables: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `POSTGRES_HOST` (all optional, defaults `app`, `app`, `smard`, `5432`, `localhost`), `GRADER_DB_USER` (the role name created by `sql/create_grader_role.sql`), `GRADER_DB_PASSWORD` (the password you choose for that role) and `OPENAI_API_KEY`.
+1. Create `.env` in the project root (it is in `.gitignore`) with these variables: `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `POSTGRES_HOST` (all optional, defaults `app`, `app`, `smard`, `5432`, `localhost`), `GRADER_DB_USER` (the role name created by `sql/create_grader_role.sql`), `GRADER_DB_PASSWORD` (the password you choose for that role) and `OPENAI_API_KEY`. Also `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY` and `LANGFUSE_HOST` (optional, only for tracing in the app (D45)).
 2. Install the packages: `python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt`.
 3. Download the three CSV files from the SMARD download center (https://www.smard.de/en/downloadcenter/download-market-data/): "Generation" and the prices dataset with the website in German, "Consumption" with the website in English; quarter-hour resolution, 01.06.2023 to 02.06.2026, CSV. Save them in `data/raw/` under the exact names listed in [docs/DATA.md](docs/DATA.md). Details and checks: [docs/DATA.md](docs/DATA.md).
 4. Start the database and load the data:

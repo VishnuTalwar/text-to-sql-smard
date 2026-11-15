@@ -3,8 +3,10 @@ Smoke test of app/streamlit_app.py with Streamlit's AppTest. answer_question and
 replaced by fakes: no model call, no database, no API.
 """
 
+import dataclasses
 import sys
 import unittest
+import uuid
 from decimal import Decimal
 from pathlib import Path
 from unittest import mock
@@ -15,8 +17,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 APP_DIR = PROJECT_ROOT / "app"
 sys.path.insert(0, str(APP_DIR))
 
+sys.path.insert(0, str(APP_DIR / "tests"))
+
 import answer  # noqa: E402
 import summary  # noqa: E402
+import tracing  # noqa: E402
+from tracing_fakes import RecordingTracer  # noqa: E402
 
 PAGE = str(APP_DIR / "streamlit_app.py")
 QUESTION = "How much electricity did solar produce in total in June 2025?"
@@ -50,13 +56,16 @@ class Fakes:
     def __init__(self, make_result):
         self.make_result = make_result
         self.answer_calls, self.summary_calls = [], []
+        self.answer_kwargs, self.summary_kwargs = [], []
 
     def answer_question(self, question, *a, **k):
         self.answer_calls.append(question)
+        self.answer_kwargs.append(k)
         return self.make_result(question)
 
     def summarize(self, result, *a, **k):
         self.summary_calls.append(result)
+        self.summary_kwargs.append(k)
         return summary.Summary("The total was 9,056,373.39.", True, None, [], 200, 20, 0.0007)
 
     def patched(self):
@@ -75,7 +84,20 @@ def texts(at):
     return "\n".join(out)
 
 
+def use_tracer(test, tracer):
+    """The page asks tracing.get_tracer() once per process (cached); give it this tracer."""
+    import streamlit as st
+    st.cache_resource.clear()
+    patcher = mock.patch.object(tracing, "get_tracer", return_value=tracer)
+    patcher.start()
+    test.addCleanup(patcher.stop)
+    test.addCleanup(st.cache_resource.clear)
+
+
 class TestStreamlitApp(unittest.TestCase):
+    def setUp(self):
+        use_tracer(self, tracing.NullTracer())  # never a real Langfuse client in tests
+
     def run_page(self, fakes):
         p1, p2 = fakes.patched()
         self.addCleanup(p1.stop)
@@ -191,6 +213,88 @@ class TestStreamlitApp(unittest.TestCase):
         next(b for b in at.button if b.label == "Ask").click().run()
         self.assertEqual(fakes.answer_calls, [])
         self.assertIn("Type a question first.", [w.value for w in at.warning])
+
+
+def traced_answer(question):
+    return dataclasses.replace(answered_result(question), trace_id="trace-abc", tracing_status="tracing on")
+
+
+class TestFeedbackButtons(unittest.TestCase):
+    def start(self, tracer, make_result=traced_answer):
+        use_tracer(self, tracer)
+        fakes = Fakes(make_result)
+        p1, p2 = fakes.patched()
+        self.addCleanup(p1.stop)
+        self.addCleanup(p2.stop)
+        p1.start()
+        p2.start()
+        at = AppTest.from_file(PAGE, default_timeout=30).run()
+        at.text_area(key="question_text").set_value(QUESTION).run()
+        next(b for b in at.button if b.label == "Ask").click().run()
+        self.assertFalse(at.exception)
+        return at, fakes
+
+    @staticmethod
+    def feedback_buttons(at):
+        return [b for b in at.button if b.label in ("Yes", "No")]
+
+    def test_g_yes_saves_one_score_on_the_trace_and_hides_the_buttons(self):
+        tracer = RecordingTracer()
+        at, fakes = self.start(tracer)
+        self.assertEqual([b.label for b in self.feedback_buttons(at)], ["Yes", "No"])
+        self.assertFalse(any(b.disabled for b in self.feedback_buttons(at)))
+        self.assertEqual(tracer.of("score"), [])
+        at.button(key="fb_yes_trace-abc").click().run()
+        self.assertFalse(at.exception)
+        self.assertEqual(tracer.of("score"), [(("trace-abc", "user_says_correct", 1), {})])
+        self.assertEqual(self.feedback_buttons(at), [])  # the buttons are gone
+        self.assertIn("Thanks, saved.", texts(at))
+        self.assertEqual((len(fakes.answer_calls), len(fakes.summary_calls)), (1, 1))  # no model call
+        self.assertEqual(len(tracer.of("flush")), 1)
+        at.run()  # a rerun does not save again
+        self.assertEqual(len(tracer.of("score")), 1)
+        self.assertEqual(self.feedback_buttons(at), [])
+
+    def test_no_saves_zero(self):
+        tracer = RecordingTracer()
+        at, fakes = self.start(tracer)
+        at.button(key="fb_no_trace-abc").click().run()
+        self.assertEqual(tracer.of("score"), [(("trace-abc", "user_says_correct", 0), {})])
+        self.assertEqual(len(fakes.answer_calls), 1)
+
+    def test_tracing_off_shows_disabled_buttons_with_the_hint(self):
+        at, fakes = self.start(tracing.NullTracer(), make_result=answered_result)  # trace_id None
+        buttons = self.feedback_buttons(at)
+        self.assertEqual([b.label for b in buttons], ["Yes", "No"])
+        self.assertTrue(all(b.disabled for b in buttons))
+        self.assertIn("tracing off", texts(at))
+
+    def test_declined_result_gets_the_buttons_but_no_rows_result_does_not(self):
+        def declined(question):
+            return answer.AnswerResult(question=question, status="declined_model",
+                                       message="The model declined: no forecast data", trace_id="trace-abc")
+        at, _ = self.start(RecordingTracer(), make_result=declined)
+        self.assertEqual(len(self.feedback_buttons(at)), 2)
+
+        def no_rows(question):
+            return dataclasses.replace(no_rows_result(question), trace_id="trace-abc")
+        at, _ = self.start(RecordingTracer(), make_result=no_rows)
+        self.assertEqual(self.feedback_buttons(at), [])
+
+    def test_session_id_is_one_uuid_per_tab_and_the_tracer_is_passed_in(self):
+        tracer = RecordingTracer()
+        at, fakes = self.start(tracer)
+        sid = fakes.answer_kwargs[0]["session_id"]
+        self.assertEqual(str(uuid.UUID(sid, version=4)), sid)
+        self.assertIs(fakes.answer_kwargs[0]["tracer"], tracer)
+        self.assertIs(fakes.summary_kwargs[0]["tracer"], tracer)
+        next(b for b in at.button if b.label == "Ask").click().run()  # a second question in the same tab
+        self.assertEqual(fakes.answer_kwargs[1]["session_id"], sid)
+
+    def test_behind_the_scenes_shows_tracing_status_and_trace_id(self):
+        at, _ = self.start(RecordingTracer())
+        page = texts(at)
+        self.assertIn("tracing on. Trace id: trace-abc", page)
 
 
 if __name__ == "__main__":

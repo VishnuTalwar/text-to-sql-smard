@@ -21,13 +21,20 @@ The loop does not return rows or column names. Two small additions outside the l
 No API call is made when model_caller= is given.
 """
 
+import subprocess
 import sys
+import time
 from dataclasses import dataclass, field
-from functools import partial
+from datetime import date, datetime
+from decimal import Decimal
+from functools import lru_cache, partial
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+APP_DIR = PROJECT_ROOT / "app"
 GRADER_DIR = PROJECT_ROOT / "grader"
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
 if str(GRADER_DIR) not in sys.path:
     sys.path.insert(0, str(GRADER_DIR))
 
@@ -35,6 +42,8 @@ import run as grader_run  # noqa: E402  (grader/run.py; needs grader/ on the pat
 import safe_runner  # noqa: E402
 from agent_loop import decline_reason, run_question  # noqa: E402
 from naive_agent import _strip_fences  # noqa: E402
+
+import tracing  # noqa: E402  (app/tracing.py; the app folder is on the path when this file is imported)
 
 DEFAULT_CONFIG = "grader/configs/r3b_safe.yaml"
 
@@ -46,6 +55,9 @@ MSG_NO_ROWS = "No rows match this question."
 MSG_DECLINED_MODEL = "The model declined: {reason}"
 MSG_BLOCKED = "The query was blocked by safety check (wall {wall}): {reason}"
 MSG_ERROR = "The query failed after {n} attempts: {error}"
+
+TRACE_NAME = "answer_question"
+MAX_TRACE_ROWS = 50  # result rows that go into a trace (D45)
 
 
 @dataclass
@@ -76,6 +88,8 @@ class AnswerResult:
     cost_usd: float = 0.0
     model: str | None = None
     system_fingerprint: str | None = None
+    trace_id: str | None = None                 # None when tracing is off (D45)
+    tracing_status: str = "tracing off"         # "tracing on" or "tracing off: <reason>"
 
 
 # ---------------------------------------------------------------- helpers
@@ -124,6 +138,41 @@ def _attempt_from_loop(a: dict, system_declined_last: bool) -> Attempt:
     return Attempt(n, sql, "ok", None, a["n_rows"])
 
 
+def call_cost(prompt_tokens, completion_tokens) -> float:
+    """USD for one model call, same prices as the loop totals."""
+    return round(((prompt_tokens or 0) * grader_run.PRICE_INPUT_PER_M
+                  + (completion_tokens or 0) * grader_run.PRICE_OUTPUT_PER_M) / 1_000_000, 6)
+
+
+@lru_cache(maxsize=1)
+def git_commit() -> str:
+    """Short hash of the code that is running, or "unknown"."""
+    try:
+        out = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=PROJECT_ROOT, capture_output=True,
+                             text=True, timeout=5)
+        return out.stdout.strip() if out.returncode == 0 and out.stdout.strip() else "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _jsonable(v):
+    if v is None or isinstance(v, (bool, int, float, str)):
+        return v
+    if isinstance(v, Decimal):
+        return str(v)
+    if isinstance(v, (datetime, date)):
+        return v.isoformat()
+    return str(v)
+
+
+def trace_output(result: AnswerResult) -> dict:
+    """What goes into the trace as its output: status, message, final SQL and at most 50 rows."""
+    rows = [[_jsonable(v) for v in row] for row in result.rows[:MAX_TRACE_ROWS]]
+    return {"status": result.status, "message": result.message, "final_sql": result.final_sql,
+            "columns": list(result.columns), "rows": rows, "row_count": result.row_count,
+            "rows_truncated": result.row_count > MAX_TRACE_ROWS}
+
+
 def sql_to_show(result: AnswerResult) -> str | None:
     """The SQL the screen shows (D10: never hidden): the final SQL, or, when there is none (blocked,
     error, system decline), the SQL of the last attempt that had one. None if the model never wrote any."""
@@ -137,12 +186,17 @@ def sql_to_show(result: AnswerResult) -> str | None:
 
 # ---------------------------------------------------------------- the function
 
-def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None) -> AnswerResult:
+def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None,
+                    tracer=None, session_id=None) -> AnswerResult:
     """Answer one question with the configuration in config_path (default: r3b_safe).
 
     model_caller: a function messages -> {"raw_model_output", "prompt_tokens", ...} (same shape
     as agent_loop.call_openai). None means the real call_openai with the config's model,
-    temperature and seed."""
+    temperature and seed.
+
+    tracer: a tracing.LangfuseTracer / NullTracer / any object with the same methods (D45). None means
+    NullTracer. Tracing never changes the answer: the two functions handed to the loop only report
+    what they already did, and every tracer call is guarded (a tracer that raises is ignored)."""
     cfg, _ = grader_run.load_config(_resolve_config(config_path))
     if not cfg["switches"]["safe_runner"]:
         raise ValueError(f"{config_path}: the safe_runner switch is off. The app only runs configs "
@@ -150,17 +204,50 @@ def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None
     llm = model_caller or partial(grader_run.call_openai, model=cfg["model"],
                                   temperature=cfg["temperature"], seed=cfg["seed"])
 
+    t = tracing.guarded(tracer)
+    config_name = Path(str(config_path)).stem
+    trace_id = t.start_trace(TRACE_NAME, question, session_id=session_id, tags=[config_name],
+                             metadata={"config": str(config_path), "model": cfg["model"],
+                                       "git_commit": git_commit()})
+
     last_safe = {}
+    n_calls = 0
+
+    def traced_llm(messages):  # reports each model call; the call itself is unchanged
+        nonlocal n_calls
+        call = llm(messages)
+        n_calls += 1
+        t.model_call(trace_id, list(messages), call.get("raw_model_output"), call.get("model"),
+                     call.get("prompt_tokens"), call.get("completion_tokens"),
+                     call_cost(call.get("prompt_tokens"), call.get("completion_tokens")),
+                     metadata={"attempt": n_calls, "system_fingerprint": call.get("system_fingerprint"),
+                               "latency_seconds": call.get("latency_seconds")})
+        return call
 
     def keep_safe_result(sql):  # same call the loop would make itself; the result is kept
-        res = safe_runner.safe_execute(sql)
+        start = time.perf_counter()
+        try:
+            res = safe_runner.safe_execute(sql)
+        except Exception as exc:  # an SQL error: the loop turns it into the retry text; report it, then re-raise
+            t.safety_check(trace_id, sql, {"blocked": False, "error": f"{type(exc).__name__}: {str(exc)[:500]}"},
+                           seconds=time.perf_counter() - start)
+            raise
         last_safe["result"] = res
+        t.safety_check(trace_id, sql,
+                       {"blocked": res.blocked, "wall": res.wall, "reason": res.reason, "kind": res.kind,
+                        "n_rows": res.n_rows},
+                       seconds=res.seconds if res.seconds is not None else time.perf_counter() - start)
         return res
 
-    with grader_run.prompt_builder(cfg["prompt"], cfg["examples"]) as build:
-        loop = run_question(question, cfg["switches"], max_attempts=cfg["max_attempts"], llm=llm,
-                            prompt_builder=build,
-                            safe_execute=keep_safe_result)
+    try:
+        with grader_run.prompt_builder(cfg["prompt"], cfg["examples"]) as build:
+            loop = run_question(question, cfg["switches"], max_attempts=cfg["max_attempts"], llm=traced_llm,
+                                prompt_builder=build,
+                                safe_execute=keep_safe_result)
+    except Exception as exc:  # close the trace, then fail exactly as without tracing
+        t.end_trace(trace_id, {"status": "exception", "error": type(exc).__name__}, tags=["exception", config_name])
+        t.flush()
+        raise
 
     raw_attempts = loop["attempts"]
     system = loop["system_declined"]
@@ -196,11 +283,22 @@ def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None
 
     cost = (loop["prompt_tokens"] * grader_run.PRICE_INPUT_PER_M
             + loop["completion_tokens"] * grader_run.PRICE_OUTPUT_PER_M) / 1_000_000
-    return AnswerResult(
+    result = AnswerResult(
         question=question, status=status, message=message, attempts=attempts,
         final_sql=final_sql, columns=columns, rows=rows, row_count=len(rows),
         rewritten_after_empty=rewritten,
         seconds_total=loop["total_seconds"], seconds_model=loop["latency_seconds"],
         prompt_tokens=loop["prompt_tokens"], completion_tokens=loop["completion_tokens"],
         cost_usd=round(cost, 6), model=loop["model"], system_fingerprint=loop["system_fingerprint"],
+        trace_id=trace_id, tracing_status=t.status,
     )
+
+    for mine, raw in zip(attempts, raw_attempts):  # one loop decision per attempt
+        review = raw["check_fired"] == "review"
+        t.loop_decision(trace_id, mine.number, "decline_review_fired" if review else mine.outcome,
+                        {"attempt_outcome": mine.outcome, "reason": mine.reason, "n_rows": mine.row_count,
+                         "wall": mine.wall, "check_fired": raw["check_fired"],
+                         "fact": raw.get("fact")})
+    t.end_trace(trace_id, trace_output(result), tags=[status, config_name])
+    result.tracing_status = t.status  # after the last call: "tracing off: ..." if tracing broke on the way
+    return result
