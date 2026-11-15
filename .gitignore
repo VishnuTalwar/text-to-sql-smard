@@ -8,3 +8,4 @@ data/raw/*.csv
 data/raw/
 node_modules/
 .claude/
+app_data/

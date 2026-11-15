@@ -7,6 +7,7 @@ Answers are kept in st.session_state under the question text, so a rerun (openin
 a download, typing in the box) never calls the model again. Only the Ask button does.
 """
 
+import hashlib
 import sys
 import uuid
 from pathlib import Path
@@ -20,6 +21,7 @@ import streamlit as st  # noqa: E402
 import yaml  # noqa: E402
 
 import answer  # noqa: E402
+import feedback  # noqa: E402
 import summary  # noqa: E402
 import tracing  # noqa: E402
 from charts import pick_chart  # noqa: E402
@@ -47,39 +49,44 @@ def process_tracer():
     return tracing.get_tracer()
 
 
-FEEDBACK_STATUSES = ("answered", "declined_model", "declined_system")
 SCORE_NAME = "user_says_correct"
+HINT_OFF = "tracing off: saved locally only"
 
 
-def save_feedback(trace_id, value: int) -> None:
-    """Button callback: save the score on the trace. Never calls the model."""
+def feedback_key(result) -> str:
+    """Identifies one result on the page: its trace id, or (no tracing) a hash of the question."""
+    return result.trace_id or "q_" + hashlib.md5(result.question.encode("utf-8")).hexdigest()[:12]
+
+
+def save_feedback(result, value: int) -> None:
+    """Button callback: write the local line, send the score if tracing is on. Never calls the model."""
     tracer = process_tracer()
-    saved = bool(tracer.score(trace_id, SCORE_NAME, value))
-    if saved:
-        tracer.flush()
-    st.session_state["feedback"][trace_id] = "saved" if saved else "not saved"
+    local = feedback.append_feedback(st.session_state["session_id"], result.trace_id, result.status,
+                                     result.question, value)
+    sent = False
+    if result.trace_id and tracer.enabled:
+        sent = bool(tracer.score(result.trace_id, SCORE_NAME, value))
+        if sent:
+            tracer.flush()
+    st.session_state["feedback"][feedback_key(result)] = "sent" if (local or sent) else "not saved"
 
 
 def draw_feedback(result) -> None:
-    if result.status not in FEEDBACK_STATUSES:
-        return
-    tracer = process_tracer()
-    trace_id = result.trace_id
-    state = st.session_state["feedback"].get(trace_id) if trace_id else None
-    if state == "saved":
-        st.caption("Thanks, saved.")
+    """Yes / No under every result, whatever its status."""
+    state = st.session_state["feedback"].get(feedback_key(result))
+    if state == "sent":
+        st.caption("Thanks, sent.")
         return
     if state == "not saved":
-        st.caption("Not saved: tracing is off.")
+        st.caption("Could not save your answer.")
         return
     st.markdown("**Was this answer right?**")
-    off = (not tracer.enabled) or trace_id is None
+    key = feedback_key(result)
     yes, no, _ = st.columns([1, 1, 6])
-    key = trace_id or f"none_{abs(hash(result.question))}"
-    yes.button("Yes", key=f"fb_yes_{key}", disabled=off, on_click=save_feedback, args=(trace_id, 1))
-    no.button("No", key=f"fb_no_{key}", disabled=off, on_click=save_feedback, args=(trace_id, 0))
-    if off:
-        st.caption("tracing off")
+    yes.button("Yes", key=f"fb_yes_{key}", on_click=save_feedback, args=(result, 1))
+    no.button("No", key=f"fb_no_{key}", on_click=save_feedback, args=(result, 0))
+    if not (process_tracer().enabled and result.trace_id):
+        st.caption(HINT_OFF)
 
 
 def money(x: float) -> str:
@@ -206,7 +213,7 @@ st.write(INTRO)
 st.session_state.setdefault("question_text", "")
 st.session_state.setdefault("answers", {})  # question text -> (AnswerResult, Summary)
 st.session_state.setdefault("shown_question", None)
-st.session_state.setdefault("feedback", {})                        # trace id -> "saved" | "not saved"
+st.session_state.setdefault("feedback", {})                        # feedback_key -> "sent" | "not saved"
 st.session_state.setdefault("session_id", str(uuid.uuid4()))       # one per browser tab (D45)
 
 examples = load_examples()
@@ -230,6 +237,7 @@ if asked:
                 result = answer.answer_question(question, tracer=tracer, session_id=st.session_state["session_id"])
                 summ = summary.summarize(result, tracer=tracer)
             st.session_state["answers"][question] = (result, summ)
+            st.session_state["feedback"].pop(feedback_key(result), None)  # a new answer gets fresh buttons
             st.session_state["shown_question"] = question
         except Exception as exc:  # no database, no API key, network error: say so, do not crash
             st.session_state["shown_question"] = None

@@ -1,12 +1,17 @@
 """
 Langfuse tracing for the app (D45). Only the app is traced; grader/run.py never imports this file.
 
-  get_tracer()   a LangfuseTracer when LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY and LANGFUSE_HOST are
-                 all set and the client starts, otherwise a NullTracer. Both have the same methods:
+  get_tracer()   a LangfuseTracer when LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY and LANGFUSE_BASE_URL
+                 (or, if that is not set, the deprecated LANGFUSE_HOST) are set and the client starts,
+                 otherwise a NullTracer. Both have the same methods:
 
       start_trace(name, question, session_id=None, tags=(), metadata=None) -> trace_id or None
-      model_call(trace_id, messages, output, model, prompt_tokens, completion_tokens, cost_usd, metadata)
-      safety_check(trace_id, sql, output, seconds=None)
+      model_call(trace_id, messages, metadata=None) -> step     the step starts NOW ...
+          step.finish(output, model, prompt_tokens, completion_tokens, cost_usd, metadata=None)
+          step.fail(exc)                                        ... and ends at finish/fail, so it has
+      safety_check(trace_id, sql) -> step                       the real duration of the call
+          step.finish(output)
+          step.fail(exc)
       loop_decision(trace_id, attempt, outcome, details=None)
       summary(trace_id, shown, hidden_reason=None, unknown_numbers=())
       score(trace_id, name, value, comment=None) -> True if it was handed to Langfuse
@@ -35,11 +40,22 @@ import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-ENV_NAMES = ("LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST")
+ENV_PUBLIC, ENV_SECRET = "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY"
+ENV_URL, ENV_URL_OLD = "LANGFUSE_BASE_URL", "LANGFUSE_HOST"  # LANGFUSE_HOST is deprecated, still accepted
 SECRET_ENV_NAMES = ("LANGFUSE_SECRET_KEY", "OPENAI_API_KEY")
 MAX_REMEMBERED_TRACES = 200
 
 log = logging.getLogger("app.tracing")
+
+
+class NullStep:
+    """The step of a NullTracer: does nothing."""
+
+    def finish(self, *args, **kwargs):
+        return None
+
+    def fail(self, exc):
+        return None
 
 
 class NullTracer:
@@ -53,12 +69,11 @@ class NullTracer:
     def start_trace(self, name, question, session_id=None, tags=(), metadata=None):
         return None
 
-    def model_call(self, trace_id, messages, output, model, prompt_tokens, completion_tokens,
-                   cost_usd, metadata=None):
-        return None
+    def model_call(self, trace_id, messages, metadata=None):
+        return NullStep()
 
-    def safety_check(self, trace_id, sql, output, seconds=None):
-        return None
+    def safety_check(self, trace_id, sql):
+        return NullStep()
 
     def loop_decision(self, trace_id, attempt, outcome, details=None):
         return None
@@ -78,6 +93,36 @@ class NullTracer:
 
 METHODS = ("start_trace", "model_call", "safety_check", "loop_decision", "summary", "score",
            "end_trace", "flush")
+
+
+class _LangfuseStep:
+    """An open Langfuse step. finish() / fail() update it and end it; neither ever raises."""
+
+    def __init__(self, tracer, method, span, kind, metadata):
+        self._tracer, self._method, self._span, self._kind, self._metadata = tracer, method, span, kind, metadata
+
+    def finish(self, output, model=None, prompt_tokens=None, completion_tokens=None, cost_usd=None,
+               metadata=None):
+        try:
+            if self._kind == "generation":
+                usage = {"input": int(prompt_tokens or 0), "output": int(completion_tokens or 0)}
+                usage["total"] = usage["input"] + usage["output"]
+                self._span.update(output=output, model=model, usage_details=usage,
+                                  cost_details={"total": float(cost_usd or 0.0)},
+                                  metadata={**self._metadata, **(metadata or {})})
+            else:
+                self._span.update(output=output)
+            self._span.end()
+        except Exception as exc:
+            self._tracer._fail(f"{self._method}.finish", exc)
+
+    def fail(self, exc):
+        try:
+            text = f"{type(exc).__name__}: {self._tracer._scrub(str(exc))}"
+            self._span.update(output={"error": text}, level="ERROR", status_message=text)
+            self._span.end()
+        except Exception as inner:
+            self._tracer._fail(f"{self._method}.fail", inner)
 
 
 class LangfuseTracer:
@@ -153,34 +198,29 @@ class LangfuseTracer:
             self._fail("start_trace", exc)
             return None
 
-    def model_call(self, trace_id, messages, output, model, prompt_tokens, completion_tokens,
-                   cost_usd, metadata=None):
+    def model_call(self, trace_id, messages, metadata=None):
+        """Starts the generation step now; step.finish(...) / step.fail(exc) ends it."""
         if not self.enabled or trace_id is None:
-            return None
+            return NullStep()
         try:
-            usage = {"input": int(prompt_tokens or 0), "output": int(completion_tokens or 0)}
-            usage["total"] = usage["input"] + usage["output"]
-            step = self._child(trace_id, name="model call", as_type="generation", input=messages,
-                               output=output, model=model, usage_details=usage,
-                               cost_details={"total": float(cost_usd or 0.0)}, metadata=metadata)
-            if step is not None:
-                step.end()
+            span = self._child(trace_id, name="model call", as_type="generation", input=messages,
+                               metadata=metadata)
+            return NullStep() if span is None else _LangfuseStep(self, "model_call", span, "generation",
+                                                                 dict(metadata or {}))
         except Exception as exc:
             self._fail("model_call", exc)
+            return NullStep()
 
-    def safety_check(self, trace_id, sql, output, seconds=None):
+    def safety_check(self, trace_id, sql):
+        """Starts the safety-check-and-run step now; step.finish(output) / step.fail(exc) ends it."""
         if not self.enabled or trace_id is None:
-            return None
+            return NullStep()
         try:
-            out = dict(output)
-            if seconds is not None:
-                out["seconds"] = round(float(seconds), 4)
-            step = self._child(trace_id, name="safety check and run", as_type="span", input=sql,
-                               output=out)
-            if step is not None:
-                step.end()
+            span = self._child(trace_id, name="safety check and run", as_type="span", input=sql)
+            return NullStep() if span is None else _LangfuseStep(self, "safety_check", span, "span", {})
         except Exception as exc:
             self._fail("safety_check", exc)
+            return NullStep()
 
     def loop_decision(self, trace_id, attempt, outcome, details=None):
         if not self.enabled or trace_id is None:
@@ -244,6 +284,23 @@ class LangfuseTracer:
             self._fail("flush", exc)
 
 
+class _GuardedStep:
+    def __init__(self, step):
+        self._step = step
+
+    def finish(self, *args, **kwargs):
+        try:
+            return self._step.finish(*args, **kwargs)
+        except Exception as exc:
+            log.warning("tracing: step.finish raised %s; ignored", type(exc).__name__)
+
+    def fail(self, exc):
+        try:
+            return self._step.fail(exc)
+        except Exception as inner:
+            log.warning("tracing: step.fail raised %s; ignored", type(inner).__name__)
+
+
 class _Guarded:
     """Wraps any tracer object so that no method can raise (a failing method returns None/False)."""
 
@@ -270,9 +327,12 @@ class _Guarded:
 
         def call(*args, **kwargs):
             try:
-                return getattr(self._tracer, name)(*args, **kwargs)
+                out = getattr(self._tracer, name)(*args, **kwargs)
+                return _GuardedStep(out) if name in ("model_call", "safety_check") else out
             except Exception as exc:
                 log.warning("tracing: %s raised %s; ignored", name, type(exc).__name__)
+                if name in ("model_call", "safety_check"):
+                    return NullStep()
                 return False if name == "score" else None
         return call
 
@@ -294,16 +354,15 @@ def get_tracer(environ=None, client_factory=None):
         except Exception:
             pass
         environ = os.environ
-    missing = [n for n in ENV_NAMES if not environ.get(n)]
-    if missing:
+    public, secret = environ.get(ENV_PUBLIC), environ.get(ENV_SECRET)
+    url = environ.get(ENV_URL) or environ.get(ENV_URL_OLD)  # LANGFUSE_HOST: deprecated name, still accepted
+    if not (public and secret and url):
         return NullTracer("no keys")
     try:
         if client_factory is None:
             from langfuse import Langfuse
             client_factory = Langfuse
-        client = client_factory(public_key=environ["LANGFUSE_PUBLIC_KEY"],
-                                secret_key=environ["LANGFUSE_SECRET_KEY"],
-                                base_url=environ["LANGFUSE_HOST"])
+        client = client_factory(public_key=public, secret_key=secret, base_url=url)
     except Exception as exc:
         log.warning("tracing: the Langfuse client failed to start (%s)", type(exc).__name__)
         return NullTracer("client failed to start")

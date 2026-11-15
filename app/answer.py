@@ -173,6 +173,32 @@ def trace_output(result: AnswerResult) -> dict:
             "rows_truncated": result.row_count > MAX_TRACE_ROWS}
 
 
+def traced_model_caller(llm, t, trace_id, metadata=None, count_attempts=False):
+    """llm wrapped so that its call is one generation step with the real duration (D45): the step starts
+    before the call and ends after it. The call itself, its result and its exceptions are unchanged.
+    t must be a guarded tracer (its calls never raise)."""
+    n = 0
+
+    def call(messages):
+        nonlocal n
+        n += 1
+        meta = dict(metadata or {})
+        if count_attempts:
+            meta["attempt"] = n
+        step = t.model_call(trace_id, list(messages), meta)
+        try:
+            out = llm(messages)
+        except Exception as exc:
+            step.fail(exc)
+            raise
+        step.finish(out.get("raw_model_output"), out.get("model"), out.get("prompt_tokens"),
+                    out.get("completion_tokens"), call_cost(out.get("prompt_tokens"), out.get("completion_tokens")),
+                    {"system_fingerprint": out.get("system_fingerprint"),
+                     "latency_seconds": out.get("latency_seconds")})
+        return out
+    return call
+
+
 def sql_to_show(result: AnswerResult) -> str | None:
     """The SQL the screen shows (D10: never hidden): the final SQL, or, when there is none (blocked,
     error, system decline), the SQL of the last attempt that had one. None if the model never wrote any."""
@@ -211,37 +237,24 @@ def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None
                                        "git_commit": git_commit()})
 
     last_safe = {}
-    n_calls = 0
-
-    def traced_llm(messages):  # reports each model call; the call itself is unchanged
-        nonlocal n_calls
-        call = llm(messages)
-        n_calls += 1
-        t.model_call(trace_id, list(messages), call.get("raw_model_output"), call.get("model"),
-                     call.get("prompt_tokens"), call.get("completion_tokens"),
-                     call_cost(call.get("prompt_tokens"), call.get("completion_tokens")),
-                     metadata={"attempt": n_calls, "system_fingerprint": call.get("system_fingerprint"),
-                               "latency_seconds": call.get("latency_seconds")})
-        return call
 
     def keep_safe_result(sql):  # same call the loop would make itself; the result is kept
+        step = t.safety_check(trace_id, sql)  # starts now, ends when safe_execute is back
         start = time.perf_counter()
         try:
             res = safe_runner.safe_execute(sql)
         except Exception as exc:  # an SQL error: the loop turns it into the retry text; report it, then re-raise
-            t.safety_check(trace_id, sql, {"blocked": False, "error": f"{type(exc).__name__}: {str(exc)[:500]}"},
-                           seconds=time.perf_counter() - start)
+            step.fail(exc)
             raise
         last_safe["result"] = res
-        t.safety_check(trace_id, sql,
-                       {"blocked": res.blocked, "wall": res.wall, "reason": res.reason, "kind": res.kind,
-                        "n_rows": res.n_rows},
-                       seconds=res.seconds if res.seconds is not None else time.perf_counter() - start)
+        step.finish({"blocked": res.blocked, "wall": res.wall, "reason": res.reason, "kind": res.kind,
+                     "n_rows": res.n_rows,
+                     "seconds": round(res.seconds if res.seconds is not None else time.perf_counter() - start, 4)})
         return res
 
     try:
         with grader_run.prompt_builder(cfg["prompt"], cfg["examples"]) as build:
-            loop = run_question(question, cfg["switches"], max_attempts=cfg["max_attempts"], llm=traced_llm,
+            loop = run_question(question, cfg["switches"], max_attempts=cfg["max_attempts"], llm=traced_model_caller(llm, t, trace_id, count_attempts=True),
                                 prompt_builder=build,
                                 safe_execute=keep_safe_result)
     except Exception as exc:  # close the trace, then fail exactly as without tracing

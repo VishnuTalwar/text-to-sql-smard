@@ -17,7 +17,7 @@ from decimal import Decimal, InvalidOperation
 from functools import partial
 
 import tracing
-from answer import DEFAULT_CONFIG, AnswerResult, _resolve_config, call_cost, grader_run
+from answer import DEFAULT_CONFIG, AnswerResult, _resolve_config, grader_run, traced_model_caller
 from format import format_table
 
 MAX_ROWS = 50
@@ -127,20 +127,14 @@ def summarize(result: AnswerResult, model_caller=None, tracer=None) -> Summary:
     t = tracing.guarded(tracer)
     trace_id = result.trace_id
 
-    def report_call(messages, call):
-        t.model_call(trace_id, list(messages), call.get("raw_model_output"), call.get("model"),
-                     call.get("prompt_tokens"), call.get("completion_tokens"),
-                     call_cost(call.get("prompt_tokens"), call.get("completion_tokens")),
-                     metadata={"step": "summary", "system_fingerprint": call.get("system_fingerprint"),
-                               "latency_seconds": call.get("latency_seconds")})
-
-    summ = _summarize(result, model_caller, report_call)
+    summ = _summarize(result, model_caller,
+                      lambda llm: traced_model_caller(llm, t, trace_id, {"step": "summary"}))
     t.summary(trace_id, summ.shown, summ.hidden_reason, summ.unknown_numbers)
     t.flush()
     return summ
 
 
-def _summarize(result: AnswerResult, model_caller=None, report_call=None) -> Summary:
+def _summarize(result: AnswerResult, model_caller=None, wrap=None) -> Summary:
     if result.status != "answered":
         return Summary(None, False, "not_answered")
     if not (1 <= result.row_count <= MAX_ROWS):
@@ -149,6 +143,8 @@ def _summarize(result: AnswerResult, model_caller=None, report_call=None) -> Sum
     cfg, _ = grader_run.load_config(_resolve_config(DEFAULT_CONFIG))
     llm = model_caller or partial(grader_run.call_openai, model=cfg["model"],
                                   temperature=cfg["temperature"], seed=cfg["seed"])
+    if wrap is not None:
+        llm = wrap(llm)  # the model call becomes a traced step (D45); nothing else changes
     formatted = format_table(result.columns, result.rows)
     prompt_tokens = completion_tokens = 0
     cost = 0.0
@@ -161,11 +157,8 @@ def _summarize(result: AnswerResult, model_caller=None, report_call=None) -> Sum
                       + completion_tokens * grader_run.PRICE_OUTPUT_PER_M) / 1_000_000, 6)
 
     try:
-        messages = build_messages(result.question, result.columns, formatted)
-        call = llm(messages)
+        call = llm(build_messages(result.question, result.columns, formatted))
         tally(call)
-        if report_call is not None:
-            report_call(messages, call)
         text = call["raw_model_output"].strip()
         if not text:
             raise ValueError("empty reply")

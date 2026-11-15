@@ -4,9 +4,12 @@ replaced by fakes: no model call, no database, no API.
 """
 
 import dataclasses
+import json
 import sys
+import tempfile
 import unittest
 import uuid
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 from unittest import mock
@@ -20,6 +23,7 @@ sys.path.insert(0, str(APP_DIR))
 sys.path.insert(0, str(APP_DIR / "tests"))
 
 import answer  # noqa: E402
+import feedback  # noqa: E402
 import summary  # noqa: E402
 import tracing  # noqa: E402
 from tracing_fakes import RecordingTracer  # noqa: E402
@@ -220,8 +224,17 @@ def traced_answer(question):
 
 
 class TestFeedbackButtons(unittest.TestCase):
-    def start(self, tracer, make_result=traced_answer):
+    def start(self, tracer, make_result=traced_answer, write_ok=True):
         use_tracer(self, tracer)
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        # a path under a regular file cannot be created: the write fails
+        blocker = Path(tmp.name) / "blocker"
+        blocker.write_text("x")
+        self.path = Path(tmp.name) / "app_data" / "feedback.jsonl" if write_ok else blocker / "feedback.jsonl"
+        patcher = mock.patch.object(feedback, "FEEDBACK_PATH", self.path)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         fakes = Fakes(make_result)
         p1, p2 = fakes.patched()
         self.addCleanup(p1.stop)
@@ -238,48 +251,87 @@ class TestFeedbackButtons(unittest.TestCase):
     def feedback_buttons(at):
         return [b for b in at.button if b.label in ("Yes", "No")]
 
-    def test_g_yes_saves_one_score_on_the_trace_and_hides_the_buttons(self):
+    def lines(self):
+        return [json.loads(x) for x in self.path.read_text(encoding="utf-8").splitlines()] if self.path.exists() else []
+
+    def test_g_yes_sends_one_score_writes_one_line_and_hides_the_buttons(self):
         tracer = RecordingTracer()
         at, fakes = self.start(tracer)
         self.assertEqual([b.label for b in self.feedback_buttons(at)], ["Yes", "No"])
         self.assertFalse(any(b.disabled for b in self.feedback_buttons(at)))
-        self.assertEqual(tracer.of("score"), [])
+        self.assertNotIn("saved locally only", texts(at))  # tracing is on: no hint
+        self.assertEqual((tracer.of("score"), self.lines()), ([], []))
         at.button(key="fb_yes_trace-abc").click().run()
         self.assertFalse(at.exception)
         self.assertEqual(tracer.of("score"), [(("trace-abc", "user_says_correct", 1), {})])
         self.assertEqual(self.feedback_buttons(at), [])  # the buttons are gone
-        self.assertIn("Thanks, saved.", texts(at))
+        self.assertIn("Thanks, sent.", texts(at))
+        self.assertNotIn("saved", texts(at).replace("Behind the scenes", ""))
         self.assertEqual((len(fakes.answer_calls), len(fakes.summary_calls)), (1, 1))  # no model call
         self.assertEqual(len(tracer.of("flush")), 1)
-        at.run()  # a rerun does not save again
-        self.assertEqual(len(tracer.of("score")), 1)
-        self.assertEqual(self.feedback_buttons(at), [])
+        (line,) = self.lines()  # exactly one line, with the right fields
+        self.assertEqual(set(line), {"timestamp", "session_id", "trace_id", "status", "question", "value"})
+        self.assertEqual((line["trace_id"], line["status"], line["question"], line["value"]),
+                         ("trace-abc", "answered", QUESTION, 1))
+        self.assertEqual(line["session_id"], fakes.answer_kwargs[0]["session_id"])
+        stamp = datetime.fromisoformat(line["timestamp"])
+        self.assertEqual(stamp.utcoffset(), timedelta(0))  # UTC
+        self.assertLess(abs(datetime.now(timezone.utc) - stamp), timedelta(seconds=60))
+        at.run()  # a rerun saves nothing more
+        self.assertEqual((len(tracer.of("score")), len(self.lines())), (1, 1))
 
-    def test_no_saves_zero(self):
+    def test_no_writes_value_zero(self):
         tracer = RecordingTracer()
         at, fakes = self.start(tracer)
         at.button(key="fb_no_trace-abc").click().run()
         self.assertEqual(tracer.of("score"), [(("trace-abc", "user_says_correct", 0), {})])
+        self.assertEqual([x["value"] for x in self.lines()], [0])
         self.assertEqual(len(fakes.answer_calls), 1)
 
-    def test_tracing_off_shows_disabled_buttons_with_the_hint(self):
+    def test_tracing_off_buttons_stay_enabled_and_the_click_is_saved_locally(self):
         at, fakes = self.start(tracing.NullTracer(), make_result=answered_result)  # trace_id None
         buttons = self.feedback_buttons(at)
         self.assertEqual([b.label for b in buttons], ["Yes", "No"])
-        self.assertTrue(all(b.disabled for b in buttons))
-        self.assertIn("tracing off", texts(at))
-
-    def test_declined_result_gets_the_buttons_but_no_rows_result_does_not(self):
-        def declined(question):
-            return answer.AnswerResult(question=question, status="declined_model",
-                                       message="The model declined: no forecast data", trace_id="trace-abc")
-        at, _ = self.start(RecordingTracer(), make_result=declined)
-        self.assertEqual(len(self.feedback_buttons(at)), 2)
-
-        def no_rows(question):
-            return dataclasses.replace(no_rows_result(question), trace_id="trace-abc")
-        at, _ = self.start(RecordingTracer(), make_result=no_rows)
+        self.assertFalse(any(b.disabled for b in buttons))
+        self.assertIn("tracing off: saved locally only", texts(at))
+        buttons[0].click().run()
+        self.assertFalse(at.exception)
+        self.assertIn("Thanks, sent.", texts(at))
         self.assertEqual(self.feedback_buttons(at), [])
+        (line,) = self.lines()
+        self.assertEqual((line["trace_id"], line["value"], line["status"]), (None, 1, "answered"))
+        self.assertEqual(len(fakes.answer_calls), 1)
+
+    def test_buttons_appear_under_every_status(self):
+        def result_with(status):
+            def make(question):
+                return answer.AnswerResult(question=question, status=status, message="m", trace_id="trace-abc")
+            return make
+
+        for status in answer.STATUSES:  # answered, no_rows, declined_model, declined_system, blocked, error
+            with self.subTest(status=status):
+                at, _ = self.start(RecordingTracer(), make_result=result_with(status))
+                self.assertEqual([b.label for b in self.feedback_buttons(at)], ["Yes", "No"])
+
+    def test_a_failing_file_write_does_not_break_the_page(self):
+        tracer = RecordingTracer()
+        at, fakes = self.start(tracer, write_ok=False)
+        at.button(key="fb_yes_trace-abc").click().run()
+        self.assertFalse(at.exception)
+        self.assertEqual(len(tracer.of("score")), 1)  # the score still went out
+        self.assertIn("Thanks, sent.", texts(at))
+        # tracing off AND no file: nothing was saved, and the page says so
+        at, _ = self.start(tracing.NullTracer(), make_result=answered_result, write_ok=False)
+        self.feedback_buttons(at)[0].click().run()
+        self.assertFalse(at.exception)
+        self.assertIn("Could not save your answer.", texts(at))
+
+    def test_asking_the_same_question_again_gives_fresh_buttons_without_tracing(self):
+        at, _ = self.start(tracing.NullTracer(), make_result=answered_result)
+        self.feedback_buttons(at)[0].click().run()
+        self.assertEqual(self.feedback_buttons(at), [])
+        next(b for b in at.button if b.label == "Ask").click().run()
+        self.assertEqual(len(self.feedback_buttons(at)), 2)
 
     def test_session_id_is_one_uuid_per_tab_and_the_tracer_is_passed_in(self):
         tracer = RecordingTracer()

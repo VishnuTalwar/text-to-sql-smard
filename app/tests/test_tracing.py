@@ -9,7 +9,9 @@ import logging
 import os
 import subprocess
 import sys
+import time
 import unittest
+import uuid
 from decimal import Decimal
 from pathlib import Path
 from unittest import mock
@@ -23,10 +25,11 @@ import answer  # noqa: E402
 import summary  # noqa: E402
 import tracing  # noqa: E402
 from test_answer import (BROKEN, GOOD, FakeModel, TestEquivalenceWithRunPy)  # noqa: E402
-from tracing_fakes import RaisingTracer, RecordingTracer  # noqa: E402
+from tracing_fakes import RaisingStepTracer, RaisingTracer, RecordingTracer  # noqa: E402
 
-ENV = {"LANGFUSE_PUBLIC_KEY": "pk-test", "LANGFUSE_SECRET_KEY": "sk-secret-123",
-       "LANGFUSE_HOST": "https://cloud.langfuse.com"}
+KEYS = {"LANGFUSE_PUBLIC_KEY": "pk-test", "LANGFUSE_SECRET_KEY": "sk-secret-123"}
+ENV = {**KEYS, "LANGFUSE_BASE_URL": "https://cloud.langfuse.com"}
+ENV_OLD = {**KEYS, "LANGFUSE_HOST": "https://old.example.com"}
 
 
 class SummaryModel:
@@ -64,6 +67,22 @@ class TestGetTracer(unittest.TestCase):
             env = {k: v for k, v in ENV.items() if k != name}
             self.assertEqual(tracing.get_tracer(environ=env).status, "tracing off: no keys", name)
 
+    def test_each_url_name_alone_works_and_base_url_wins(self):
+        def start(env):
+            made = {}
+            t = tracing.get_tracer(environ=env, client_factory=lambda **kw: made.update(kw) or object())
+            return t, made
+
+        t, made = start(ENV)
+        self.assertEqual((t.status, made["base_url"]), ("tracing on", "https://cloud.langfuse.com"))
+        t, made = start(ENV_OLD)  # LANGFUSE_HOST alone
+        self.assertEqual((t.status, made["base_url"]), ("tracing on", "https://old.example.com"))
+        t, made = start({**ENV, **ENV_OLD})  # both: LANGFUSE_BASE_URL is read first
+        self.assertEqual(made["base_url"], "https://cloud.langfuse.com")
+        t, made = start(KEYS)  # neither
+        self.assertEqual(t.status, "tracing off: no keys")
+        self.assertEqual(made, {})
+
     def test_all_three_variables_start_a_langfuse_tracer(self):
         made = {}
 
@@ -90,8 +109,9 @@ class TestGetTracer(unittest.TestCase):
     def test_null_tracer_does_nothing(self):
         t = tracing.NullTracer()
         self.assertIsNone(t.start_trace("n", "q", session_id="s", tags=["a"], metadata={}))
-        self.assertIsNone(t.model_call(None, [], "x", "m", 1, 1, 0.0))
-        self.assertIsNone(t.safety_check(None, "sql", {}))
+        for step in (t.model_call(None, []), t.safety_check(None, "sql")):
+            self.assertIsNone(step.finish("out"))
+            self.assertIsNone(step.fail(RuntimeError("x")))
         self.assertIsNone(t.loop_decision(None, 1, "ok"))
         self.assertIsNone(t.summary(None, True))
         self.assertFalse(t.score("t", "n", 1))
@@ -122,7 +142,7 @@ class TestLangfuseTracerFailOpen(unittest.TestCase):
             self.assertIsNone(t.start_trace("n", "q"))
             # after the failure every call is a quiet no-op
             self.assertIsNone(t.start_trace("n", "q"))
-            self.assertIsNone(t.model_call("x", [], "o", "m", 1, 1, 0.0))
+            t.model_call("x", []).finish("o")
             self.assertFalse(t.score("x", "n", 1))
             self.assertIsNone(t.flush())
         self.assertEqual(len(logs.output), 1)
@@ -146,6 +166,8 @@ class TestLangfuseTracerFailOpen(unittest.TestCase):
             self.assertIsNone(g.start_trace("n", "q"))
             self.assertFalse(g.score("t", "n", 1))
             self.assertIsNone(g.flush())
+            g.model_call("t", []).finish("o")  # the step of a failed call is a harmless no-op step
+            g.safety_check("t", "sql").fail(RuntimeError("x"))
         self.assertEqual(g.status, "tracing off: tracer failed")
         self.assertFalse(g.enabled)
         self.assertEqual(tracing.guarded(None).status, "tracing off: no keys")
@@ -158,7 +180,8 @@ class TestLangfuseTracerWithRealSdk(unittest.TestCase):
         from langfuse import Langfuse
         from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
         self.exporter = InMemorySpanExporter()
-        self.client = Langfuse(public_key="pk-test", secret_key="sk-test", base_url="http://127.0.0.1:9",
+        # the SDK keeps one set of resources per public key, so every test needs its own key (and exporter)
+        self.client = Langfuse(public_key=f"pk-test-{uuid.uuid4().hex}", secret_key="sk-test", base_url="http://127.0.0.1:9",
                                span_exporter=self.exporter)
         self.tracer = tracing.LangfuseTracer(self.client, secrets=["sk-test"])
         self.addCleanup(self.client.shutdown)
@@ -172,9 +195,9 @@ class TestLangfuseTracerWithRealSdk(unittest.TestCase):
         tid = t.start_trace("answer_question", "How much solar?", session_id="sess-1", tags=["r3b_safe"],
                             metadata={"config": "grader/configs/r3b_safe.yaml", "model": "m", "git_commit": "abc1234"})
         self.assertRegex(tid, r"^[0-9a-f]{32}$")
-        t.model_call(tid, [{"role": "user", "content": "hi"}], "SELECT 1", "gpt-4o", 100, 5, 0.0003,
-                     {"attempt": 1, "system_fingerprint": "fp_x"})
-        t.safety_check(tid, "SELECT 1", {"blocked": False, "n_rows": 1}, 0.0123)
+        step = t.model_call(tid, [{"role": "user", "content": "hi"}], {"attempt": 1})
+        step.finish("SELECT 1", "gpt-4o", 100, 5, 0.0003, {"system_fingerprint": "fp_x"})
+        t.safety_check(tid, "SELECT 1").finish({"blocked": False, "n_rows": 1, "seconds": 0.0123})
         t.loop_decision(tid, 1, "ok", {"n_rows": 1})
         t.end_trace(tid, {"status": "answered"}, tags=["answered", "r3b_safe"])
         t.summary(tid, False, "number_check", [Decimal("5")])  # after the root has ended
@@ -190,6 +213,8 @@ class TestLangfuseTracerWithRealSdk(unittest.TestCase):
                          {"input": 100, "output": 5, "total": 105})
         self.assertEqual(json.loads(gen.attributes["langfuse.observation.cost_details"]), {"total": 0.0003})
         self.assertEqual(gen.attributes["langfuse.observation.metadata.attempt"], "1")
+        self.assertEqual(gen.attributes["langfuse.observation.metadata.system_fingerprint"], '"fp_x"')
+        self.assertEqual(gen.attributes["langfuse.observation.input"], '[{"role": "user", "content": "hi"}]')
         self.assertEqual(gen.parent.span_id, root.context.span_id)
         for name, span in spans.items():  # one trace, session id on every step
             self.assertEqual(span.context.trace_id, root.context.trace_id, name)
@@ -200,6 +225,38 @@ class TestLangfuseTracerWithRealSdk(unittest.TestCase):
         self.assertEqual(spans["trace result"].attributes["langfuse.trace.tags"], ("answered", "r3b_safe"))
         check = json.loads(spans["summary number check"].attributes["langfuse.observation.output"])
         self.assertEqual(check, {"shown": False, "hidden_reason": "number_check", "unknown_numbers": ["5"]})
+
+
+    def test_a_failed_step_records_the_error_and_has_a_duration(self):
+        tid = self.tracer.start_trace("answer_question", "q")
+        step = self.tracer.safety_check(tid, "SELECT oops")
+        time.sleep(0.05)
+        step.fail(RuntimeError("column oops does not exist"))
+        span = self.spans()["safety check and run"]
+        self.assertEqual(span.attributes["langfuse.observation.level"], "ERROR")
+        self.assertIn("column oops does not exist", span.attributes["langfuse.observation.output"])
+        self.assertGreaterEqual(span.end_time - span.start_time, 0.05e9)
+
+    def test_real_durations_a_slow_model_gives_a_generation_of_at_least_0_2_s(self):
+        class SlowModel(FakeModel):
+            def __call__(self, messages):
+                time.sleep(0.2)
+                return super().__call__(messages)
+
+        r = answer.answer_question("Show some wind generation values.", model_caller=SlowModel([GOOD]),
+                                   tracer=self.tracer)
+        self.assertEqual(r.status, "answered")
+        self.assertTrue(self.tracer.enabled, self.tracer.status)
+        spans = self.spans()
+        gen = spans["model call"]
+        self.assertGreaterEqual(gen.end_time - gen.start_time, 0.2e9)
+        self.assertEqual(json.loads(gen.attributes["langfuse.observation.usage_details"]),
+                         {"input": 1000, "output": 20, "total": 1020})
+        self.assertEqual(gen.attributes["langfuse.observation.output"], GOOD)
+        safety = spans["safety check and run"]  # the step covers the real run, not just a point in time
+        self.assertGreater(safety.end_time, safety.start_time)
+        self.assertLess(safety.start_time, gen.end_time + 1e9)
+        self.assertGreaterEqual(safety.start_time, gen.end_time)  # it starts after the model call returned
 
 
 class TestAnswerQuestionTracing(unittest.TestCase):
@@ -216,7 +273,10 @@ class TestAnswerQuestionTracing(unittest.TestCase):
         self.assertEqual(r.status, "answered")
         self.assertEqual(len(r.attempts), 2)
         self.assertEqual(len(tracer.of("model_call")), 2)
+        self.assertEqual(len(tracer.of("model_call.finish")), 2)
         self.assertEqual(len(tracer.of("safety_check")), 2)
+        self.assertEqual(len(tracer.of("safety_check.fail")), 1)    # attempt 1: the SQL error
+        self.assertEqual(len(tracer.of("safety_check.finish")), 1)  # attempt 2: ran
         self.assertEqual(len(tracer.of("loop_decision")), 2)
         self.assertEqual([a[2] for a, _ in tracer.of("loop_decision")], ["error", "ok"])
         # all steps on the one trace the answer reports
@@ -236,20 +296,25 @@ class TestAnswerQuestionTracing(unittest.TestCase):
         self.assertEqual(kwargs["metadata"]["config"], answer.DEFAULT_CONFIG)
         self.assertEqual(kwargs["metadata"]["model"], "gpt-4o-2024-08-06")
         self.assertTrue(kwargs["metadata"]["git_commit"])
-        # generation step: messages, output, model, tokens, cost, fingerprint, attempt
+        # generation step: starts with the messages and the attempt number, ends with output, model, tokens, cost
         (a1, k1), (a2, k2) = tracer.of("model_call")
-        self.assertEqual(a1[2], BROKEN)
-        self.assertEqual(a1[3], "fake-model")
-        self.assertEqual((a1[4], a1[5], a1[6]), (1000, 20, answer.call_cost(1000, 20)))
-        self.assertEqual((k1["metadata"]["attempt"], k2["metadata"]["attempt"]), (1, 2))
-        self.assertEqual(k1["metadata"]["system_fingerprint"], "fp_fake")
+        (f1, g1), (f2, g2) = tracer.of("model_call.finish")
+        self.assertEqual((k1, k2), ({}, {}))
+        self.assertEqual((a1[2]["attempt"], a2[2]["attempt"]), (1, 2))
+        self.assertEqual(f1[0], BROKEN)
+        self.assertEqual(f1[1], "fake-model")
+        self.assertEqual((f1[2], f1[3], f1[4]), (1000, 20, answer.call_cost(1000, 20)))
+        self.assertEqual(f1[5]["system_fingerprint"], "fp_fake")
         self.assertEqual(a2[1][-1]["role"], "user")  # the retry text is the last message of attempt 2's input
         self.assertEqual(len(a2[1]), len(a1[1]) + 2)
-        # safety step: first blocked? no: an SQL error, so no wall; second one ran
-        (sa1, sk1), (sa2, sk2) = tracer.of("safety_check")
-        self.assertEqual(sa1[1], BROKEN)
-        self.assertEqual(sa2[2]["n_rows"], 5)
-        self.assertFalse(sa2[2]["blocked"])
+        # safety steps: the first query failed, the second ran
+        (sa1, _), (sa2, _) = tracer.of("safety_check")
+        self.assertEqual((sa1[1], sa2[1]), (BROKEN, GOOD))
+        (fail_args, _), = tracer.of("safety_check.fail")
+        self.assertIn("mwhh", str(fail_args[0]))
+        (ok_args, _), = tracer.of("safety_check.finish")
+        self.assertEqual(ok_args[0]["n_rows"], 5)
+        self.assertFalse(ok_args[0]["blocked"])
         self.assertEqual(r.tracing_status, "tracing on")
 
     def test_c_a_tracer_that_raises_changes_nothing(self):
@@ -259,6 +324,10 @@ class TestAnswerQuestionTracing(unittest.TestCase):
                                          model_caller=FakeModel([BROKEN, GOOD]), tracer=RaisingTracer(),
                                          session_id="s")
         self.assertTrue(same_answer(null, bad))
+        with self.assertLogs("app.tracing", "WARNING"):  # steps whose finish/fail raise
+            bad2 = answer.answer_question("Show some wind generation values.",
+                                          model_caller=FakeModel([BROKEN, GOOD]), tracer=RaisingStepTracer())
+        self.assertTrue(same_answer(null, bad2))
         self.assertIsNone(bad.trace_id)
         self.assertEqual(null.tracing_status, "tracing off: no keys")
         self.assertEqual(bad.tracing_status, "tracing off: tracer failed")
@@ -282,6 +351,8 @@ class TestAnswerQuestionTracing(unittest.TestCase):
             answer.answer_question("q?", model_caller=broken_model, tracer=tracer)
         (args, kwargs), = tracer.of("end_trace")
         self.assertEqual(args[1], {"status": "exception", "error": "ConnectionError"})
+        (fail_args, _), = tracer.of("model_call.fail")  # the step is closed with the error, then it is re-raised
+        self.assertIsInstance(fail_args[0], ConnectionError)
         self.assertEqual(len(tracer.of("flush")), 1)
 
     def test_e_summary_steps_are_on_the_same_trace(self):
@@ -294,8 +365,9 @@ class TestAnswerQuestionTracing(unittest.TestCase):
         self.assertEqual(len(gens), 2)  # the answer's model call and the summary's
         (args, kwargs) = gens[1]
         self.assertEqual(args[0], r.trace_id)
-        self.assertEqual(kwargs["metadata"]["step"], "summary")
-        self.assertEqual((args[4], args[5]), (200, 10))
+        self.assertEqual(args[2], {"step": "summary"})
+        (fargs, _) = tracer.of("model_call.finish")[1]
+        self.assertEqual((fargs[2], fargs[3]), (200, 10))
         (sargs, _), = tracer.of("summary")
         self.assertEqual(sargs, (r.trace_id, True, None, []))
         self.assertEqual(len(tracer.of("start_trace")), 1)  # no second trace
