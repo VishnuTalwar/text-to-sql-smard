@@ -1,6 +1,6 @@
 # Prediction for the final held-out run (D47)
 
-**DRAFT, to be approved by Vishnu before the run**
+**APPROVED by Vishnu on 2026-11-15, before the run**
 
 Written 15 Nov 2026, before any API call on the held-out set. r3b_safe is the final setup, v2b is the base; both run 3 times on the same day.
 
