@@ -1,0 +1,52 @@
+{
+  "name": "final-v1",
+  "created_utc": "2026-11-15T22:23:09+00:00",
+  "models": [
+    "gpt-4o-2024-08-06"
+  ],
+  "python": "3.12.6 (v3.12.6:a4a2d2b0d85, Sep  6 2024, 16:08:03) [Clang 13.0.0 (clang-1300.0.29.30)]",
+  "platform": "macOS-26.6.2-arm64-arm-64bit",
+  "packages": {
+    "langfuse": "5.2.0",
+    "openai": "2.52.0",
+    "opentelemetry-sdk": "1.45.2",
+    "pandas": "3.0.5",
+    "plotly": "7.1.0",
+    "psycopg2-binary": "2.9.12",
+    "python-dotenv": "1.2.2",
+    "PyYAML": "6.0.3",
+    "scikit-learn": "1.9.1",
+    "SQLAlchemy": "2.0.51",
+    "sqlglot": "30.26.0",
+    "streamlit": "1.67.0",
+    "tiktoken": "0.14.0"
+  },
+  "files": {
+    "gold_set_smard.yaml": "c271debf592797c0475d1698351e08d1640fd38db0a2744aec57614826c84870",
+    "grader/agent_loop.py": "37c4de74e44554e95e747372914f5d42116c004fcc86a15e3e02e442fb1d86eb",
+    "grader/answer_columns.yaml": "855672342bdd5701f9c691dddc4cfab645c166e8bc23549a9982857257aaf9d3",
+    "grader/answer_columns_heldout.yaml": "9b70edd0ca0f6e0202fe05fe6be9faf1a8557b96daad372eeff40a02a10ecd13",
+    "grader/answer_comparator.py": "9b07a62a82765db633fe05262fd89e76bcedde6f65385779c1a341c895e01fa6",
+    "grader/catalog_retriever.py": "c285d4195922579902acd8a8945bb561ff6e4583f4c5a54ebfdc5b34466e54d6",
+    "grader/comparator.py": "030fe87e43a63195a160de3df19aff63f5f4c9755f39a6ae00954531934ddd12",
+    "grader/configs/r3b_safe.yaml": "2b8c3bcffbe167164dd3bb67c057673bfa361c078d3c34317082f3ed1ad13625",
+    "grader/configs/v2b.yaml": "45c8430b53da2d072c812a11b83e5da78a18bb2b5f330980e016ca33c4cbffa9",
+    "grader/date_facts.py": "1d83b2b822c1a48562b5a9e1e1cabd9ab8b3371ab75c74adee2da69ac7ef0172",
+    "grader/executor.py": "8dbffb5599763b87299d7a17cb6f16617c7602e297f430273db05ac7652e05b0",
+    "grader/limits.yaml": "bab2a943af8eab6d04c38c4d4fa12b36337e4778f9a3841464dfde5f50dff2df",
+    "grader/loader.py": "dc09e66745f992823e9622bd319b66df11a23ef1e2f181e89f7ef0d9eb23579f",
+    "grader/naive_agent.py": "3d507497a8085f5e99b9d37c82b3095306699e6e78f6e3526eb8670846afa69a",
+    "grader/prompt_template.py": "5d6d1b66ee2dbade15b75e52ba88f9aa14c6e2f16b46d9e6d884bd942fa87131",
+    "grader/prompt_template_decline.py": "9ee4ebce27a785a8d4f0eefd95011286410da1c029bacda255b1c67f8fb9b80f",
+    "grader/prompt_template_schema_linked.py": "15dfcc5c3243e4ce249bd08c1b65af8b9ac1e27028745f92b8cad89c71965325",
+    "grader/prompt_template_v2b.py": "6b47f1c3a7f59b3c0f1cda253c634d8c6ce7c8cb999e19cb987cd5fa74e68c20",
+    "grader/result_logging.py": "8de20647e0c4a9bb7e9a0d1be9b3ff346d21c637f97f743c90a17c246ca910d3",
+    "grader/run.py": "b2f1a2125c8e771daca1ee902cac2da503ed282f6f1bb8d2c7ee41c47837284c",
+    "grader/safe_runner.py": "8f279eec1e551c114d87f6e63e8ef62021f79814d0258fbb8a8e635a1b21e7fc",
+    "grader/schema_catalog.py": "e87c411c628912783aefe91d5b8026a5d2aa079eb712229f3b2b2c4756176c77",
+    "grader/schema_catalog_v2a.py": "0c88e2c62ccd1f30ce3da1a9a7af3ef3a00eb38772d09d818c8098be87fb7c7d",
+    "grader/schema_catalog_v2b.py": "8cda99924adbd585887cc9ec032d8f3232c7ec651d345488419ae7e495341939",
+    "heldout_smard.yaml": "26ffe76d93f419e4d77a230d54fe8df5d60c464854940d03db0ee01345a80713",
+    "requirements.txt": "20a5cfb794d4dad1c15997d33a7df601ac9de0a4c2385d22d5f9bcdda6e4c530"
+  }
+}
