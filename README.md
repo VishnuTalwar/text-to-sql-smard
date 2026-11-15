@@ -73,7 +73,7 @@ The held-out set is 30 questions written before tuning and never used to tune. I
 Mean of 3 runs each. What it shows:
 - **The strict score carried over:** 68.9% on new questions vs 71.4% on the exam.
 - **The answer score did not:** 71.1% vs 80.6% on the exam. On new questions, expect about 70% under either score.
-- **The gain over the base is small** (+1.33, less than the run-to-run spread). Most of it is one question with no data, which the final setup declined and the base answered with a made-up result. The loop removed all SQL errors, but declined an answerable question 3 times across the runs.
+- **The gain over the base is small** (+1.33, less than the run-to-run spread). Most of it (+1.00) is on the questions that cannot be answered: across the 3 runs the final setup declined all 9 attempts, while the base answered 3 of them instead of declining. The loop removed all SQL errors, but declined an answerable question 3 times across the runs.
 - **Hard questions stay hard:** 1.67 of 7 on tiers 3 and 4.
 
 Full report: [results/final_heldout_2026-11-15.md](results/final_heldout_2026-11-15.md).
