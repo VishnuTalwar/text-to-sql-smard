@@ -1,0 +1,100 @@
+{
+  "config_file": "v2b.yaml",
+  "config_content": "# Row v2b. Reproduces the setup of run_v2b.py (kept only to reproduce earlier results).\n# Note: the original results of this row were produced before 2 Nov 2026 with the model alias\n# \"gpt-4o\" (D36). This config pins the dated snapshot, as every run since D36 does, so a new run\n# of it is comparable with R1 to R3b but not exactly the model of the old logs.\ndescription: \"catalog v2b: metrik and preiszone descriptions (D25); the base of every loop row\"\nprompt: v2b\nexamples: none\nswitches:\n  error_retry: false\n  empty_retry: false\n  decline_review: false\n  empty_fact_decline: false\nmax_attempts: 1\nmodel: gpt-4o-2024-08-06\ntemperature: 0\nseed: 0\nruns: 3\ntag: v2b\n",
+  "tag": "v2b",
+  "run": 3,
+  "runs_in_this_call": 3,
+  "prompt_sha256": {
+    "hu_01": "9203d717bdec302099cdd44ce0f11f5bf63f96691f36230098006d9e95bd029a",
+    "hu_02": "cb3c5a4e62b7e577d8879bc53ea794782281ee7a0192d94f07197b46ccd48c60",
+    "hu_03": "dc03829eddcdd8f05ec810165ba7f94e5dd4628ae683ff53792f2a11d9d290d6",
+    "h1_01": "ebe92cef88e1fa977ef282774db80685ca6aa05d760f7eb76a117840054f7987",
+    "h1_02": "7d8621a1852bb363eb7604e01ec4244c44f06a838aeed59523c3030440a720c4",
+    "h1_03": "04c8c198ec356de331dabdd033fecd577b5df32dc62a2da373d52825e06d0eb4",
+    "h1_04": "af960de6500194a894953af08a06b4b68261bdd179ae851c8e9539d807c9acee",
+    "h1_05": "3fe68650858dd55cf0a875d18b26641e60bd2f49933a05b321d00208c87bc058",
+    "h1_06": "06e925f1514457f3bdd248269824a38a05777fd38fd8911d9cd79420783356b7",
+    "h1_07": "c926e0bda0853d0db9ddb0c4c37b0783636325daa16c0f6a12ed0994ac55ea58",
+    "h1_08": "3d4b45b7750caa41ff17c5d3f935f790eeb1e7ee4b37c0ad9c3d4a1d51add0e5",
+    "h1_09": "b2d0856040ee53987e34f782591c55266cfe5366d902b9808f42f77932e93f77",
+    "h1_10": "6b7d9b5f13d680f4dd98c41de656e89aca01aa0f92bb2622f6fd56d0be5bd487",
+    "h2_01": "0fd6d2a7e34a2376dffc11f49b1cc2ef002d1aa54d01b6fe52bf947c4cc23396",
+    "h2_02": "4a83cc6262f8bbf284c3c74456f0d6421932c8d022efb4286a8cf7d7dadd435c",
+    "h2_03": "ebf2cf6abe5e8c043211a630c94ccb9ad0ac666766fc217622eb11e1946e301a",
+    "h2_04": "32bd5588b887adb6b7ea8fc6f1a758c0575106d8082c20f6f28efaef6c9e7dd0",
+    "h2_05": "dddc9a77c5f2463ddb7d8528c11355ed5145d9766a8910ed010ec7f86b7e066a",
+    "h2_06": "076bf4c0e6bd006b0f81247a38f730fc34d532b8caa24943e906da7477c196b6",
+    "h2_07": "7a0f0757962a4b60e357cd53b05b91656ad1d0e069ce9ec700a8a82d96362bc9",
+    "h2_08": "a63d2d8a8a5ceb2a6883cc7f27548383aef9614c0f3d865d1f9526f0270b070f",
+    "h2_09": "ac7adfdd412665e99b2fac9c5e2f6db01eaf687ac72005f45d70d23eaed337bc",
+    "h2_10": "3969895a9450df789eacc2fd18e594d0a361e11dd4a978444b59f00d74eef397",
+    "h3_01": "eddc0059e41b19781ff644cec6d7256d77ed7b5e298b3537f7f1fed696cb5b06",
+    "h3_02": "e90c5cb3bf30382d215f93accf860a2da00fb829bc1f0f5329dc7a2a70163fdb",
+    "h3_03": "d1204a5897cb4fc602deb721115c0e3a152f0a03d27d6e09e0bf1a30fbd3b289",
+    "h3_04": "47ba6363e0500520b18fb947bc48f4920cbc769255d0b6b70b730a15158051ad",
+    "h3_05": "ee51e131ed93339547591f40a092c5e79aa0597eac472288d099b7d0f581ef24",
+    "h4_01": "e6197cc03d681bafd2ebf4efe9dea6a48e56946652b7f15021e7fbad35ef0345",
+    "h4_02": "4caebc68d7a694789291e54db7a675b12eb603a0cd35fb89fadea9c6f481ecd5"
+  },
+  "prompt_sha256_combined": "a0fbd9ee73253ba187876d5931ffbc826c5335c0fba3d47f7b76e09ace0d8196",
+  "n_questions": 30,
+  "gold_file": "heldout_smard.yaml",
+  "gold_file_sha256": "26ffe76d93f419e4d77a230d54fe8df5d60c464854940d03db0ee01345a80713",
+  "git": {
+    "commit": "ab80ac65f7504875d474dd26a3d924e51911787f",
+    "working_tree_clean": true,
+    "modified_tracked_files": [],
+    "untracked_files": [
+      "results/_stdout_r2.txt",
+      "results/_stdout_r3.txt",
+      "results/_stdout_r3b_safe.txt",
+      "results/_stdout_v2b_fresh.txt",
+      "results/r3b_safe_heldout_smard_run1_2026-11-15.jsonl",
+      "results/r3b_safe_heldout_smard_run1_2026-11-15.log",
+      "results/r3b_safe_heldout_smard_run1_2026-11-15.manifest.json",
+      "results/r3b_safe_heldout_smard_run2_2026-11-15.jsonl",
+      "results/r3b_safe_heldout_smard_run2_2026-11-15.log",
+      "results/r3b_safe_heldout_smard_run2_2026-11-15.manifest.json",
+      "results/r3b_safe_heldout_smard_run3_2026-11-15.jsonl",
+      "results/r3b_safe_heldout_smard_run3_2026-11-15.log",
+      "results/r3b_safe_heldout_smard_run3_2026-11-15.manifest.json",
+      "results/v2b_heldout_smard_run1_2026-11-15.jsonl",
+      "results/v2b_heldout_smard_run1_2026-11-15.log",
+      "results/v2b_heldout_smard_run1_2026-11-15.manifest.json",
+      "results/v2b_heldout_smard_run2_2026-11-15.jsonl",
+      "results/v2b_heldout_smard_run2_2026-11-15.log",
+      "results/v2b_heldout_smard_run2_2026-11-15.manifest.json",
+      "results/v2b_heldout_smard_run3_2026-11-15.jsonl",
+      "results/v2b_heldout_smard_run3_2026-11-15.log",
+      "results/v2b_heldout_smard_run3_2026-11-15.manifest.json"
+    ]
+  },
+  "model": "gpt-4o-2024-08-06",
+  "temperature": 0,
+  "seed": 0,
+  "max_attempts": 1,
+  "switches": {
+    "error_retry": false,
+    "empty_retry": false,
+    "decline_review": false,
+    "empty_fact_decline": false,
+    "safe_runner": false
+  },
+  "start_time": "2026-11-15T23:29:39",
+  "end_time": "2026-11-15T23:30:51",
+  "packages": {
+    "openai": {
+      "package": "openai",
+      "version": "2.52.0"
+    },
+    "psycopg": {
+      "package": "psycopg2-binary",
+      "version": "2.9.12"
+    },
+    "sqlglot": {
+      "package": "sqlglot",
+      "version": "30.26.0"
+    }
+  },
+  "python": "3.12.6"
+}
