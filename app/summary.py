@@ -3,7 +3,7 @@ The optional "AI summary" sentence (D44, part 3). Outside the measured path: it 
 answer_question() has finished, never in exam runs, and it fails closed (hidden unless it passes
 every check).
 
-  summarize(result)          one extra model call (same model, temperature, seed and prices as the
+  summarize(result)          (not for a single value: 1 row, 1 column) one extra model call (same model, temperature, seed and prices as the
                              r3b_safe config) for an answered result with 1 to 50 rows. The model sees
                              only the question, the column names and the formatted table (app/format.py).
   extract_numbers(text)      the numbers in a text, as Decimals
@@ -23,6 +23,7 @@ from format import format_table
 MAX_ROWS = 50
 MAX_SENTENCES = 2
 MAX_WORDS = 60
+MIN_WORDS = 4
 
 INSTRUCTIONS = (
     "Write one sentence that answers the question using only the table below. "
@@ -139,6 +140,8 @@ def _summarize(result: AnswerResult, model_caller=None, wrap=None) -> Summary:
         return Summary(None, False, "not_answered")
     if not (1 <= result.row_count <= MAX_ROWS):
         return Summary(None, False, "too_many_rows")
+    if len(result.rows) == 1 and len(result.rows[0]) == 1:
+        return Summary(None, False, "single_value")  # the value is already shown large; no model call
 
     cfg, _ = grader_run.load_config(_resolve_config(DEFAULT_CONFIG))
     llm = model_caller or partial(grader_run.call_openai, model=cfg["model"],
@@ -168,6 +171,8 @@ def _summarize(result: AnswerResult, model_caller=None, wrap=None) -> Summary:
     def hide(reason, unknown=()):
         return Summary(None, False, reason, list(unknown), prompt_tokens, completion_tokens, cost)
 
+    if len(text.split()) < MIN_WORDS:
+        return hide("too_short")  # e.g. only the number itself
     if _too_long(text):
         return hide("too_long")
     banned = banned_words(text, result.question)

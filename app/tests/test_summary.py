@@ -27,7 +27,7 @@ class FakeModel:
                 "latency_seconds": 0.1}
 
 
-def result(question="What was the total in 2025?", columns=("total",), rows=((D("9056373.39"),),),
+def result(question="What was the total in 2025?", columns=("total",), rows=((D("9056373.39"),), (D("8123456.78"),)),
            status="answered", row_count=None):
     return AnswerResult(question=question, status=status, message="", columns=list(columns),
                         rows=list(rows), row_count=len(rows) if row_count is None else row_count)
@@ -115,17 +115,17 @@ class TestSummarize(unittest.TestCase):
         self.assertEqual(s.unknown_numbers, [D("9.06")])
 
     def test_4_date_in_words_matches_iso_cell(self):
-        r = result(question="When was the peak?", columns=("zeitpunkt",), rows=[(datetime(2025, 7, 1, 0, 0),)])
+        r = result(question="When was the peak?", columns=("zeitpunkt",), rows=[(datetime(2025, 7, 1, 0, 0),), (datetime(2025, 7, 2, 0, 0),)])
         s = summarize(r, model_caller=FakeModel("The peak was on 1 July 2025."))
         self.assertTrue(s.shown, s.unknown_numbers)
 
     def test_5_minus_sign(self):
         q = "What was the change?"
-        s = summarize(result(q, ("change",), [(D("5"),)]), model_caller=FakeModel("The change was -5.00."))
+        s = summarize(result(q, ("change",), [(D("5"),), (D("7"),)]), model_caller=FakeModel("The change was -5.00."))
         self.assertFalse(s.shown)
         self.assertEqual(s.hidden_reason, "number_check")
         self.assertEqual(s.unknown_numbers, [D("-5.00")])
-        s = summarize(result(q, ("change",), [(D("-5"),)]), model_caller=FakeModel("The change was -5.00."))
+        s = summarize(result(q, ("change",), [(D("-5"),), (D("7"),)]), model_caller=FakeModel("The change was -5.00."))
         self.assertTrue(s.shown)
 
     def test_6_banned_word(self):
@@ -173,25 +173,25 @@ class TestSummarize(unittest.TestCase):
 
     def test_11_german(self):
         r = result(question="Wie hoch war die Erzeugung im Juli 2025?", columns=("summe_mwh",),
-                   rows=[(D("9056373.39"),)])
+                   rows=[(D("9056373.39"),), (D("1.5"),)])
         s = summarize(r, model_caller=FakeModel("Die Erzeugung im Juli 2025 betrug 9,056,373.39."))
         self.assertTrue(s.shown, s.unknown_numbers)
 
     def test_12_quarter_hour_is_allowed(self):
-        r = result(question="What was the highest price?", columns=("preis",), rows=[(D("512"),)])
+        r = result(question="What was the highest price?", columns=("preis",), rows=[(D("512"),), (D("300"),)])
         s = summarize(r, model_caller=FakeModel("The highest quarter-hour price was 512.00."))
         self.assertTrue(s.shown, (s.hidden_reason, s.unknown_numbers))
 
     def test_13_german_article_ein_is_allowed(self):
         r = result(question="Wie hoch war die Erzeugung im Juli 2025?", columns=("summe_mwh",),
-                   rows=[(D("9056373.39"),)])
+                   rows=[(D("9056373.39"),), (D("1.5"),)])
         s = summarize(r, model_caller=FakeModel(
             "Im Juli 2025 lag die Erzeugung bei 9,056,373.39 und ein Wert war negativ."))
         self.assertTrue(s.shown, (s.hidden_reason, s.unknown_numbers))
 
     def test_14_banned_word_from_the_question_is_allowed(self):
         r = result(question="How much solar in the first half of 2025?", columns=("mwh",),
-                   rows=[(D("1234"),)])
+                   rows=[(D("1234"),), (D("99"),)])
         s = summarize(r, model_caller=FakeModel("In the first half of 2025 solar produced 1,234.00."))
         self.assertTrue(s.shown, (s.hidden_reason, s.unknown_numbers))
         # the allowance is for that word only: another banned word still hides the sentence
@@ -199,9 +199,36 @@ class TestSummarize(unittest.TestCase):
         self.assertEqual((s.shown, s.hidden_reason, s.unknown_numbers), (False, "banned_word", ["twice"]))
 
     def test_15_twice_is_still_banned(self):
-        r = result(question="How high were the prices?", columns=("preis",), rows=[(D("5"),)])
+        r = result(question="How high were the prices?", columns=("preis",), rows=[(D("5"),), (D("6"),)])
         s = summarize(r, model_caller=FakeModel("Prices were twice as high as 5.00."))
         self.assertEqual((s.shown, s.hidden_reason, s.unknown_numbers), (False, "banned_word", ["twice"]))
+
+    def test_single_value_gets_no_summary_and_no_model_call(self):
+        m = FakeModel("The total in 2025 was 9,056,373.39.")
+        s = summarize(result(rows=[(D("9056373.39"),)]), model_caller=m)
+        self.assertEqual((s.shown, s.hidden_reason, s.text), (False, "single_value", None))
+        self.assertEqual(m.calls, [])
+        self.assertEqual((s.prompt_tokens, s.completion_tokens, s.cost_usd), (0, 0, 0.0))
+        # one row with two columns, and two rows with one column, are not single values
+        for cols, rows in ((("a", "b"), [(D("1"), D("2"))]), (("a",), [(D("1"),), (D("2"),)])):
+            m = FakeModel("The values are 1.00 and 2.00 here.")
+            s = summarize(result(columns=cols, rows=rows), model_caller=m)
+            self.assertEqual(len(m.calls), 1, cols)
+
+    def test_reply_under_4_words_is_hidden_as_too_short(self):
+        r = result(question="What was the price?", columns=("price",), rows=[(D("10536110.75"),), (D("5"),)])
+        s = summarize(r, model_caller=FakeModel("10,536,110.75"))  # only the number itself
+        self.assertEqual((s.shown, s.hidden_reason, s.text), (False, "too_short", None))
+        self.assertEqual(s.prompt_tokens, 200)  # the call happened and is still reported
+        s = summarize(r, model_caller=FakeModel("The price was 10,536,110.75."))  # 4 words: fine
+        self.assertTrue(s.shown)
+        s = summarize(r, model_caller=FakeModel("The price: 10,536,110.75"))  # 3 words
+        self.assertEqual(s.hidden_reason, "too_short")
+
+    def test_normal_six_word_sentence_is_shown(self):
+        r = result(question="What was the price?", columns=("price",), rows=[(D("10536110.75"),), (D("5"),)])
+        s = summarize(r, model_caller=FakeModel("The highest price was 10,536,110.75 overall."))
+        self.assertEqual((s.shown, s.text), (True, "The highest price was 10,536,110.75 overall."))
 
     def test_model_sees_only_question_columns_and_table(self):
         m = FakeModel("It was 9,056,373.39 in 2025.")
@@ -210,7 +237,7 @@ class TestSummarize(unittest.TestCase):
         self.assertEqual(len(m.calls[0]), 1)
         self.assertTrue(content.startswith(summary.INSTRUCTIONS))
         self.assertIn("Question: What was the total in 2025?", content)
-        self.assertTrue(content.endswith("total\n9,056,373.39"))
+        self.assertTrue(content.endswith("total\n9,056,373.39\n8,123,456.78"))
         self.assertNotIn("SELECT", content)
 
 
