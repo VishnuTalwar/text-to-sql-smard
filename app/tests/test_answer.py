@@ -9,8 +9,11 @@ Only gold_set_smard.yaml is read (never the held-out file).
 import contextlib
 import copy
 import io
+import os
 import sys
+import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -133,12 +136,112 @@ class TestAnswerQuestion(unittest.TestCase):
         self.assertEqual(r.attempts[0].wall, 1)
         self.assertFalse(r.rewritten_after_empty)
 
+    def test_config_without_the_safe_runner_is_refused(self):
+        text = CONFIG.read_text(encoding="utf-8")
+        self.assertIn("safe_runner: true", text)
+        with tempfile.TemporaryDirectory() as d:
+            off = Path(d) / "r3b_safe_off.yaml"
+            off.write_text(text.replace("safe_runner: true", "safe_runner: false"), encoding="utf-8")
+            model = FakeModel([GOOD])
+            with self.assertRaises(ValueError) as ctx:
+                answer.answer_question("Show some values.", config_path=off, model_caller=model)
+            self.assertIn("safe_runner", str(ctx.exception))
+            self.assertEqual(model.calls, [], "the model must not be called")
+
     def test_error_after_three_attempts(self):
         r = answer.answer_question("Show some values.", model_caller=FakeModel([BROKEN] * 3))
         self.assertEqual(r.status, "error")
         self.assertTrue(r.message.startswith("The query failed after 3 attempts: "))
         self.assertIn('column "mwhh" does not exist', r.message)
         self.assertEqual([a.outcome for a in r.attempts], ["error"] * 3)
+
+
+class TestColumnNames(unittest.TestCase):
+    BASE = "SELECT mwh AS strom, energietraeger AS quelle FROM erzeugung LIMIT 1"
+
+    def test_plain_sql(self):
+        self.assertEqual(answer._column_names(self.BASE, 2), ["strom", "quelle"])
+
+    def test_trailing_semicolon(self):
+        self.assertEqual(answer._column_names(self.BASE + ";", 2), ["strom", "quelle"])
+
+    def test_trailing_semicolon_with_spaces_and_newline(self):
+        self.assertEqual(answer._column_names(self.BASE + ";  \n", 2), ["strom", "quelle"])
+
+    def test_trailing_line_comment_after_semicolon_free_sql(self):
+        self.assertEqual(answer._column_names(self.BASE + " -- last row only", 2), ["strom", "quelle"])
+
+    def test_names_are_not_the_fallback_when_the_query_is_wrapped(self):
+        # the fallback gives column_1, column_2: a wrapping error would show up as those names
+        self.assertNotEqual(answer._column_names(self.BASE + ";", 2), ["column_1", "column_2"])
+
+    def test_answer_question_with_a_semicolon_gives_the_right_names(self):
+        sql = self.BASE + ";"
+        r = answer.answer_question("Show some wind generation values.", model_caller=FakeModel([sql]))
+        self.assertEqual(r.status, "answered")
+        self.assertEqual(r.columns, ["strom", "quelle"])
+
+    def test_runs_as_grader_ro_read_only_with_the_limits_timeout(self):
+        """The column query uses safe_runner.connect(): check what that connection is."""
+        seen = {}
+        real_connect = answer.safe_runner.connect
+
+        def spy():
+            conn = real_connect()
+            seen["conn"] = conn
+            return conn
+
+        with mock.patch.object(answer.safe_runner, "connect", spy):
+            answer._column_names(self.BASE, 2)
+        self.assertIn("conn", seen, "the column query did not use safe_runner.connect()")
+        conn = real_connect()  # an identical connection, to look at its settings
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT current_user")
+                self.assertEqual(cur.fetchone()[0], os.environ["GRADER_DB_USER"])
+                cur.execute("SHOW transaction_read_only")
+                self.assertEqual(cur.fetchone()[0], "on")
+                cur.execute("SELECT 1 FROM pg_roles WHERE rolname = current_user AND rolsuper")
+                self.assertIsNone(cur.fetchone())
+        finally:
+            conn.rollback()
+            conn.close()
+        # the timeout statement comes from limits.yaml
+        executed = []
+        real_cursor_connect = answer.safe_runner.connect
+
+        class Spy:
+            def __init__(self, conn):
+                self.conn = conn
+
+            def cursor(self, *a, **k):
+                cur = self.conn.cursor(*a, **k)
+                real_execute = cur.execute
+
+                class Wrapped:
+                    def __getattr__(s, name):
+                        return getattr(cur, name)
+
+                    def __enter__(s):
+                        return s
+
+                    def __exit__(s, *exc):
+                        cur.close()
+
+                    def execute(s, q, *args):
+                        executed.append(q)
+                        return real_execute(q, *args)
+
+                return Wrapped()
+
+            def __getattr__(self, name):
+                return getattr(self.conn, name)
+
+        with mock.patch.object(answer.safe_runner, "connect", lambda: Spy(real_cursor_connect())):
+            answer._column_names(self.BASE, 2)
+        timeout = answer.safe_runner.load_limits().timeout_ms
+        self.assertIn(f"SET LOCAL statement_timeout = {timeout}", executed)
+        self.assertTrue(executed[-1].endswith(") AS q LIMIT 0"))
 
 
 # ---------------------------------------------------------------- g. equivalence with run.py

@@ -9,7 +9,8 @@ only draws the AnswerResult; no logic lives there.
 Nothing from the grader is copied or edited. Imported from run.py: load_config, prompt_builder,
 call_openai, PRICE_INPUT_PER_M, PRICE_OUTPUT_PER_M. Imported from agent_loop: run_question,
 decline_reason. Imported from naive_agent: _strip_fences (the loop's own fence rule).
-Rows and columns are only filled when the config has the safe_runner switch on (r3b_safe does).
+A config without the safe_runner switch is refused (ValueError): the app never runs a query
+outside the four walls, and the rows of the final attempt come from the safe runner.
 
 The loop does not return rows or column names. Two small additions outside the loop:
   - the safe_execute= argument that run_question already offers is given a wrapper that calls the
@@ -86,12 +87,17 @@ def _resolve_config(config_path) -> Path:
 
 def _column_names(sql: str, n_cols: int) -> list[str]:
     """Column names of a query that already passed the safe runner (zero rows are read)."""
+    inner = sql.strip()
+    if inner.endswith(";"):
+        inner = inner[:-1].rstrip()  # one trailing semicolon, and the spaces before it
     try:
-        conn = safe_runner.connect()  # grader_ro, READ ONLY
+        # safe_runner.connect(): role grader_ro (GRADER_DB_USER), session READ ONLY, no autocommit
+        conn = safe_runner.connect()
         try:
             with conn.cursor() as cur:
+                # same timeout as every query of the safe runner (limits.yaml)
                 cur.execute(f"SET LOCAL statement_timeout = {int(safe_runner.load_limits().timeout_ms)}")
-                cur.execute("SELECT * FROM (\n" + sql.rstrip().rstrip(";") + "\n) AS q LIMIT 0")
+                cur.execute("SELECT * FROM (\n" + inner + "\n) AS q LIMIT 0")
                 return [d[0] for d in cur.description]
         finally:
             conn.rollback()
@@ -127,6 +133,9 @@ def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None
     as agent_loop.call_openai). None means the real call_openai with the config's model,
     temperature and seed."""
     cfg, _ = grader_run.load_config(_resolve_config(config_path))
+    if not cfg["switches"]["safe_runner"]:
+        raise ValueError(f"{config_path}: the safe_runner switch is off. The app only runs configs "
+                         "where every query goes through the safe runner (D41, D44).")
     llm = model_caller or partial(grader_run.call_openai, model=cfg["model"],
                                   temperature=cfg["temperature"], seed=cfg["seed"])
 
@@ -140,7 +149,7 @@ def answer_question(question: str, config_path=DEFAULT_CONFIG, model_caller=None
     with grader_run.prompt_builder(cfg["prompt"], cfg["examples"]) as build:
         loop = run_question(question, cfg["switches"], max_attempts=cfg["max_attempts"], llm=llm,
                             prompt_builder=build,
-                            safe_execute=keep_safe_result if cfg["switches"]["safe_runner"] else None)
+                            safe_execute=keep_safe_result)
 
     raw_attempts = loop["attempts"]
     system = loop["system_declined"]
