@@ -6,9 +6,9 @@ Ask a question in English or German, an LLM writes PostgreSQL, the query runs be
 
 - Exam of 84 questions in 5 tiers. Best setup, r3b_safe: **60.00 / 84 strict (71.4%)** and **67.67 / 84 answer score (80.6%)**. The exam is a development set; the held-out result is in [Final held-out result](#final-held-out-result).
 - Strong on tiers 0 and 1 (strict 95.8% and 97.1%, answer score 95.8% and 100.0%). Weak on tiers 3 and 4 (strict 19.4% and 0.0%, answer score 52.8% and 41.7%).
-- Four safety walls in front of every query, checked by 183 offline tests.
+- Four safety walls in front of every query, with 44 tests of their own (373 tests in total).
 - Every run writes a manifest with prompt and file hashes.
-- Status: evaluation pipeline done, app built (Streamlit, with Langfuse tracing).
+- Status: complete. Evaluation pipeline, Streamlit app with Langfuse tracing, and the final held-out run are done; no user study was run (D48).
 
 ## Example
 
@@ -244,7 +244,7 @@ Optional at the end: a LangGraph wrapper around the existing loop (checked again
 
 ## Repository map
 
-- [DECISIONS.md](DECISIONS.md): every decision with its reason and evidence (D1 to D46)
+- [DECISIONS.md](DECISIONS.md): every decision with its reason and evidence (D1 to D48)
 - [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md): full state of the project, ablation table, open items
 - [grader/README.md](grader/README.md): how to run a row, what the outputs are
 - [docs/DATA.md](docs/DATA.md): where the SMARD CSV files come from and how to check them
