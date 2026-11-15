@@ -4,7 +4,7 @@ Ask a question in English or German, an LLM writes PostgreSQL, the query runs be
 
 ## At a glance
 
-- Exam of 84 questions in 5 tiers. Best setup, r3b_safe: **60.00 / 84 strict (71.4%)** and **67.67 / 84 answer score (80.6%)**. The exam is a development set; the held-out result is pending.
+- Exam of 84 questions in 5 tiers. Best setup, r3b_safe: **60.00 / 84 strict (71.4%)** and **67.67 / 84 answer score (80.6%)**. The exam is a development set; the held-out result is in [Final held-out result](#final-held-out-result).
 - Strong on tiers 0 and 1 (strict 95.8% and 97.1%, answer score 95.8% and 100.0%). Weak on tiers 3 and 4 (strict 19.4% and 0.0%, answer score 52.8% and 41.7%).
 - Four safety walls in front of every query, checked by 183 offline tests.
 - Every run writes a manifest with prompt and file hashes.
@@ -59,7 +59,24 @@ Best setup: **r3b_safe**, the v2b prompt plus an execute-check-refine loop plus 
 
 Percentages are the mean divided by the tier size. Strict: the result must match the gold result exactly. Answer: the required answer columns must be present with the right values (see [How it is measured](#how-it-is-measured)).
 
-The exam was used during development. The held-out result for the final setup is pending; the starting point for v2b on the 30 held-out questions was 19.33 / 30 ([PROJECT_PROGRESS.md](PROJECT_PROGRESS.md), section 8, Step N). Run-to-run noise is about 2 to 4 points per run ([PROJECT_PROGRESS.md](PROJECT_PROGRESS.md), section 8, Step C).
+The exam was used during development; the result on 30 held-out questions is in [Final held-out result](#final-held-out-result) below. Run-to-run noise is about 2 to 4 points per run ([PROJECT_PROGRESS.md](PROJECT_PROGRESS.md), section 8, Step C).
+
+### Final held-out result
+
+The held-out set is 30 questions written before tuning and never used to tune. It was run once, on 15 Nov 2026, at the commit tagged `final-v1`, with every file that affects a score fingerprinted. A prediction was committed before the run ([results/final_heldout_prediction.md](results/final_heldout_prediction.md)), and all 7 of its points held.
+
+| setup | strict | answer score |
+|---|---|---|
+| r3b_safe (final) | 20.67 / 30 (68.9%) | 21.33 / 30 (71.1%) |
+| v2b (base, same day) | 19.33 / 30 (64.4%) | 19.67 / 30 (65.6%) |
+
+Mean of 3 runs each. What it shows:
+- **The strict score carried over:** 68.9% on new questions vs 71.4% on the exam.
+- **The answer score did not:** 71.1% vs 80.6% on the exam. On new questions, expect about 70% under either score.
+- **The gain over the base is small** (+1.33, less than the run-to-run spread). Most of it is one question with no data, which the final setup declined and the base answered with a made-up result. The loop removed all SQL errors, but declined an answerable question 3 times across the runs.
+- **Hard questions stay hard:** 1.67 of 7 on tiers 3 and 4.
+
+Full report: [results/final_heldout_2026-11-15.md](results/final_heldout_2026-11-15.md).
 
 ## What helped and what didn't
 
@@ -148,7 +165,7 @@ About 3.48 million rows in total. Quirks the system has to handle:
 ## Limitations
 
 - Tiers 3 and 4 are weak and small: 16 of the 84 questions. Under the strict score they pass 19.4% and 0.0%.
-- The exam is a development set. The held-out result for the final setup is pending.
+- The exam is a development set. The held-out result for the final setup is in [Final held-out result](#final-held-out-result).
 - Temperature 0 is not deterministic: attempt-1 replies differed in 106 of 252 question-runs between R3b and r3b_safe, which send the identical prompt ([results/analysis_r3b_safe_vs_r3b_2026-11-06.md](results/analysis_r3b_safe_vs_r3b_2026-11-06.md)).
 - Daylight-saving duplicate timestamps (12 of 105,300) can multiply rows in joins on `zeitpunkt` (open item O15).
 - An empty result can be a correct answer, so rewriting a query after an empty result can change the question (O16).
@@ -219,7 +236,7 @@ Order from [D43](DECISIONS.md#d43-second-external-review-plan-for-the-finish):
 3. Done: Streamlit app: question, SQL, result, chart, short explanation, with honest "no rows match" and "no data" messages.
 4. Done: Langfuse tracing in the app.
 5. Done: easy setup: `.env.example`, pinned packages, CI running the offline tests.
-6. Freeze code and scoring, then the final held-out run.
+6. Done: freeze code and scoring, then the final held-out run ([result](#final-held-out-result)).
 7. Small user study (3 to 5 people, fixed tasks, completion and time).
 
 Optional at the end: a LangGraph wrapper around the existing loop (checked against the equivalence tests), and UTC timestamps.
