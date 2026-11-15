@@ -171,6 +171,7 @@ About 3.48 million rows in total. Quirks the system has to handle:
 - An empty result can be a correct answer, so rewriting a query after an empty result can change the question (O16).
 - The label keyword lists of the answer score were written blind and are not exhaustive; an unknown label fails.
 - Only 7 of the 84 exam questions are in German, and most use the exact database words (open item O8), so German support is only lightly tested.
+- No user testing: the app was never tried by other people, so there is no evidence on how easy it is to use or how far people trust its answers. The Yes / No buttons record feedback, but no study was run.
 
 ## Setup
 
@@ -237,7 +238,7 @@ Order from [D43](DECISIONS.md#d43-second-external-review-plan-for-the-finish):
 4. Done: Langfuse tracing in the app.
 5. Done: easy setup: `.env.example`, pinned packages, CI running the offline tests.
 6. Done: freeze code and scoring, then the final held-out run ([result](#final-held-out-result)).
-7. Small user study (3 to 5 people, fixed tasks, completion and time).
+7. Not done: small user study (dropped, see D48).
 
 Optional at the end: a LangGraph wrapper around the existing loop (checked against the equivalence tests), and UTC timestamps.
 

@@ -1,11 +1,13 @@
 # Text-to-SQL Agent (SMARD): Full Progress Handoff
 
-**Last updated:** 14 November 2026
+**Last updated:** 16 November 2026 (the project is complete; the work of 15 Nov is in section 8, Steps U to Y)
 **Purpose of this file:** a complete record of where the project stands, so a brand-new chat session (or a new laptop, or you after a long break) can pick up without any other context. It is written in plain language on purpose. Read it top to bottom once, then use the section headings to jump around.
+
+**Current state (15 Nov 2026): the project is complete.** All steps of the plan in D43 are done except the user study, which was dropped (D48). The Streamlit app runs the r3b_safe setup (D44), traces every question to Langfuse (D45), and has `.env.example`, pinned packages and a GitHub Actions workflow (D46). The final held-out run was done once, at the commit tagged `final-v1` (D47): r3b_safe **20.67 / 30 strict (68.9%)** and **21.33 / 30 answer score (71.1%)**; v2b on the same day 19.33 (64.4%) and 19.67 (65.6%); means of 3 runs; all 7 predictions confirmed. The gain over the base is small (+1.33 strict, less than the 2-point spread between single runs). Nothing is planned. Possible future work, all optional: a LangGraph wrapper around the loop, UTC timestamps (O15), an ex-a re-run on the loop.
 
 **Owner:** Vishnu (M.Sc. Data and Knowledge Engineering, OVGU Magdeburg)
 **Project folder on laptop:** `/Users/deepaktalwar/Desktop/text-to-SQL`
-**Companion files in that folder:** `README.md` (still an empty template), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D43), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
+**Companion files in that folder:** `README.md` (written 14 Nov; updated 15 Nov with the app, CI and the final held-out result), `PROJECT.md` (long design document; header date 3 Aug, but section 7 now just points to `DECISIONS.md`), `DECISIONS.md` (all decisions, D1 to D48), `gold_set_smard.yaml` (the exam, 84 questions), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 few-shot examples)
 
 ---
 
@@ -178,14 +180,14 @@ Mental model: a new analyst on their first day. Smart, but has never seen this d
 | 2 | Schema catalog (table/column notes) | Built; catalog v2b is the current base (section 8, Steps H to L) |
 | 3 | Example bank (about 30 question/SQL pairs, retrieved by similarity) | Built (30 pairs, D30). The two example rows ex-a and ex-b were tested and dropped (D31, D32); they get re-run on top of the loop (section 13) |
 | 4 | Query writer (the AI call) | Built as the naive version |
-| 5 | Validator (sqlglot AST check plus `EXPLAIN` dry run) | Not started |
+| 5 | Validator (sqlglot AST check plus `EXPLAIN` dry run) | Done as walls 1 and 2 of the safe runner (D41) |
 | 6 | Retry loop | Built and measured as rows R1 to R3b (D34, D37, D38, D39): error retry, empty-result retry, decline review, system decline for proven-empty periods. Best configuration: R3b, 61.67 / 84 (`grader/agent_loop.py`, `grader/date_facts.py`, `grader/run_r3b.py`). The shared runner, the safe runner and the answer score are done (D40 steps 2 to 4) |
-| 7 | Safe runner (read-only role, statement timeout, row cap) | Grader side done (`grader_ro`, SELECT only, 30 s timeout, TEMP revoked; the grader runs through it). Live agent runner not started |
-| 8 | Presenter (chart from result shape, written answer, SQL always visible) | Not started |
+| 7 | Safe runner (read-only role, statement timeout, row cap) | Grader side done (`grader_ro`, SELECT only, 30 s timeout, TEMP revoked; the grader runs through it). The app runs every query through the safe runner (D41, D44) |
+| 8 | Presenter (chart from result shape, written answer, SQL always visible) | Done: the Streamlit app (D44, section 8 Step U) |
 | 9 | Evaluation harness | Done and working |
-| 10 | Tracing (Langfuse) | Not started |
+| 10 | Tracing (Langfuse) | Done, in the app only (D45, section 8 Step V) |
 
-Build order: grader, naive agent, schema catalog, example bank (built; the example rows ex-a and ex-b were tested and dropped), execute-check-refine loop (R1 to R3b done), then the order of D40: conservative date finder (done), one shared runner, safe runner, answer-correctness score, ex-a re-run on the loop, Streamlit flow, final held-out run and README with the ablation table (section 13).
+Build order: grader, naive agent, schema catalog, example bank (built; the example rows ex-a and ex-b were tested and dropped), execute-check-refine loop (R1 to R3b done), then the order of D40: conservative date finder (done), one shared runner, safe runner, answer-correctness score, ex-a re-run on the loop, Streamlit flow, final held-out run and README with the ablation table (section 13). All of it is done except the ex-a re-run, which is optional future work (sections 8 Steps U to X and 13).
 
 **Tech stack:** PostgreSQL 16 in Docker, Python and pandas for loading, sqlglot for validation, LangGraph for orchestration, Streamlit for UI, Langfuse for tracing, YAML plus a Python grader for the benchmark, GitHub Actions for CI.
 
@@ -506,6 +508,53 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 **Date finder made conservative (D40 step 1, 5 Nov).** An external review found that the old finder read `NOT (zeitpunkt >= '2026-07-01')` as "July 2026 onward", which could trigger a wrong system decline. `find_periods_in_sql` now returns a period only when it fully understands every condition on zeitpunkt: comparisons of the bare column (optionally table-qualified or cast to DATE) with date literals, BETWEEN, and EXTRACT(YEAR|MONTH FROM zeitpunkt) = n, as direct parts of a WHERE clause joined by AND. Anything else (NOT, OR, CASE, other functions such as DATE_TRUNC, HAVING, JOIN ON, subqueries inside expressions, set operations, differing periods in CTEs, unparseable SQL) returns `UNKNOWN`, and `empty_fact_decision` then does not fire. Because JOIN ON counts, a query that joins on zeitpunkt never fires the system decline. 42 date-finder tests (new ones for each unknown shape and for the three u_08 SQL variants of R3b) and all 94 offline tests pass. Dry run on the 30 saved empty results of R2, R3 and R3b: no decision changed (u_08 still fires, t4_03 does not): `results/date_finder_fix_check_2026-11-05.md`. The decline review (text reasons) is unchanged.
 
+
+### Step U: The app (D44, 15 Nov 2026)
+
+**What:** A Streamlit page (`app/streamlit_app.py`) that only draws the result of one function, `answer_question(question)` in `app/answer.py`. That function runs exactly `grader/configs/r3b_safe.yaml` through the same loop, prompt builder and safe runner as an exam run; everything is imported from the grader, nothing is copied, and a config without the safe runner is refused. Every attempt (at most 3) is shown with its SQL and outcome. A rewrite after an empty result is shown as a warning ("Check that the new query still answers your question"), and "No rows match this question." is shown only when every attempt is empty. The page also has charts chosen from the result shape (`app/charts.py`), units shown only when a column clearly comes from `mwh` or `preis_eur_mwh` (`app/units.py`, fail closed), one cell formatter for the table and the summary (`app/format.py`), six example questions from the exam, none from the held-out set (`app/examples.yaml`), and a footnote that times are German local time (O15). Answers are kept in session state, so only the Ask button calls the model.
+**AI summary** (`app/summary.py`, outside the measured path): one sentence from a second call to the same pinned model, only for answered results with 1 to 50 rows. It is hidden unless every number in it appears in the table, the column names or the question, and unless it passes a banned-word list and a length limit. The list was narrowed after "quarter-hour" and the German article "ein" would have hidden ordinary sentences; a banned word that also appears in the question is allowed. A later fix (found in the first real Langfuse check, where the summary for t1_01 was only the number): no summary for single-value results, and a summary under 4 words is hidden. **Known limit:** the number check proves that no number is invented, not that each number is attached to the right label.
+**Checks:** an equivalence test against `run.py` on 5 exam questions passes (same attempts, same final SQL). Manual check of the 6 example questions: single value with unit, bar and line charts, units in headers, the no-data message, the model's decline, and no new model call when the details panel is opened.
+**Commits:** 0adfb25 (step 3a, the core function), 541a7ad (3b, formatter and summary), 0b287c0 (banned-word fix), 15a637c (3c, the page), 8ecd4fd (summary fix). The hashes quoted in D44 and D45 (7306328, 79fa4b8, f286a24, c4af6b1, 3d41e8f) and every older hash in this file are from before the history was rewritten on 15 Nov to remove the co-author line from the commit messages; the first five match 0adfb25, 541a7ad, 15a637c, 8d8ba74 and 3ee09d2.
+
+### Step V: Langfuse tracing in the app (D45, 15 Nov 2026)
+
+**What:** `app/tracing.py`. One trace per question in Langfuse Cloud (EU region, free plan) with a step for each model call, each safety check and SQL run, each loop decision, and the summary with its number check; at most 50 result rows go into a trace. Tracing wraps the two functions `answer_question` already hands to the loop, so `agent_loop.py` and `run.py` are unchanged and exam runs are never traced (a test checks that `run.py` cannot load the tracing module). Keys are read from `.env` (`LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_BASE_URL`; the deprecated `LANGFUSE_HOST` is still accepted). It fails open: without keys, or when Langfuse errors, the app answers exactly as before and shows "tracing off"; the safety walls still fail closed. The page has "Was this answer right? Yes / No" buttons under every result; a click saves the score `user_says_correct`, keeps a local copy in `app_data/feedback.jsonl` (not in git), and never calls the model. Each browser tab gets a session id. `langfuse==5.2.0`.
+**Follow-up:** each step now has its real duration (it starts before the call and ends after it), the buttons moved under every result, and the setting moved to `LANGFUSE_BASE_URL`.
+**Real check (15 Nov, after restarting the app):** one example question gave one trace with 7 steps (model call 2.1 s, safety check and run 0.1 s, loop decision, summary model call 0.9 s, number check), the session id, the git commit, and the score `user_says_correct` = 1. Before the restart no app traces arrived: the app had been started before the keys were in `.env`, and its tracer is created once per app process, so **the app must be restarted after `.env` changes**.
+**Known limits:** the SDK only queues a score, so a click can be lost if Langfuse is unreachable (the local copy keeps it); the status tag reaches only the steps created after the answer is known.
+**Commits:** 8d8ba74 (tracing, feedback score, session id), 3ee09d2 (real durations, feedback on every result, `LANGFUSE_BASE_URL`).
+
+### Step W: Easy setup and CI (D46, 15 Nov 2026)
+
+**What:** `.env.example` lists every environment variable the code reads, with a comment each and placeholder values only (a test checks that every variable the code reads is listed and that no value looks like a real key). Every direct dependency in `requirements.txt` is pinned with `==`, checked by a clean install in a fresh Python 3.12 virtual environment. Tests that need the full SMARD database are marked `@needs_db` (`grader/tests/_db.py`) and are skipped only when `SKIP_DB_TESTS=1` is set; without that variable they run and fail if the database is down. `.github/workflows/tests.yml` runs on every push and pull request, with no secrets, and sets `SKIP_DB_TESTS=1`, so it runs only the tests that need neither the database nor an API. The README says to restart the app after changing `.env`.
+**Result:** CI ran 224 of 338 tests when this step was done (the other 114 need the database and run locally); after the step 6 tests were added it runs 256 of 373 (D46 update, README has the current count).
+**Commit:** 33a106a.
+
+### Step X: The final held-out run (D47, 15 Nov 2026)
+
+**Preparation (commit 9cbcfd0, no API call):** answer columns for the held-out items drafted by the same written rules as the exam's (`results/answer_columns_rules_2026-11-06.md`), blind to every held-out result: `grader/answer_columns_heldout.yaml`, 27 entries (the 3 tier-0 items have no SQL), no label_only column. The gold SQL graded against itself passes 30 of 30 under both comparators. `grader/freeze.py` (SHA-256 of 26 files that affect a score; `write` and `check`), `grader/final_run.py` (refuses to start unless the freeze check passes, the tracked files are unchanged, HEAD is the commit tagged `final-v1`, the prediction is approved, and no output file of the day exists; has a `--dry-run`), and the prediction `results/final_heldout_prediction.md`, committed before any API call.
+**Run:** after the prediction was approved (5b1a99d), the freeze was written and committed (ab80ac6, tag `final-v1`). The run took place 15 Nov, 23:23 to 23:30: r3b_safe and v2b, 3 runs each, `gpt-4o-2024-08-06`, same day, no API failure, no repeated run; the freeze check passed before and after. Results commit 6c95101; report `results/final_heldout_2026-11-15.md` (totals and counts only; no question text, ids or SQL).
+
+| Setup (mean of 3 runs) | Strict | Answer score | Tier 0 (of 3) | Tier 1 (of 10) | Tier 2 (of 10) | Tier 3 (of 5) | Tier 4 (of 2) |
+|---|---|---|---|---|---|---|---|
+| r3b_safe, strict | **20.67 / 30 (68.9%)** (runs 20, 22, 20) | | 3.00 | 10.00 | 6.00 | 1.33 | 0.33 |
+| r3b_safe, answer score | | **21.33 / 30 (71.1%)** (runs 21, 23, 20) | 3.00 | 10.00 | 6.67 | 1.33 | 0.33 |
+| v2b same day, strict | 19.33 / 30 (64.4%) (runs 20, 18, 20) | | 2.00 | 10.00 | 5.67 | 1.67 | 0.00 |
+| v2b same day, answer score | | 19.67 / 30 (65.6%) (runs 20, 19, 20) | 2.00 | 10.00 | 6.00 | 1.67 | 0.00 |
+
+- **The strict score carried over** (68.9% on new questions against 71.4% on the exam); **the answer score did not** (71.1% against 80.6%).
+- **The gain over the base is small:** +1.33 strict, less than the spread between single runs (2 points for each setup). +1.00 of it is tier 0: r3b_safe passed 9 of 9 tier-0 attempts (3 through the system decline), v2b 6 of 9 (3 missed declines). Whether these were the same question each time was not checked, since only totals are reported.
+- **Strict failures summed over the 3 runs:** r3b_safe 28 (8 wrong shape, 17 wrong values, 3 false declines), v2b 32 (6 wrong shape, 20 wrong values, 3 SQL errors, 3 missed declines). The loop removed all SQL errors but declined an answerable question 3 times across the runs.
+- **The system decline fired** only on tier 0 (3 times). **0 queries were blocked** by the safe runner, at any wall, in either setup. Tiers 3 and 4: r3b_safe 1.67 of 7.
+- **The answer score added 0.67 over strict** here, against 7.67 on the exam.
+- **All 7 predictions were confirmed** (the check is at the end of the report).
+- **Cost** $0.46 ($0.2424 r3b_safe, $0.2165 v2b). Fingerprints: r3b_safe `fp_7c2c459cd0`, `fp_e665f1271d`; v2b those two and `fp_4c910a9acf`.
+**Afterwards:** README and D47 updated with the result (da60094), then a wording fix so the text claims only what the totals show (08f8fbf). Any change from now on is labelled "after the final held-out run".
+
+### Step Y: No user study (D48, 15 Nov 2026)
+
+**Decision:** Step 7 of D43 (a small user study with 3 to 5 people) is not done; the project ends with the final held-out run. Vishnu's choice. The README says plainly that the app has not been tested with users ("No user testing" in the limitations) and marks step 7 "Not done" in the roadmap. The Yes / No buttons and session ids stay in the app and collect feedback; no study was run. The project's claims rest on the exam and the held-out run.
+
 ---
 
 ## 9. Specific cases still open from the runs so far
@@ -526,7 +575,7 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ## 10. Decisions made
 
-**All decisions now live in `DECISIONS.md` (D1 to D43), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) the two example rows ex-a and ex-b (D31, D32) and the narrower decline rule df (D33).
+**All decisions now live in `DECISIONS.md` (D1 to D48), and `PROJECT.md` section 7 points there.** The earlier list of "still to add" decisions has been written in (D12 to D27). Add new decisions there as they are made, one at a time. The latest ones record the v2 series (D23, D25 to D27), the t2_25 gold fix (D24), the house style (D28), the held-out set (D29), the example bank (D30) the two example rows ex-a and ex-b (D31, D32) and the narrower decline rule df (D33). Since 14 Nov: the app (D44), Langfuse tracing (D45), easy setup and CI (D46), the final held-out run (D47) and the decision not to run a user study (D48).
 
 **Principles that came out of the work** (also at the end of `DECISIONS.md`):
 - The grader must exist and be validated before any agent code.
@@ -553,10 +602,10 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 | O10 | No "ambiguous, ask back" category | Open, optional. Natural examples: t1_22 ("midday") and t2_25 ("rank" without a direction) (section 9) |
 | O11 | Read-only DB role | **Grader side done, live agent runner open.** `grader_ro` exists and the grader uses it (section 4). Still to build: the agent's own safe runner |
 | O12 | Duplicate DST timestamps and primary key | **Resolved.** Surrogate `id` key; the 12 duplicates are stored. Still be careful in gaps-and-islands queries on changeover days |
-| O13 | No held-out set | **Built.** `heldout_smard.yaml`, 30 items, leak-checked and re-frozen (D29). Starting point for v2b: 19.33 / 30. Still open: the one final held-out run, after the last row, for the README numbers. Do not look at per-question results before then |
+| O13 | No held-out set | **Built.** `heldout_smard.yaml`, 30 items, leak-checked and re-frozen (D29). Starting point for v2b: 19.33 / 30. **Final run done 15 Nov 2026 (D47):** r3b_safe 20.67 / 30 strict, 21.33 answer score; v2b the same day 19.33 / 19.67 (section 8, Step X) |
 | O14 | Invented declines | Open. With the decline option the model sometimes declines with a false reason ("no data for 2025", "no information about the day of the week"). Seen in v2a, v2c, v2b2, ex-a (35 wrong declines over 3 runs) and ex-b (51). Not explained by how similar the examples are to the question (Step Q). Planned fix at the validator stage: check whether a decline's reason is true and, if not, send the question back. df (prompt rewording, D33): 30 false declines, -8.67; next: check the decline reason against the database after a decline. |
 | O15 | Daylight-saving duplicate timestamps | Open (limitation, D43). 12 of 105,300 timestamps occur twice (the repeated hour in October); a join on `zeitpunkt` between two tables can multiply those rows. Proper fix: store a UTC instant next to the local time; until then it is listed as a limitation. See O12 for how the duplicates are stored |
-| O16 | An empty result can be a correct answer | Open (D43). Rewriting the query after an empty result can change the question. The empty-result retry stays in the exam rows (no gold answer is empty) but must be checked again for the app; the app should show "no rows match" instead of silently rewriting |
+| O16 | An empty result can be a correct answer | Open (D43). Rewriting the query after an empty result can change the question. The empty-result retry stays in the exam rows (no gold answer is empty) but must be checked again for the app; the app should show "no rows match" instead of silently rewriting. **Handled in the app (D44, Step U):** a rewrite after an empty result is shown with both queries, and "No rows match" appears only when every attempt is empty |
 
 **Note on old logs:** logs from before 24 Oct store the agent's SQL only for failed questions (see Step F). Nothing can be recovered about the SQL of questions that passed in those runs.
 
@@ -573,21 +622,21 @@ Before writing any new questions or examples, the conventions hidden in the 84 g
 
 ---
 
-## 13. What to do next (in order)
+## 13. What is left (nothing is required)
 
-Order from D43 (second external review, 14 Nov 2026). Done so far from D40: conservative date finder (5 Nov), shared runner (6 Nov), safe runner (6 Nov, measured as r3b_safe), answer-correctness score (6 Nov, D42).
+The plan of D43 (second external review, 14 Nov 2026) is finished. Status of its seven steps:
 
-1. **label_only matching requires meaning** (keyword lists per gold label), re-grade. **Done 14 Nov 2026 (D43):** `grader/answer_columns.yaml` has `label_meanings` (drafted blind), `grader/answer_comparator.py` translates each agent label to a gold label and compares the numbers row by row, tests added (the swapped weekday/weekend case now fails), re-grade `results/answer_score_regrade_v2_2026-11-14.md`: 0 of 3,528 verdicts changed.
-2. **Rewrite the README** with the honest current state.
-3. **Streamlit app:** question, SQL, result, chart, short explanation; honest "no rows match" and "no data" messages.
-4. **Langfuse tracing** in the app.
-5. **Easy setup:** `.env.example`, pinned packages, CI running the offline tests.
-6. **Freeze code and scoring, then the final held-out run** (answer columns for the held-out items marked blind first), with per-tier results.
-7. **Small user study** (3 to 5 people, fixed tasks, completion and time).
+1. **label_only matching requires meaning:** done 14 Nov (D43; re-grade `results/answer_score_regrade_v2_2026-11-14.md`: 0 of 3,528 verdicts changed).
+2. **README with the honest current state:** done 14 Nov, updated 15 Nov (app, CI, final held-out result, limitations).
+3. **Streamlit app:** done 15 Nov (D44, Step U).
+4. **Langfuse tracing in the app:** done 15 Nov (D45, Step V).
+5. **Easy setup: `.env.example`, pinned packages, CI:** done 15 Nov (D46, Step W).
+6. **Freeze code and scoring, then the final held-out run:** done 15 Nov (D47, Step X): r3b_safe 20.67 / 30 strict (68.9%), 21.33 answer score (71.1%); v2b the same day 19.33 / 19.67.
+7. **Small user study:** not done, dropped (D48, Step Y). The README says the app was never tested with users.
 
-Optional at the end: LangGraph as a thin wrapper around the existing loop (proven equivalent by the equivalence tests; it would not change any answer); ex-a re-run on top of the loop (was D40 step 5, no longer a priority: under the answer score the examples gain little); UTC timestamps (O15); ex-b re-run, self-consistency voting, second-opinion check for false declines.
+**Possible future work (all optional, none planned):** LangGraph as a thin wrapper around the existing loop (proven equivalent by the equivalence tests; it would not change any answer); UTC timestamps (O15); an ex-a re-run on top of the loop (was D40 step 5; under the answer score the examples gain little); ex-b re-run and self-consistency voting; a second-opinion check for false declines (O14).
 
-**Also worth deciding later:** whether to relax the column-count rule (D19), adding German-language questions that avoid the schema words (O8), and an "ask back" behaviour for ambiguous questions (O10: t1_22, t2_25).
+**Also worth deciding if the project is ever reopened:** whether to relax the column-count rule (D19), adding German-language questions that avoid the schema words (O8), and an "ask back" behaviour for ambiguous questions (O10: t1_22, t2_25). Any change made after the final held-out run must be labelled "after the final held-out run" (D47).
 
 ---
 
@@ -621,8 +670,12 @@ The answer score (D42, `grader/answer_comparator.py`, required columns in `grade
 | Configuration | Mean of 3 runs, temp 0 | Per tier (mean) |
 |---|---|---|
 | v2b (starting point) | 19.33 / 30 (64.4%) | tier 0: 2.00, tier 1: 10.00, tier 2: 6.00, tier 3: 1.33, tier 4: 0.00 |
+| **Final run, 15 Nov 2026 (D47): r3b_safe**, strict | **20.67 / 30 (68.9%)** | tier 0: 3.00, tier 1: 10.00, tier 2: 6.00, tier 3: 1.33, tier 4: 0.33 |
+| Final run: r3b_safe, answer score | 21.33 / 30 (71.1%) | tier 0: 3.00, tier 1: 10.00, tier 2: 6.67, tier 3: 1.33, tier 4: 0.33 |
+| Final run: v2b (same day), strict | 19.33 / 30 (64.4%) | tier 0: 2.00, tier 1: 10.00, tier 2: 5.67, tier 3: 1.67, tier 4: 0.00 |
+| Final run: v2b (same day), answer score | 19.67 / 30 (65.6%) | tier 0: 2.00, tier 1: 10.00, tier 2: 6.00, tier 3: 1.67, tier 4: 0.00 |
 
-The first starting-point run on the first freeze (18.67 / 30) is superseded. Measured only at the start and at the end; per-question results are not looked at. The final run is still to do.
+The first starting-point run on the first freeze (18.67 / 30) is superseded. Measured only at the start and at the end; per-question results are not looked at. The final run was done on 15 Nov 2026 (section 8, Step X; report `results/final_heldout_2026-11-15.md`).
 
 Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL rate: 80 to 81 out of 84 for schema-linked, 74 to 75 for the decline runs (not comparable, because declines count as no SQL). Latency and tokens are only recorded from 24 Oct on: the decline runs average 1.08 s, 521 prompt and 56 completion tokens per question; v2b averages 1.48 s and 629 prompt tokens; ex-a 1.09 s and 1624 prompt tokens; ex-b 1.16 s and 978 prompt tokens. Still to fill in: retry rate, p95 latency, cost per query. Remember the noise level (section 8, notes): differences of about 1 point between rows are not meaningful.
 
@@ -630,7 +683,7 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 ## 15. Files and logs map
 
-**Project folder:** `README.md` (empty template), `PROJECT.md`, `DECISIONS.md`, `PROJECT_PROGRESS.md` (this file), `gold_set_smard.yaml` (exam), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 examples), `docker-compose.yml`, `.env` (not committed), `.gitignore`, `requirements.txt`, `package.json`.
+**Project folder:** `README.md`, `.env.example`, `.github/workflows/tests.yml` (CI), `PROJECT.md`, `DECISIONS.md`, `PROJECT_PROGRESS.md` (this file), `gold_set_smard.yaml` (exam), `heldout_smard.yaml` (30 held-out questions), `example_bank.yaml` (30 examples), `docker-compose.yml`, `.env` (not committed), `.gitignore`, `requirements.txt`, `package.json`.
 **Folders:** `data/raw/` (not committed), `data/new/` (samples), `scripts/` (loaders and sanity checks), `grader/`, `sql/`, `results/`.
 **Grader and agent files, all in `grader/`:** `loader.py`, `executor.py`, `comparator.py`, `run_grader.py`; `naive_agent.py` (the one function that calls the API, shared by all setups), `prompt_template.py`, `run_baseline.py`; `schema_catalog.py`, `catalog_retriever.py`, `prompt_template_schema_linked.py`, `run_schema_linked.py`; `prompt_template_decline.py`, `run_schema_linked_decline.py`, `result_logging.py`.
 **The v2 series, in `grader/` (all new files, nothing earlier was edited):**
@@ -659,6 +712,10 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - `requirements.txt` now also pins scikit-learn, sqlglot and tiktoken
 
 **`sql/`:** `create_grader_role.sql` (the read-only role; fixed and tested on 26 Oct, safe to re-run).
+**The app and the final run (15 Nov 2026, Steps U to X):**
+- **`app/`:** `answer.py` (`answer_question`), `summary.py`, `format.py`, `charts.py`, `units.py`, `examples.yaml`, `streamlit_app.py` (run with `streamlit run app/streamlit_app.py`), `tracing.py` (Langfuse, fail open), `feedback.py` (local copy of each Yes / No click in `app_data/feedback.jsonl`, not in git), `tests/` (offline tests, fake model and fake tracers).
+- **In `grader/`:** `answer_columns_heldout.yaml` (answer columns of the held-out items), `freeze.py` (`write` and `check`), `final_run.py` (`--dry-run`, the real run), `tests/_db.py` (`needs_db`, `SKIP_DB_TESTS=1`), `tests/test_answer_columns_heldout.py`, `tests/test_freeze.py`, `tests/test_final_run.py`. `heldout_smard.yaml`, the configs, the prompts, the loop and the comparators were not changed.
+
 **Result logs in `results/`:**
 - `baseline_naive_2026-08-05.log` (first naive run, 46/84)
 - `schema_linked_2026-10-20.log` (the bad x4 run, 35/84, keep it)
@@ -682,6 +739,8 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 - `r3_run{1,2,3}_2026-11-02.log` and `.jsonl`, `r3_prediction_2026-11-02.md`, `date_facts_dryrun_2026-11-02.md`, `analysis_r3_vs_r2_2026-11-02.md` (R3, Step T)
 - `r3b_run{1,2,3}_2026-11-05.log` and `.jsonl` (the `.jsonl` has the full attempt list and `system_declined` per question), `r3b_prediction_2026-11-02.md`, `analysis_r3b_vs_r3_2026-11-05.md` (R3b, current best), `date_finder_fix_check_2026-11-05.md` (old vs conservative finder on all saved empty results)
 - `_stdout_decline_t0.txt`, `_stdout_v2a_t0.txt`, `_stdout_v2b_t0.txt`, `_stdout_v2c_t0.txt`, `_stdout_v2b2_t0.txt`, `_stdout_exa.txt`, `_stdout_exb.txt`, `_stdout_df_run3.txt`, `_stdout_df_runs12_crashed_run3.txt`, `_stdout_r1.txt` (raw console output of those runs); similar `_stdout_*` files exist for the earlier runs
+
+- **Final held-out run (D47):** `final_heldout_prediction.md` (approved before the run), `freeze_final-v1.json` (SHA-256 of 26 files, python and package versions), `final_heldout_2026-11-15.md` (the report: totals and counts only, with the prediction check), and for each of r3b_safe and v2b the files of runs 1 to 3 (`.log`, `.jsonl`, `.manifest.json`, dated 2026-11-15; the `.jsonl` files hold per-question records and are not looked at)
 
 **What to commit:** loader scripts, grader, benchmark YAML, one small sample CSV, README with attribution. **Never commit:** `data/raw/`, `.env`, credentials. The repository exists and is on GitHub (private); see section 12, item 6.
 
@@ -707,4 +766,4 @@ Supporting metrics: accuracy per tier is in each step of section 8. Valid-SQL ra
 
 Paste this as your first message in the new chat, and attach this file (and `DECISIONS.md`):
 
-> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D43). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Every row is reported with two scores: strict (the result must match the gold exactly) and answer (the required answer columns of `grader/answer_columns.yaml` with the right values; extra columns allowed; made-up category labels must mean the gold label, D42 and D43). Over 3 runs at temperature 0, strict / answer: naive baseline 46.0 / not re-graded, schema-linked 46.7 / not re-graded, plus decline option 55.3 / 58.0, catalog v2b 60.7 / 65.7 (fresh re-run 60.0 / 66.3), R3b 61.67 / 68.00. **The best setup is r3b_safe: the v2b prompt, an execute-check-refine loop (error retry, empty-result retry, decline review, and a system decline when the SQL's period is proven to have no rows; D39) and the safe runner, four walls in front of every agent query (D41). It scored 60.00 strict / 67.67 answer, the same as R3b within noise (61.67 / 68.00), with 0 blocked queries in 3 runs.** The loop adds about +1 strict point on the exam, from u_08 (July 2026, no data); the rest is run-to-run noise (2 to 4 points per run). Rows tested and dropped: v2c, v2b2 (wording), ex-a and ex-b (examples: little gain under the answer score, many false declines), df (narrower decline rule, D33). Prompt-wording work has stopped; the prompt stays v2b. A held-out set of 30 questions exists (v2b starting point 19.33/30), used again only for the final run (answer columns for those items to be marked blind first), per-tier totals only. Done from D40: conservative date finder, shared runner (`grader/run.py`, configs, manifests), safe runner, answer score, and the label fix (D43 step 1). Next steps (D43, in order): (2) rewrite the README with the honest current state; (3) Streamlit app (question, SQL, result, chart, short explanation; honest "no rows match" and "no data" messages); (4) Langfuse tracing in the app; (5) easy setup (.env.example, pinned packages, CI running the offline tests); (6) freeze code and scoring, then the final held-out run; (7) small user study (3 to 5 people). Optional at the end: LangGraph as a thin wrapper around the loop (proven equivalent by the equivalence tests), ex-a re-run on the loop, UTC timestamps. Open items from the second review: O15 (daylight-saving duplicate timestamps can multiply rows in joins on zeitpunkt) and O16 (an empty result can be a correct answer, so the app must not silently rewrite the query). Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
+> I'm continuing my text-to-SQL project on German electricity data (SMARD). The attached PROJECT_PROGRESS.md has the full state and DECISIONS.md has all decisions (D1 to D48). Short version: the grader works (exam of 84 questions, self-test 84/84, read-only role) and the project is in a private GitHub repo. Every row is reported with two scores: strict (the result must match the gold exactly) and answer (the required answer columns of `grader/answer_columns.yaml` with the right values; extra columns allowed; made-up category labels must mean the gold label, D42 and D43). Over 3 runs at temperature 0, strict / answer: naive baseline 46.0 / not re-graded, schema-linked 46.7 / not re-graded, plus decline option 55.3 / 58.0, catalog v2b 60.7 / 65.7 (fresh re-run 60.0 / 66.3), R3b 61.67 / 68.00. **The best setup is r3b_safe: the v2b prompt, an execute-check-refine loop (error retry, empty-result retry, decline review, and a system decline when the SQL's period is proven to have no rows; D39) and the safe runner, four walls in front of every agent query (D41). It scored 60.00 strict / 67.67 answer, the same as R3b within noise (61.67 / 68.00), with 0 blocked queries in 3 runs.** The loop adds about +1 strict point on the exam, from u_08 (July 2026, no data); the rest is run-to-run noise (2 to 4 points per run). Rows tested and dropped: v2c, v2b2 (wording), ex-a and ex-b (examples: little gain under the answer score, many false declines), df (narrower decline rule, D33). Prompt-wording work has stopped; the prompt stays v2b. A held-out set of 30 questions was run once at the commit tagged `final-v1` (D47, after a prediction was committed): r3b_safe 20.67 / 30 strict and 21.33 answer score, v2b the same day 19.33 / 19.67 (means of 3 runs; per-tier totals only; the gain over v2b is small and within run-to-run noise). Done from D40: conservative date finder, shared runner (`grader/run.py`, configs, manifests), safe runner, answer score, and the label fix (D43 step 1). Then, from D43: the README, the Streamlit app (D44), Langfuse tracing in the app (D45), easy setup and CI (D46) and the final held-out run (D47) are done; the user study was dropped (D48). **The project is complete; nothing is planned.** Possible future work, all optional: LangGraph as a thin wrapper around the loop (proven equivalent by the equivalence tests), ex-a re-run on the loop, UTC timestamps. Open items from the second review (still open, as limitations): O15 (daylight-saving duplicate timestamps can multiply rows in joins on zeitpunkt) and O16 (an empty result can be a correct answer, so the app must not silently rewrite the query). Please do not show or ask me to paste held-out question text. Explain things in plain language and small chunks, and write commands I can paste into Claude Code.
