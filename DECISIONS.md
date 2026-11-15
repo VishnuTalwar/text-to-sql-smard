@@ -1,5 +1,7 @@
 Design decisions, in the order they were made. Each entry: the decision, why, and evidence if any.
 
+**Note on commit hashes:** on 15 Nov 2026 the git history was rewritten to remove co-author lines, so every commit made before then has a new hash. Hashes quoted in D1 to D46 are from before the rewrite and no longer exist on GitHub; find those commits by their message or date. Hashes in D47 and later are current. File fingerprints (SHA-256, for example in D29 and results/freeze_final-v1.json) are not affected.
+
 ## D1. Long format, not wide
 **Decision:** Long format, not wide.
 **Why:** Cross-source comparison becomes one clean query instead of an unwritable one
